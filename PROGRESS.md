@@ -10,9 +10,8 @@ Keep it short. This is a status board, not a diary.
 ## Current state
 
 **Phase:** 1 — Live site
-**Status:** The public site renders from the CMS. Layout, blocks, the ANBI page, the 404,
-sitemap and robots are done. `/contact` and `/doneren` are the remaining routes and both
-need a decision first.
+**Status:** All six phase 1 routes are built. The remaining work before launch is content,
+a privacy statement, a database migration and a Lighthouse pass — not features.
 
 Getting started is unchanged from `README.md`: `docker compose up -d`, `pnpm install`,
 `pnpm dev`. The database starts empty, so `/admin` opens the "Eerste gebruiker" screen and
@@ -38,6 +37,8 @@ the first account you create becomes an administrator automatically.
 - Routes: `/` (home), `/<slug>` for CMS pages, `/anbi`, and a branded 404 at any depth
 - `sitemap.xml`, `robots.txt`, Open Graph tags and title templates
 - `src/i18n/` for interface strings, so no Dutch is hardcoded in a component
+- `/contact` with a working form, storing name, email and message and nothing else
+- `/doneren` in the agreed disabled state, with no inert form controls
 
 Verified on a rebuilt database: `pnpm dev` runs, `/admin` loads, the first user is created
 and becomes an administrator, the public routes render from the CMS, and `pnpm build`,
@@ -50,12 +51,13 @@ database stopped, which is the situation in GitHub Actions.
 
 ## Next up
 
-1. `/contact` — needs a decision, see below. The page itself already works as a CMS page;
-   what is missing is the form.
-2. `/doneren` — needs a decision, see below
-3. Cookieless analytics — needs a decision, see below
-4. Lighthouse pass on mobile once there is real content to measure
-5. A real database migration before the first deployment
+1. **Write the privacy statement.** This is a launch blocker, see below.
+2. Fill in Instellingen and create the pages: `home`, `over-ons`, `contact`, `doneren`,
+   `privacyverklaring`. The site is empty until someone does.
+3. Rate limiting on the contact form at the Caddy layer
+4. A real database migration, `pnpm payload migrate:create`, before the first deployment
+5. Lighthouse pass on mobile once there is real content to measure
+6. Deployment: Caddy, GitHub Actions, backups
 
 ## Needs a decision before it can be finished
 
@@ -71,15 +73,21 @@ database stopped, which is the situation in GitHub Actions.
       whether a minimal published checkbox is wanted before launch.
 - [ ] **`Donations` is not modelled yet.** `ARCHITECTURE.md` lists it in the phase 1
       content model; it was not in this session's scope and waits for the Mollie work.
-- [ ] **The contact form is not built.** It collects personal data, which `CLAUDE.md`
-      says to ask about first. It also needs an entry in the processing register in
-      `samenzin-ict` before it goes live, and spam handling that does not involve a
-      third-party tracker.
-- [ ] **`/doneren` is not built.** It touches payments, which `CLAUDE.md` says to ask
-      about first, and Mollie cannot be registered until the bank account exists.
-- [ ] **No analytics yet.** `ARCHITECTURE.md` asks for cookieless aggregate analytics.
-      Every option is a second service in the deployment, which `CLAUDE.md` says to ask
-      about first.
+- [ ] **The privacy statement does not exist. This blocks launch.** The contact form now
+      collects personal data and links to `/privacyverklaring`, which returns 404 until
+      someone creates a page with that slug. Do not put the contact form in front of the
+      public before that page exists. The text has to describe what the foundation
+      actually does with the data, so it cannot be written from the code.
+- [ ] **The contact form needs a processing register entry** in `samenzin-ict` before it
+      goes live, including how long messages are kept. Nothing deletes them automatically.
+- [ ] **Contact messages are visible to administrators only.** If a volunteer with the
+      editor role is meant to answer them, that needs a deliberate decision, because the
+      messages contain personal data.
+- [ ] **The contact form has no rate limiting.** A honeypot stops ordinary bots but not
+      somebody determined. Caddy can rate-limit the route without adding a service.
+- [ ] **Analytics deliberately skipped.** Neither the ANBI application nor Google for
+      Nonprofits needs it, and every option adds a service to the deployment. Revisit
+      after launch.
 - [ ] **Social media icons are text labels, not brand icons.** `lucide-react` 1.x removed
       every brand icon for trademark reasons. The mockup draws icons; shipping the marks
       ourselves means taking on their licensing.
@@ -112,6 +120,10 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-06 | `/anbi` is a fixed route, not a CMS page | Dutch tax law prescribes the fields, so a volunteer should not be able to omit or reorder them. `anbi` is a reserved slug so a page cannot shadow it. |
 | 2026-09-06 | `robots.ts` and `sitemap.ts` live at `src/app`, outside the route group | Inside the group the catch-all answered `/robots.txt` first and served an HTML 404. |
 | 2026-09-06 | A gold button inside the gold call-to-action band is remapped to green | Gold on gold is invisible and an editor has no way to see that from the admin panel. |
+| 2026-09-06 | The contact form stores name, email and message and nothing else | ARCHITECTURE.md asks for the minimum. No IP address, user agent or referrer: what is not collected cannot leak. |
+| 2026-09-06 | Contact submissions are closed to public creation; the form writes through a server action with access overridden | Nothing can be inserted by posting at the REST endpoint, and validation cannot be bypassed. |
+| 2026-09-06 | Spam is handled with a honeypot, not a CAPTCHA | reCAPTCHA and hCaptcha are third-party trackers. CLAUDE.md rule 4 rules them out, and they would force a cookie banner. |
+| 2026-09-06 | `/doneren` ships with no amount picker at all, rather than inert controls | Drawing the form from the mockup and leaving it dead would waste the goodwill of someone who came to give. |
 
 ## Notes for whoever is next
 
@@ -130,3 +142,9 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
   component needs a Dutch word, it goes in the locale file (`CLAUDE.md` rule 5).
 - There is no seed script. A fresh database gives an empty site; create a page with the
   slug `home` and fill in Instellingen to see the layout with content.
+- `/anbi`, `/contact` and `/doneren` are fixed routes. Each still renders the blocks of a
+  CMS page with the matching slug above its own content, so an editor can add an
+  introduction without touching code.
+- The honeypot constant lives in its own module, not in `actions.ts`. A `'use server'`
+  file may only export async functions; exporting it from there left it undefined on the
+  client, so the field rendered with no name and the check never fired.
