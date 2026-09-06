@@ -22,6 +22,29 @@ export const nl = {
   emptyHomeBody:
     'Er is nog geen pagina met het adres "home". Maak die aan in het beheerpaneel om deze homepagina te vullen.',
   emptyHomeAction: 'Naar het beheerpaneel',
+  // The ANBI page. These are the headings the Belastingdienst expects to see,
+  // so they are interface labels rather than something an editor rewords.
+  anbiTitle: 'ANBI-gegevens',
+  anbiIntro:
+    'Op deze pagina publiceren wij de gegevens die de Belastingdienst van een algemeen nut beogende instelling verlangt.',
+  anbiStatutoryName: 'Statutaire naam',
+  anbiRsin: 'RSIN',
+  anbiKvk: 'KVK-nummer',
+  anbiContact: 'Contactgegevens',
+  anbiEmail: 'E-mailadres',
+  anbiPhone: 'Telefoonnummer',
+  anbiAddress: 'Postadres',
+  anbiObjective: 'Doelstelling',
+  anbiPolicyPlan: 'Beleidsplan',
+  anbiPolicyPlanDocument: 'Download het beleidsplan',
+  anbiRemuneration: 'Beloningsbeleid',
+  anbiBoard: 'Bestuurssamenstelling',
+  anbiAnnualReports: 'Verslagen en financiële verantwoording',
+  anbiActivityReport: 'Verslag van de activiteiten',
+  anbiFinancialStatement: 'Financiële verantwoording',
+  anbiDocuments: 'Documenten',
+  anbiFinancialYear: 'Boekjaar',
+
   notFoundTitle: 'Deze pagina bestaat niet',
   notFoundBody:
     'De pagina die u zoekt is verplaatst of bestaat niet meer. Ga terug naar de homepagina om verder te zoeken.',
