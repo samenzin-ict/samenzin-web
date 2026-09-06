@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     pages: Page;
     media: Media;
+    'contact-submissions': ContactSubmission;
     users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -79,6 +80,7 @@ export interface Config {
   collectionsSelect: {
     pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -298,6 +300,24 @@ export interface Media {
   };
 }
 /**
+ * Berichten die via het contactformulier zijn binnengekomen. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions".
+ */
+export interface ContactSubmission {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  /**
+   * Vink aan zodra iemand op dit bericht heeft gereageerd.
+   */
+  handled?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Accounts voor het beheerpaneel. Beheerders kunnen gebruikers toevoegen en rollen wijzigen.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -360,6 +380,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'contact-submissions';
+        value: number | ContactSubmission;
       } | null)
     | ({
         relationTo: 'users';
@@ -540,6 +564,18 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions_select".
+ */
+export interface ContactSubmissionsSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  message?: T;
+  handled?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
@@ -624,6 +660,10 @@ export interface SiteSetting {
   logo?: (number | null) | Media;
   email?: string | null;
   phone?: string | null;
+  /**
+   * Bijvoorbeeld: maandag tot en met vrijdag, 9.00 tot 17.00 uur. Eén regel per dag. Optioneel.
+   */
+  openingHours?: string | null;
   /**
    * De stichting is op meerdere plaatsen actief. Voeg elke locatie toe.
    */
@@ -860,6 +900,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   logo?: T;
   email?: T;
   phone?: T;
+  openingHours?: T;
   addresses?:
     | T
     | {

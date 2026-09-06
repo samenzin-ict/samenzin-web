@@ -22,6 +22,26 @@ export const nl = {
   emptyHomeBody:
     'Er is nog geen pagina met het adres "home". Maak die aan in het beheerpaneel om deze homepagina te vullen.',
   emptyHomeAction: 'Naar het beheerpaneel',
+  // The contact page and its form.
+  contactFormHeading: 'Stuur ons een bericht',
+  contactNameLabel: 'Naam',
+  contactEmailLabel: 'E-mailadres',
+  contactMessageLabel: 'Bericht',
+  contactSubmit: 'Verstuur bericht',
+  contactSubmitting: 'Bezig met versturen…',
+  contactSuccess: 'Bedankt voor uw bericht. We nemen zo snel mogelijk contact met u op.',
+  contactErrorGeneric: 'Uw bericht kon niet worden verstuurd. Probeer het later opnieuw.',
+  contactErrorName: 'Vul uw naam in.',
+  contactErrorEmail: 'Vul een geldig e-mailadres in.',
+  contactErrorMessage: 'Vul uw bericht in.',
+  contactRequired: 'verplicht',
+  contactPrivacyNotice:
+    'Wij gebruiken uw naam en e-mailadres alleen om op uw bericht te reageren. Lees hoe wij met uw gegevens omgaan in onze privacyverklaring.',
+  contactPrivacyLink: 'privacyverklaring',
+  contactErrorSummary: 'Uw bericht is niet verstuurd:',
+  contactOpeningHours: 'Openingstijden',
+  contactAddresses: 'Adressen',
+
   // The ANBI page. These are the headings the Belastingdienst expects to see,
   // so they are interface labels rather than something an editor rewords.
   anbiTitle: 'ANBI-gegevens',

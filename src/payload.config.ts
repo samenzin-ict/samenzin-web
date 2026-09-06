@@ -7,6 +7,7 @@ import { nl } from '@payloadcms/translations/languages/nl'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
+import { ContactSubmissions } from './collections/ContactSubmissions'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Users } from './collections/Users'
@@ -78,7 +79,7 @@ export default buildConfig({
    * across upgrades for two groups; docs/design/README.md asks for the
    * information architecture, not a pixel-exact rebuild.
    */
-  collections: [Pages, Media, Users],
+  collections: [Pages, Media, ContactSubmissions, Users],
   globals: [SiteSettings, AnbiGegevens],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

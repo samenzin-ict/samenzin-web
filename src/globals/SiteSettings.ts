@@ -74,6 +74,16 @@ export const SiteSettings: GlobalConfig = {
               label: 'Telefoonnummer',
             },
             {
+              name: 'openingHours',
+              type: 'textarea',
+              localized: true,
+              label: 'Openingstijden',
+              admin: {
+                description:
+                  'Bijvoorbeeld: maandag tot en met vrijdag, 9.00 tot 17.00 uur. Eén regel per dag. Optioneel.',
+              },
+            },
+            {
               name: 'addresses',
               type: 'array',
               label: 'Adressen',
