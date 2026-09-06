@@ -204,6 +204,53 @@ export interface Page {
             blockType: 'richText';
           }
         | {
+            /**
+             * Bijvoorbeeld: Onze projecten.
+             */
+            heading: string;
+            items?:
+              | {
+                  title: string;
+                  description?: string | null;
+                  image?: (number | null) | Media;
+                  /**
+                   * Waar de link onder de kaart naartoe gaat. Laat leeg voor geen link.
+                   */
+                  url?: string | null;
+                  /**
+                   * Bijvoorbeeld: Lees meer.
+                   */
+                  linkLabel?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'featuredItems';
+          }
+        | {
+            heading: string;
+            items?:
+              | {
+                  date: string;
+                  title: string;
+                  location?: string | null;
+                  /**
+                   * Klein label rechts, bijvoorbeeld Gratis of € 45. Optioneel.
+                   */
+                  badge?: string | null;
+                  /**
+                   * Waar de activiteit naartoe linkt. Optioneel.
+                   */
+                  url?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'agenda';
+          }
+        | {
             heading: string;
             text?: string | null;
             links?:
@@ -469,6 +516,40 @@ export interface PagesSelect<T extends boolean = true> {
           | T
           | {
               content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        featuredItems?:
+          | T
+          | {
+              heading?: T;
+              items?:
+                | T
+                | {
+                    title?: T;
+                    description?: T;
+                    image?: T;
+                    url?: T;
+                    linkLabel?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        agenda?:
+          | T
+          | {
+              heading?: T;
+              items?:
+                | T
+                | {
+                    date?: T;
+                    title?: T;
+                    location?: T;
+                    badge?: T;
+                    url?: T;
+                    id?: T;
+                  };
               id?: T;
               blockName?: T;
             };

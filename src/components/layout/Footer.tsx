@@ -43,7 +43,7 @@ export async function Footer() {
   return (
     <footer className="bg-primary text-primary-foreground">
       <Container className="py-12 md:py-16">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div className="space-y-3">
             <p className="font-heading text-lg">{settings.organisationName}</p>
             {settings.footerIntro ? (

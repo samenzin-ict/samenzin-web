@@ -1,3 +1,5 @@
+export { Agenda } from './Agenda'
 export { CallToAction } from './CallToAction'
+export { FeaturedItems } from './FeaturedItems'
 export { Hero } from './Hero'
 export { RichText } from './RichText'

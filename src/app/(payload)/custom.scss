@@ -1,0 +1,74 @@
+/*
+ * Brand colours for the admin panel.
+ *
+ * docs/design/09-admin-panel-dashboard.png shows the panel in the foundation's
+ * colours: a deep green navigation on a light ground. Payload generates the
+ * panel itself, and docs/design/README.md is explicit that the screen is the
+ * information architecture to follow rather than a layout to rebuild, so this
+ * restyles what Payload renders instead of replacing it.
+ *
+ * The palette is loaded from the same file the public site uses, so a colour
+ * still lives in exactly one place. load-css inlines it; a plain @import would
+ * emit a runtime request for a path that is not served.
+ */
+@use 'sass:meta';
+@include meta.load-css('../../styles/brand.css');
+
+html[data-theme='light'] {
+  /*
+   * Payload builds its greys from --color-base-0 (lightest) to
+   * --color-base-1000 (darkest). Tinting the scale towards the brand green is
+   * what makes the panel feel part of the same site rather than recoloured in
+   * places.
+   */
+  --color-base-0: #ffffff;
+  --color-base-50: var(--brand-cream);
+  --color-base-100: #eeece4;
+  --color-base-150: #e2e0d6;
+  --color-base-200: #d5d3c8;
+  --color-base-800: #1d4a44;
+  --color-base-850: #164039;
+  --color-base-900: #12403a;
+  --color-base-1000: var(--brand-forest);
+
+  --theme-success-500: var(--brand-teal);
+}
+
+/* The navigation, in the deep green from the mockup. */
+.nav {
+  background: var(--brand-forest);
+
+  .nav__link,
+  .nav-group__toggle,
+  .nav__controls button,
+  .nav__label {
+    color: var(--brand-cream);
+  }
+
+  /* Group headings sit quieter than the links beneath them. */
+  .nav-group__label {
+    color: color-mix(in srgb, var(--brand-cream) 65%, transparent);
+  }
+
+  .nav__link:hover,
+  .nav__link--active {
+    background: color-mix(in srgb, var(--brand-teal) 70%, transparent);
+    color: var(--brand-white);
+  }
+}
+
+/* The primary action, in the gold used for calls to action on the site. */
+.btn--style-primary {
+  --btn-color: var(--brand-forest);
+
+  background-color: var(--brand-gold);
+  border-color: var(--brand-gold);
+  color: var(--brand-forest);
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--brand-gold-hover);
+    border-color: var(--brand-gold-hover);
+    color: var(--brand-forest);
+  }
+}

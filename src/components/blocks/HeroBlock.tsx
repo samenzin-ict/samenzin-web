@@ -41,11 +41,11 @@ export function HeroBlock({
       <Container className="py-12 md:py-20">
         <div className="grid items-center gap-10 md:grid-cols-2">
           <div className="space-y-6">
-            <h1 className="font-heading text-3xl leading-tight text-primary-foreground sm:text-4xl md:text-5xl">
+            <h1 className="font-heading text-3xl leading-tight text-balance text-primary-foreground sm:text-4xl md:text-5xl">
               {heading}
             </h1>
             {intro ? <p className="max-w-prose text-lg opacity-90">{intro}</p> : null}
-            <BlockLinks links={links} />
+            <BlockLinks links={links} onDark />
           </div>
 
           {media?.url ? (
@@ -55,13 +55,15 @@ export function HeroBlock({
               width={media.width ?? 800}
               height={media.height ?? 600}
               /*
-               * The hero is the largest thing above the fold, so it is the
-               * Largest Contentful Paint on most pages. Loading it eagerly is
-               * what keeps the performance budget in CLAUDE.md reachable.
+               * Not shown on a phone, as in docs/design/03-homepage-mobile.png.
+               * Combined with lazy loading this means a phone never downloads
+               * it at all: browsers skip lazy images that are display:none.
+               * Mobile first is the rule (CLAUDE.md rule 7), and the heading
+               * is the better thing to paint first there anyway.
                */
-              priority
-              sizes="(min-width: 768px) 50vw, 100vw"
-              className="h-auto w-full rounded-lg"
+              loading="lazy"
+              sizes="(min-width: 768px) 50vw, 0px"
+              className="hidden h-auto w-full rounded-lg md:block"
             />
           ) : null}
         </div>
@@ -70,11 +72,15 @@ export function HeroBlock({
       {hasStats ? (
         <div className="bg-accent text-accent-foreground">
           <Container className="py-5">
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 md:flex md:flex-wrap md:items-baseline md:gap-x-12">
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 md:flex md:flex-wrap md:items-center md:gap-x-0">
               {stats?.map((stat) => (
-                <div key={stat.id ?? stat.label}>
+                <div
+                  key={stat.id ?? stat.label}
+                  // Separators between the figures, as in the mockup.
+                  className="md:border-l md:border-accent-foreground/25 md:px-8 md:first:border-l-0 md:first:pl-0"
+                >
                   {stat.value ? (
-                    <dt className="font-heading text-2xl leading-tight">{stat.value}</dt>
+                    <dt className="font-heading text-2xl leading-tight md:text-3xl">{stat.value}</dt>
                   ) : null}
                   <dd className="text-sm opacity-90">{stat.label}</dd>
                 </div>

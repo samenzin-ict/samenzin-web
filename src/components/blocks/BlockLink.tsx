@@ -33,9 +33,17 @@ const variantForStyle = {
 export function BlockLinks({
   links,
   onCta = false,
+  onDark = false,
 }: {
   links?: BlockLinkData[] | null
   onCta?: boolean
+  /*
+   * Set by blocks sitting on the deep green. The outline button is white
+   * filled by default, which on a dark ground reads as a solid block rather
+   * than the light outline the mockup draws, so it becomes a ghost outline
+   * instead.
+   */
+  onDark?: boolean
 }) {
   if (!links || links.length === 0) return null
 
@@ -46,6 +54,11 @@ export function BlockLinks({
           key={link.id ?? link.url}
           asChild
           variant={variantForStyle[onCta && link.style === 'cta' ? 'primary' : link.style]}
+          className={
+            onDark && link.style === 'outline'
+              ? 'border-primary-foreground bg-transparent text-primary-foreground hover:bg-primary-foreground/10'
+              : undefined
+          }
         >
           <Link href={link.url}>{link.label}</Link>
         </Button>

@@ -1,4 +1,6 @@
+import { AgendaBlock } from '@/components/blocks/AgendaBlock'
 import { CallToActionBlock } from '@/components/blocks/CallToActionBlock'
+import { FeaturedItemsBlock } from '@/components/blocks/FeaturedItemsBlock'
 import { HeroBlock } from '@/components/blocks/HeroBlock'
 import { RichTextBlock } from '@/components/blocks/RichTextBlock'
 import type { Page } from '@/payload-types'
@@ -28,6 +30,12 @@ function RenderBlock({ block }: { block: Block }) {
 
     case 'richText':
       return <RichTextBlock content={block.content} />
+
+    case 'featuredItems':
+      return <FeaturedItemsBlock heading={block.heading} items={block.items} />
+
+    case 'agenda':
+      return <AgendaBlock heading={block.heading} items={block.items} />
 
     case 'callToAction':
       return <CallToActionBlock heading={block.heading} text={block.text} links={block.links} />

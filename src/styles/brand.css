@@ -1,0 +1,30 @@
+/*
+ * The board-approved palette from docs/design/README.md.
+ *
+ * Single source of truth for colour. Two stylesheets read it: the public site
+ * through Tailwind in src/app/(frontend)/globals.css, and the admin panel
+ * through src/app/(payload)/custom.scss. Payload's admin does not use
+ * Tailwind, so without this file the six values would have to be written twice.
+ *
+ * Change a colour here and nowhere else.
+ */
+:root {
+  /* --- Approved palette ------------------------------------------------ */
+  --brand-forest: #0b3b36; /* Diep bosgroen */
+  --brand-teal: #14655c; /* Teal */
+  --brand-gold: #cba24a; /* Warm goud */
+  --brand-cream: #f7f4ed; /* Crème */
+  --brand-white: #ffffff; /* Wit */
+  --brand-gray: #555555; /* Gedempt grijs */
+
+  /*
+   * --- Derived tints ---------------------------------------------------
+   * Not in the approved palette. Interpolated from the hover and border
+   * states drawn in docs/design/01-design-system.png because those states
+   * need concrete values. Confirm with the media commission.
+   */
+  --brand-gold-hover: #b38f41; /* Gold button, hover */
+  --brand-forest-hover: #14655c; /* Forest button, hover (the approved teal) */
+  --brand-mist: #dfe7e4; /* Tertiary button hover fill, progress track */
+  --brand-line: #e4ded2; /* Hairline borders on crème */
+}

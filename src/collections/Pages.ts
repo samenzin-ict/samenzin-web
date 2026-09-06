@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { isAdminOrEditor, isPublic } from '@/access'
-import { CallToAction, Hero, RichText } from '@/blocks'
+import { Agenda, CallToAction, FeaturedItems, Hero, RichText } from '@/blocks'
 import { formatSlug } from '@/fields/slug'
 
 /**
@@ -77,7 +77,7 @@ export const Pages: CollectionConfig = {
         singular: 'Blok',
         plural: 'Blokken',
       },
-      blocks: [Hero, RichText, CallToAction],
+      blocks: [Hero, RichText, FeaturedItems, Agenda, CallToAction],
       admin: {
         description: 'Bouw de pagina op uit blokken. Sleep om de volgorde te wijzigen.',
       },

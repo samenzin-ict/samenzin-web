@@ -43,6 +43,10 @@ the first account you create becomes an administrator automatically.
 - Rate limiting on the contact form, five per caller per ten minutes, IP never stored
 - The initial database migration, covering all 34 tables
 - A production Dockerfile and a CI workflow that lints, type checks and builds
+- Two more blocks, Kaartenrij and Agenda, so the homepage matches the approved mockup
+- `pnpm seed` fills an empty database with obviously fake demo content
+- The admin panel carries the brand colours; the palette now lives in one file that both
+  the public site and the admin read
 
 Verified on a rebuilt database: `pnpm dev` runs, `/admin` loads, the first user is created
 and becomes an administrator, the public routes render from the CMS, and `pnpm build`,
@@ -103,7 +107,8 @@ database stopped, which is the situation in GitHub Actions.
 - [ ] KVK number and RSIN for the ANBI page
 - [ ] Board members: names and roles for the ANBI page
 - [ ] Logo and final font sign-off from the media commission
-- [ ] Canonical domain: `.org` or `.nl`
+- [ ] Container registry and VPS: not arranged yet, so CI builds the image but cannot
+      push or deploy
 
 ## Decisions taken during implementation
 
@@ -133,6 +138,9 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-06 | The rate limiter hashes the caller's IP and keeps only the hash, in memory | ARCHITECTURE.md asks the contact form to keep the minimum. An address we cannot reverse is the least we can work with while still counting requests. |
 | 2026-09-06 | `push` is on in development and off in production | A deploy then makes exactly the schema change that was reviewed, and it can be rolled back. |
 | 2026-09-06 | The container does not run migrations on start | A failed migration should stop a deploy, not restart-loop the live site. |
+| 2026-09-06 | Canonical domain is `samenzin.org` | The `.org` is bought; `.nl` was not taken. This is the value for `NEXT_PUBLIC_SERVER_URL` at build time. |
+| 2026-09-06 | Homepage projects and agenda are blocks, not collections | Projecten and Agenda are phase 2. A curated row on the homepage is not, and blocks let the mockup be reproduced without pulling the content platform forward. |
+| 2026-09-06 | The palette moved to `src/styles/brand.css` | The admin panel does not use Tailwind, so branding it would have meant writing the six approved values a second time. |
 | 2026-09-06 | CI builds without a database | Every public route is force-dynamic, so the build must not need PostgreSQL. CI fails instead of the deploy if that changes. |
 
 ## Notes for whoever is next
@@ -150,8 +158,14 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
   pointing at the admin panel rather than a 404.
 - Interface strings live in `src/i18n/locales/nl.ts`. Content lives in the CMS. If a
   component needs a Dutch word, it goes in the locale file (`CLAUDE.md` rule 5).
-- There is no seed script. A fresh database gives an empty site; create a page with the
-  slug `home` and fill in Instellingen to see the layout with content.
+- `pnpm seed` fills an empty database with obviously fake demo content, including a
+  placeholder privacy statement that says in capitals that it must not go live. It never
+  touches users, so nobody's admin account is lost. Demo content only: never run it
+  against production, and it refuses to when NODE_ENV is production.
+- The admin panel will not look like `docs/design/09-admin-panel-dashboard.png`. Payload
+  generates it, and `docs/design/README.md` asks for the information architecture rather
+  than a rebuild. The grouping, the Dutch labels and the brand colours match; the
+  dashboard widgets in the mockup are phase 2 and 4 reporting.
 - `/anbi`, `/contact` and `/doneren` are fixed routes. Each still renders the blocks of a
   CMS page with the matching slug above its own content, so an editor can add an
   introduction without touching code.

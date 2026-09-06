@@ -2,40 +2,21 @@
 @import 'tw-animate-css';
 
 /*
+ * The approved palette. Shared with the admin panel, which cannot read
+ * Tailwind's stylesheet, so the six values live in one file and are read by
+ * both.
+ */
+@import '../../styles/brand.css';
+
+/*
  * Design tokens for the public site.
  *
- * The six brand colours below are the board-approved palette from
- * docs/design/README.md and are the single source of truth for colour.
- * Components must never contain a colour literal: use a semantic token
- * (bg-primary, text-foreground, bg-cta, ...) so a colour is changed here
- * and nowhere else.
- *
- * Values are kept as the approved hex codes rather than converted to oklch,
- * so they can be compared against the board document by eye.
- *
- * The admin panel is styled by Payload and does not read this file.
+ * The brand colours come from src/styles/brand.css. Components must never
+ * contain a colour literal: use a semantic token (bg-primary, text-foreground,
+ * bg-cta, ...) so a colour is changed in one place and nowhere else.
  */
 
 :root {
-  /* --- Approved palette ------------------------------------------------ */
-  --brand-forest: #0b3b36; /* Diep bosgroen */
-  --brand-teal: #14655c; /* Teal */
-  --brand-gold: #cba24a; /* Warm goud */
-  --brand-cream: #f7f4ed; /* Crème */
-  --brand-white: #ffffff; /* Wit */
-  --brand-gray: #555555; /* Gedempt grijs */
-
-  /*
-   * --- Derived tints ---------------------------------------------------
-   * Not in the approved palette. Interpolated from the hover and border
-   * states drawn in docs/design/01-design-system.png because those states
-   * need concrete values. Confirm with the media commission.
-   */
-  --brand-gold-hover: #b38f41; /* Gold button, hover */
-  --brand-forest-hover: #14655c; /* Forest button, hover (the approved teal) */
-  --brand-mist: #dfe7e4; /* Tertiary button hover fill, progress track */
-  --brand-line: #e4ded2; /* Hairline borders on crème */
-
   /* --- Semantic tokens -------------------------------------------------
    * shadcn/ui reads these. Map roles to the palette above; never restate a
    * hex code here.
