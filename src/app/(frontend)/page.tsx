@@ -22,9 +22,11 @@ const HOME_SLUG = 'home'
 export async function generateMetadata(): Promise<Metadata> {
   const [page, settings] = await Promise.all([getPageBySlug(HOME_SLUG), getSiteSettings()])
 
-  if (!page) return { title: settings.organisationName }
+  const siteTitle = [settings.organisationName, settings.tagline].filter(Boolean).join(' — ')
 
-  return buildPageMetadata({ page, settings })
+  if (!page) return { title: { absolute: siteTitle } }
+
+  return buildPageMetadata({ page, settings, fallbackTitle: siteTitle })
 }
 
 export default async function HomePage() {

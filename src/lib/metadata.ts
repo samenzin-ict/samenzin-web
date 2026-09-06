@@ -12,17 +12,29 @@ import type { Media, Page, SiteSetting } from '@/payload-types'
 export function buildPageMetadata({
   page,
   settings,
+  fallbackTitle,
 }: {
   page: Pick<Page, 'title' | 'meta'>
   settings: Pick<SiteSetting, 'organisationName' | 'tagline'>
+  /*
+   * Used by the homepage, whose own title is usually "Home". That is a useless
+   * search result and a useless share preview, so the homepage passes the
+   * organisation name and tagline instead. Only applies when the editor has
+   * not entered an explicit SEO title.
+   */
+  fallbackTitle?: string
 }): Metadata {
-  const title = page.meta?.title || page.title
+  const title = page.meta?.title || fallbackTitle || page.title
   const description = page.meta?.description || settings.tagline || undefined
   const image = typeof page.meta?.image === 'object' ? (page.meta.image as Media | null) : null
   const ogImage = image?.sizes?.og?.url ?? image?.url
 
   return {
-    title,
+    /*
+     * Absolute, so the layout's "%s — organisation name" template does not
+     * append the organisation name to a title that already ends with it.
+     */
+    title: fallbackTitle && !page.meta?.title ? { absolute: title } : title,
     description,
     openGraph: {
       title,

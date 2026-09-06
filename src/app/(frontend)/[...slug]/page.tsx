@@ -8,7 +8,18 @@ import { getPageBySlug, getSiteSettings } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
 
-type Params = { params: Promise<{ slug: string }> }
+type Params = { params: Promise<{ slug: string[] }> }
+
+/*
+ * A catch-all rather than a single segment, so a URL of any depth still lands
+ * inside this route group and gets the site's own 404 with header and footer.
+ * With a single-segment route, /een/twee/drie fell through to Next's built-in
+ * error page, which carries none of the branding.
+ *
+ * Pages are one segment deep, so anything longer is not a page.
+ */
+const resolveSlug = (segments: string[]): string | null =>
+  segments.length === 1 ? segments[0] : null
 
 /*
  * Slugs the CMS must not take over, because a dedicated route already answers
@@ -19,7 +30,11 @@ const RESERVED_SLUGS = new Set(['home', 'admin', 'api', 'anbi'])
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params
-  const [page, settings] = await Promise.all([getPageBySlug(slug), getSiteSettings()])
+  const resolved = resolveSlug(slug)
+
+  if (!resolved) return {}
+
+  const [page, settings] = await Promise.all([getPageBySlug(resolved), getSiteSettings()])
 
   if (!page) return {}
 
@@ -28,10 +43,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function ContentPage({ params }: Params) {
   const { slug } = await params
+  const resolved = resolveSlug(slug)
 
-  if (RESERVED_SLUGS.has(slug)) notFound()
+  if (!resolved || RESERVED_SLUGS.has(resolved)) notFound()
 
-  const page = await getPageBySlug(slug)
+  const page = await getPageBySlug(resolved)
 
   if (!page) notFound()
 

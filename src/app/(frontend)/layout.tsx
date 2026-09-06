@@ -1,12 +1,37 @@
 import React from 'react'
+import type { Metadata } from 'next'
 
 import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
 import { StickyDonateBar } from '@/components/layout/StickyDonateBar'
 import { sansBody, serifHeading } from '@/fonts'
 import { defaultLocale, getMessages } from '@/i18n'
+import { getSiteSettings } from '@/lib/payload'
+import { getSiteUrl } from '@/lib/site-url'
 
 import './globals.css'
+
+/**
+ * Site-wide defaults every page inherits.
+ *
+ * metadataBase is what turns the relative Open Graph image paths coming out of
+ * the CMS into the absolute URLs that social platforms require. The title
+ * template appends the organisation name, so a page only has to supply its own
+ * title and the name is never hardcoded.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings()
+  const name = settings.organisationName
+
+  return {
+    metadataBase: new URL(getSiteUrl()),
+    title: {
+      default: name ? `${name}${settings.tagline ? ` — ${settings.tagline}` : ''}` : '',
+      template: name ? `%s — ${name}` : '%s',
+    },
+    description: settings.tagline ?? undefined,
+  }
+}
 
 /*
  * Root layout for the public site. The font variables are attached here so
