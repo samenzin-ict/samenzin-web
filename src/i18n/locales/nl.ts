@@ -22,6 +22,15 @@ export const nl = {
   emptyHomeBody:
     'Er is nog geen pagina met het adres "home". Maak die aan in het beheerpaneel om deze homepagina te vullen.',
   emptyHomeAction: 'Naar het beheerpaneel',
+  // The donation page. Shipped without a payment step until Mollie exists.
+  donateTitle: 'Steun ons werk',
+  donateUnavailableTitle: 'Doneren via de website is binnenkort mogelijk',
+  donateUnavailableBody:
+    'We ronden de laatste stappen af om online doneren mogelijk te maken. Wilt u nu al bijdragen? Neem dan contact met ons op, dan helpen we u graag verder.',
+  donateUnavailableAction: 'Neem contact op',
+  donateAnbiNote:
+    'Wij hebben ANBI-status in aanvraag. Zodra deze is toegekend, is uw gift fiscaal aftrekbaar.',
+
   // The contact page and its form.
   contactFormHeading: 'Stuur ons een bericht',
   contactNameLabel: 'Naam',
