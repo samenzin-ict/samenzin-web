@@ -90,6 +90,16 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
     },
+    /*
+     * Push the schema straight to the database in development, so a change to
+     * a collection shows up without a migration for every experiment.
+     *
+     * Never in production. There a deploy runs the reviewed migrations in
+     * src/migrations, so the change made to the live database is exactly the
+     * one that was read in the pull request, and it can be rolled back.
+     */
+    push: process.env.NODE_ENV !== 'production',
+    migrationDir: path.resolve(dirname, 'migrations'),
   }),
   sharp,
   plugins: [],
