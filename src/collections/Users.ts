@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { isAdmin, isAdminFieldLevel, isAdminOrEditor, isAdminOrSelf } from '@/access'
+
 /**
  * Admin panel accounts.
  *
@@ -22,12 +24,45 @@ export const Users: CollectionConfig = {
     plural: 'Gebruikers & rollen',
   },
   auth: true,
+  access: {
+    // Who may open the admin panel at all.
+    admin: isAdminOrEditor,
+    create: isAdmin,
+    delete: isAdmin,
+    // Editors may see and edit themselves, so they can change their password.
+    read: isAdminOrSelf,
+    update: isAdminOrSelf,
+  },
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'email', 'role'],
     group: 'Systeem',
     description:
       'Accounts voor het beheerpaneel. Beheerders kunnen gebruikers toevoegen en rollen wijzigen.',
+  },
+  hooks: {
+    beforeChange: [
+      /**
+       * Make the very first account an administrator.
+       *
+       * Without this the first user would be created with the default editor
+       * role and nobody could ever administer the site, because only an
+       * administrator can change a role.
+       */
+      async ({ data, operation, req }) => {
+        if (operation !== 'create') return data
+
+        const { totalDocs } = await req.payload.count({
+          collection: 'users',
+          overrideAccess: true,
+          req,
+        })
+
+        if (totalDocs > 0) return data
+
+        return { ...data, role: 'admin' }
+      },
+    ],
   },
   fields: [
     {
@@ -53,6 +88,11 @@ export const Users: CollectionConfig = {
           value: 'editor',
         },
       ],
+      access: {
+        // An editor must not be able to promote themselves. Create is left
+        // open so the first-user bootstrap above can set it.
+        update: isAdminFieldLevel,
+      },
       admin: {
         description:
           'Beheerder: volledige toegang, inclusief gebruikers en instellingen. Redacteur: alleen inhoud bewerken.',
