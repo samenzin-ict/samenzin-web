@@ -30,6 +30,23 @@ The admin panel is at `/admin`. On first run it asks you to create the first use
 | `pnpm payload migrate:create` | Create a database migration |
 | `pnpm payload migrate` | Apply migrations |
 
+## Production image
+
+```bash
+docker build -t samenzin-web --build-arg NEXT_PUBLIC_SERVER_URL=https://example.org .
+```
+
+`NEXT_PUBLIC_SERVER_URL` is inlined into the bundle at build time, not read when
+the container starts, so it has to be passed as a build argument. Get it wrong and
+canonical URLs, the sitemap and the Open Graph images all point at the wrong host.
+
+At run time the container needs `DATABASE_URI` and `PAYLOAD_SECRET`. Mount a volume
+over `/app/media` or uploaded files disappear with the container.
+
+The image does not run migrations on start, on purpose: a failed migration should
+stop a deploy rather than restart-loop the live site. Run `pnpm payload migrate` as
+a deploy step before the new container takes over.
+
 ## Documentation
 
 | Read | For |

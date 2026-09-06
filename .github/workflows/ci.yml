@@ -1,0 +1,68 @@
+# Checks every push and pull request.
+#
+# Deliberately no database service. Every public route is force-dynamic and the
+# schema is applied by `payload migrate` at deploy time, so the build must
+# succeed without PostgreSQL. If that ever stops being true, this job fails
+# rather than the deploy.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, types and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+        env:
+          # Not a real secret. The build needs the variable to be present, and
+          # nothing produced by this job is deployed.
+          PAYLOAD_SECRET: ci-build-only-not-a-real-secret
+          NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+
+  docker:
+    name: Container image builds
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Built but not pushed. Pushing to a registry and deploying over SSH
+      # needs the registry, the host and the canonical domain to be decided
+      # first; see the open questions in PROGRESS.md.
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

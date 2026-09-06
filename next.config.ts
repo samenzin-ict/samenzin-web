@@ -7,6 +7,11 @@ const __filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
+  /*
+   * Emit a self-contained server bundle, so the production image carries only
+   * the dependencies actually used instead of the whole node_modules tree.
+   */
+  output: 'standalone',
   images: {
     localPatterns: [
       {
