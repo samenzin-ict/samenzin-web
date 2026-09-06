@@ -87,8 +87,14 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'site-settings': SiteSetting;
+    'anbi-gegevens': AnbiGegeven;
+  };
+  globalsSelect: {
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'anbi-gegevens': AnbiGegevensSelect<false> | AnbiGegevensSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -411,6 +417,319 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * Naam, logo, adressen en footer van de website.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  /**
+   * Zoals de naam op de website getoond wordt.
+   */
+  organisationName: string;
+  /**
+   * Korte zin onder of naast de naam. Optioneel.
+   */
+  tagline?: string | null;
+  /**
+   * Bij voorkeur een SVG of een PNG met transparante achtergrond.
+   */
+  logo?: (number | null) | Media;
+  email?: string | null;
+  phone?: string | null;
+  /**
+   * De stichting is op meerdere plaatsen actief. Voeg elke locatie toe.
+   */
+  addresses?:
+    | {
+        /**
+         * Bijvoorbeeld: Tilburg.
+         */
+        label: string;
+        street?: string | null;
+        postalCode?: string | null;
+        city: string;
+        id?: string | null;
+      }[]
+    | null;
+  socialLinks?:
+    | {
+        platform: 'facebook' | 'instagram' | 'linkedin' | 'youtube' | 'x';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Korte tekst over de stichting. Optioneel.
+   */
+  footerIntro?: string | null;
+  footerColumns?:
+    | {
+        title: string;
+        links?:
+          | {
+              label: string;
+              /**
+               * Een pad op deze website, zoals /over-ons, of een volledig adres.
+               */
+              url: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  copyright?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * De gegevens die de Belastingdienst verplicht stelt voor een ANBI. Alle velden zijn openbaar op de website.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "anbi-gegevens".
+ */
+export interface AnbiGegeven {
+  id: number;
+  /**
+   * De naam zoals die in de statuten en bij de KVK staat.
+   */
+  statutoryName: string;
+  /**
+   * Het RSIN of fiscaal nummer van de stichting.
+   */
+  rsin?: string | null;
+  kvkNumber?: string | null;
+  /**
+   * De contactgegevens zoals geregistreerd bij de KVK. Dit mag een postadres zijn en hoeft niet hetzelfde te zijn als het bezoekadres bij Instellingen.
+   */
+  contact?: {
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+  };
+  /**
+   * De doelstelling van de stichting, zoals omschreven in de statuten.
+   */
+  objective?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Een samenvatting van het beleidsplan, of het plan in zijn geheel.
+   */
+  policyPlan?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Optioneel. Een PDF met het volledige beleidsplan.
+   */
+  policyPlanDocument?: (number | null) | Media;
+  /**
+   * Het beloningsbeleid voor het bestuur en voor eventueel personeel. Vermeld het ook als bestuursleden onbezoldigd zijn.
+   */
+  remunerationPolicy?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Een korte toelichting op de samenstelling van het bestuur.
+   */
+  boardComposition?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * De namen en functies van de bestuursleden.
+   */
+  boardMembers?:
+    | {
+        name: string;
+        /**
+         * Bijvoorbeeld: voorzitter, secretaris, penningmeester.
+         */
+        role: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Per boekjaar het verslag van de activiteiten en de financiële verantwoording. Een ANBI moet deze jaarlijks publiceren.
+   */
+  annualReports?:
+    | {
+        year: number;
+        activityReport?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        financialStatement?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        /**
+         * Optioneel. Bijvoorbeeld de jaarrekening als PDF.
+         */
+        documents?: (number | Media)[] | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  organisationName?: T;
+  tagline?: T;
+  logo?: T;
+  email?: T;
+  phone?: T;
+  addresses?:
+    | T
+    | {
+        label?: T;
+        street?: T;
+        postalCode?: T;
+        city?: T;
+        id?: T;
+      };
+  socialLinks?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  footerIntro?: T;
+  footerColumns?:
+    | T
+    | {
+        title?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              url?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  copyright?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "anbi-gegevens_select".
+ */
+export interface AnbiGegevensSelect<T extends boolean = true> {
+  statutoryName?: T;
+  rsin?: T;
+  kvkNumber?: T;
+  contact?:
+    | T
+    | {
+        email?: T;
+        phone?: T;
+        address?: T;
+      };
+  objective?: T;
+  policyPlan?: T;
+  policyPlanDocument?: T;
+  remunerationPolicy?: T;
+  boardComposition?: T;
+  boardMembers?:
+    | T
+    | {
+        name?: T;
+        role?: T;
+        id?: T;
+      };
+  annualReports?:
+    | T
+    | {
+        year?: T;
+        activityReport?: T;
+        financialStatement?: T;
+        documents?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

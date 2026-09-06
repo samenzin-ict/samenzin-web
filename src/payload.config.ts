@@ -8,6 +8,7 @@ import sharp from 'sharp'
 
 import { Media } from './collections/Media'
 import { Users } from './collections/Users'
+import { AnbiGegevens, SiteSettings } from './globals'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -20,7 +21,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media],
-  globals: [],
+  globals: [SiteSettings, AnbiGegevens],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
