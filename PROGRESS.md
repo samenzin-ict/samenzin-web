@@ -10,8 +10,9 @@ Keep it short. This is a status board, not a diary.
 ## Current state
 
 **Phase:** 1 — Live site
-**Status:** All six phase 1 routes are built. The remaining work before launch is content,
-a privacy statement, a database migration and a Lighthouse pass — not features.
+**Status:** All six phase 1 routes are built, the initial migration exists and the
+production image builds and runs. The remaining work before launch is content, a privacy
+statement, the deployment target and a Lighthouse pass — not features.
 
 Getting started is unchanged from `README.md`: `docker compose up -d`, `pnpm install`,
 `pnpm dev`. The database starts empty, so `/admin` opens the "Eerste gebruiker" screen and
@@ -39,6 +40,9 @@ the first account you create becomes an administrator automatically.
 - `src/i18n/` for interface strings, so no Dutch is hardcoded in a component
 - `/contact` with a working form, storing name, email and message and nothing else
 - `/doneren` in the agreed disabled state, with no inert form controls
+- Rate limiting on the contact form, five per caller per ten minutes, IP never stored
+- The initial database migration, covering all 34 tables
+- A production Dockerfile and a CI workflow that lints, type checks and builds
 
 Verified on a rebuilt database: `pnpm dev` runs, `/admin` loads, the first user is created
 and becomes an administrator, the public routes render from the CMS, and `pnpm build`,
@@ -54,10 +58,10 @@ database stopped, which is the situation in GitHub Actions.
 1. **Write the privacy statement.** This is a launch blocker, see below.
 2. Fill in Instellingen and create the pages: `home`, `over-ons`, `contact`, `doneren`,
    `privacyverklaring`. The site is empty until someone does.
-3. Rate limiting on the contact form at the Caddy layer
-4. A real database migration, `pnpm payload migrate:create`, before the first deployment
+3. Decide the canonical domain, the registry and the VPS, then finish the deploy
+   workflow. The image is built in CI but not pushed, because none of those are settled.
+4. Caddy configuration and TLS, and the nightly encrypted database dump
 5. Lighthouse pass on mobile once there is real content to measure
-6. Deployment: Caddy, GitHub Actions, backups
 
 ## Needs a decision before it can be finished
 
@@ -83,8 +87,9 @@ database stopped, which is the situation in GitHub Actions.
 - [ ] **Contact messages are visible to administrators only.** If a volunteer with the
       editor role is meant to answer them, that needs a deliberate decision, because the
       messages contain personal data.
-- [ ] **The contact form has no rate limiting.** A honeypot stops ordinary bots but not
-      somebody determined. Caddy can rate-limit the route without adding a service.
+- [ ] **Rate limiting is per process and in memory.** Fine for one container on one VPS.
+      If the deployment ever runs more than one instance, each will allow the limit
+      separately and it must move to the database or in front of the application.
 - [ ] **Analytics deliberately skipped.** Neither the ANBI application nor Google for
       Nonprofits needs it, and every option adds a service to the deployment. Revisit
       after launch.
@@ -124,6 +129,11 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-06 | Contact submissions are closed to public creation; the form writes through a server action with access overridden | Nothing can be inserted by posting at the REST endpoint, and validation cannot be bypassed. |
 | 2026-09-06 | Spam is handled with a honeypot, not a CAPTCHA | reCAPTCHA and hCaptcha are third-party trackers. CLAUDE.md rule 4 rules them out, and they would force a cookie banner. |
 | 2026-09-06 | `/doneren` ships with no amount picker at all, rather than inert controls | Drawing the form from the mockup and leaving it dead would waste the goodwill of someone who came to give. |
+| 2026-09-06 | Rate limiting lives in the application, not in Caddy | Caddy has no rate limiting in a standard build, so doing it there would mean maintaining a custom Caddy image. The in-app limiter adds nothing to the deployment. |
+| 2026-09-06 | The rate limiter hashes the caller's IP and keeps only the hash, in memory | ARCHITECTURE.md asks the contact form to keep the minimum. An address we cannot reverse is the least we can work with while still counting requests. |
+| 2026-09-06 | `push` is on in development and off in production | A deploy then makes exactly the schema change that was reviewed, and it can be rolled back. |
+| 2026-09-06 | The container does not run migrations on start | A failed migration should stop a deploy, not restart-loop the live site. |
+| 2026-09-06 | CI builds without a database | Every public route is force-dynamic, so the build must not need PostgreSQL. CI fails instead of the deploy if that changes. |
 
 ## Notes for whoever is next
 
@@ -148,3 +158,8 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 - The honeypot constant lives in its own module, not in `actions.ts`. A `'use server'`
   file may only export async functions; exporting it from there left it undefined on the
   client, so the field rendered with no name and the check never fired.
+- `NEXT_PUBLIC_SERVER_URL` is inlined into the bundle at build time, not read when the
+  container starts, so it is a Docker build argument. See `README.md`.
+- After changing a collection or a global, run `pnpm payload migrate:create` and commit
+  the result. Development pushes the schema automatically, so it is easy to forget and
+  only notice on deploy.
