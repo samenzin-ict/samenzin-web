@@ -1,0 +1,24 @@
+# Local development only. Production PostgreSQL is provisioned on the VPS;
+# see the samenzin-ict repository for the deployment compose file.
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: samenzin-postgres
+    restart: unless-stopped
+    environment:
+      # Local development credentials only. Never used outside a developer machine.
+      POSTGRES_USER: samenzin
+      POSTGRES_PASSWORD: samenzin
+      POSTGRES_DB: samenzin
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U samenzin -d samenzin']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
