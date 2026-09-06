@@ -40,6 +40,8 @@ export const nl = {
   contactSubmitting: 'Bezig met versturen…',
   contactSuccess: 'Bedankt voor uw bericht. We nemen zo snel mogelijk contact met u op.',
   contactErrorGeneric: 'Uw bericht kon niet worden verstuurd. Probeer het later opnieuw.',
+  contactErrorTooMany:
+    'U heeft kort achter elkaar meerdere berichten verstuurd. Wacht een paar minuten en probeer het opnieuw.',
   contactErrorName: 'Vul uw naam in.',
   contactErrorEmail: 'Vul een geldig e-mailadres in.',
   contactErrorMessage: 'Vul uw bericht in.',

@@ -1,8 +1,11 @@
 'use server'
 
+import { headers } from 'next/headers'
+
 import { HONEYPOT_FIELD } from '@/app/(frontend)/contact/honeypot'
 import { getMessages } from '@/i18n'
 import { getPayloadClient } from '@/lib/payload'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export type ContactFormState = {
   status: 'idle' | 'success' | 'error'
@@ -17,6 +20,21 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const readField = (formData: FormData, key: string): string => {
   const value = formData.get(key)
   return typeof value === 'string' ? value.trim() : ''
+}
+
+/**
+ * Who is submitting, for rate limiting only.
+ *
+ * Caddy sets x-forwarded-for in front of the application. The value is passed
+ * straight to the limiter, which hashes it; it is never stored or logged. When
+ * no header is present every caller shares one bucket, which is stricter than
+ * intended rather than looser, and so fails safe.
+ */
+const getCallerIdentifier = async (): Promise<string> => {
+  const headerList = await headers()
+  const forwarded = headerList.get('x-forwarded-for')
+
+  return forwarded?.split(',')[0]?.trim() || headerList.get('x-real-ip') || 'unknown'
 }
 
 export async function submitContactForm(
@@ -37,6 +55,12 @@ export async function submitContactForm(
    */
   if (readField(formData, HONEYPOT_FIELD)) {
     return { status: 'success' }
+  }
+
+  const { allowed } = checkRateLimit(await getCallerIdentifier())
+
+  if (!allowed) {
+    return { status: 'error', errors: { form: messages.contactErrorTooMany }, values }
   }
 
   const errors: ContactFormState['errors'] = {}
