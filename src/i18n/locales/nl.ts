@@ -18,6 +18,10 @@ export const nl = {
   socialNavigationLabel: 'Volg ons op sociale media',
   homeLinkLabel: 'Naar de homepagina',
   contactHeading: 'Contact',
+  emptyHomeTitle: 'De website is nog niet ingericht',
+  emptyHomeBody:
+    'Er is nog geen pagina met het adres "home". Maak die aan in het beheerpaneel om deze homepagina te vullen.',
+  emptyHomeAction: 'Naar het beheerpaneel',
   notFoundTitle: 'Deze pagina bestaat niet',
   notFoundBody:
     'De pagina die u zoekt is verplaatst of bestaat niet meer. Ga terug naar de homepagina om verder te zoeken.',
