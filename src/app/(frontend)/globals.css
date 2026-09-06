@@ -1,0 +1,151 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/*
+ * Design tokens for the public site.
+ *
+ * The six brand colours below are the board-approved palette from
+ * docs/design/README.md and are the single source of truth for colour.
+ * Components must never contain a colour literal: use a semantic token
+ * (bg-primary, text-foreground, bg-cta, ...) so a colour is changed here
+ * and nowhere else.
+ *
+ * Values are kept as the approved hex codes rather than converted to oklch,
+ * so they can be compared against the board document by eye.
+ *
+ * The admin panel is styled by Payload and does not read this file.
+ */
+
+:root {
+  /* --- Approved palette ------------------------------------------------ */
+  --brand-forest: #0b3b36; /* Diep bosgroen */
+  --brand-teal: #14655c; /* Teal */
+  --brand-gold: #cba24a; /* Warm goud */
+  --brand-cream: #f7f4ed; /* Crème */
+  --brand-white: #ffffff; /* Wit */
+  --brand-gray: #555555; /* Gedempt grijs */
+
+  /*
+   * --- Derived tints ---------------------------------------------------
+   * Not in the approved palette. Interpolated from the hover and border
+   * states drawn in docs/design/01-design-system.png because those states
+   * need concrete values. Confirm with the media commission.
+   */
+  --brand-gold-hover: #b38f41; /* Gold button, hover */
+  --brand-forest-hover: #14655c; /* Forest button, hover (the approved teal) */
+  --brand-mist: #dfe7e4; /* Tertiary button hover fill, progress track */
+  --brand-line: #e4ded2; /* Hairline borders on crème */
+
+  /* --- Semantic tokens -------------------------------------------------
+   * shadcn/ui reads these. Map roles to the palette above; never restate a
+   * hex code here.
+   */
+  --radius: 0.75rem;
+
+  --background: var(--brand-cream);
+  --foreground: var(--brand-gray);
+
+  --card: var(--brand-white);
+  --card-foreground: var(--brand-gray);
+  --popover: var(--brand-white);
+  --popover-foreground: var(--brand-gray);
+
+  /* Brand primary. Hero backgrounds, footer, secondary buttons. */
+  --primary: var(--brand-forest);
+  --primary-foreground: var(--brand-white);
+  --primary-hover: var(--brand-forest-hover);
+
+  --secondary: var(--brand-white);
+  --secondary-foreground: var(--brand-forest);
+
+  /* Accent. Stats bar, active states, badges, progress fills. */
+  --accent: var(--brand-teal);
+  --accent-foreground: var(--brand-white);
+
+  /*
+   * Call to action. Donate buttons, highlights, price labels.
+   *
+   * The foreground is deep forest green, not white. White on this gold
+   * measures 2.4:1 and fails WCAG 2.1 AA; forest green measures 5.2:1 and
+   * passes. The mockups draw white here. CLAUDE.md rule 6 takes precedence,
+   * so the accessible pairing is the default. See PROGRESS.md.
+   */
+  --cta: var(--brand-gold);
+  --cta-foreground: var(--brand-forest);
+  --cta-hover: var(--brand-gold-hover);
+
+  --muted: var(--brand-mist);
+  --muted-foreground: var(--brand-gray);
+
+  --destructive: #9b2c2c;
+  --destructive-foreground: var(--brand-white);
+
+  --border: var(--brand-line);
+  --input: var(--brand-line);
+  --ring: var(--brand-teal);
+}
+
+/*
+ * Type stacks. --font-serif-heading and --font-sans-body are defined by
+ * next/font in src/app/fonts.ts; the rest of each stack is the fallback used
+ * before the self-hosted font loads.
+ */
+@theme {
+  --font-heading: var(--font-serif-heading), Georgia, 'Times New Roman', serif;
+  --font-body: var(--font-sans-body), system-ui, -apple-system, sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-cta: var(--cta);
+  --color-cta-foreground: var(--cta-foreground);
+  --color-cta-hover: var(--cta-hover);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-primary font-heading;
+  }
+
+  /* Accessibility: a visible focus ring is a requirement, not a preference. */
+  :focus-visible {
+    @apply outline-ring outline-2 outline-offset-2;
+  }
+}
