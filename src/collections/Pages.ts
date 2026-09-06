@@ -41,6 +41,7 @@ export const Pages: CollectionConfig = {
       name: 'title',
       type: 'text',
       required: true,
+      localized: true,
       label: 'Titel',
     },
     {
@@ -49,6 +50,8 @@ export const Pages: CollectionConfig = {
       required: true,
       unique: true,
       index: true,
+      // A second locale needs its own address, so the slug is localized too.
+      localized: true,
       label: 'Adres van de pagina',
       admin: {
         position: 'sidebar',
@@ -62,6 +65,13 @@ export const Pages: CollectionConfig = {
     {
       name: 'body',
       type: 'blocks',
+      /*
+       * The whole body is localized rather than each field inside it, so a
+       * second locale can lay a page out differently instead of being forced
+       * into the Dutch structure. One flag also covers every field in every
+       * block, including ones added later.
+       */
+      localized: true,
       label: 'Inhoud',
       labels: {
         singular: 'Blok',
@@ -75,6 +85,7 @@ export const Pages: CollectionConfig = {
     {
       name: 'meta',
       type: 'group',
+      localized: true,
       label: 'Vindbaarheid',
       admin: {
         position: 'sidebar',

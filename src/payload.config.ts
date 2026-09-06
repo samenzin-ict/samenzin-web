@@ -39,6 +39,32 @@ export default buildConfig({
     fallbackLanguage: 'nl',
   },
   /*
+   * Localization is switched on from day one with Dutch as the only locale.
+   *
+   * This is deliberate and is required by ROADMAP.md: turning localization on
+   * after content exists means migrating every entry, because Payload moves
+   * localized fields into separate per-locale tables. Enabling it now with one
+   * locale costs nothing and makes adding a second locale a one-line change.
+   *
+   * Which fields carry `localized: true` is the part that matters. Text a
+   * visitor reads is localized; identifiers, numbers, URLs and references are
+   * not. Adding the flag to a field later is itself a migration, so it is set
+   * now even though there is only one locale to fill in.
+   *
+   * fallback: true means a field left empty in a future locale falls back to
+   * the Dutch text rather than rendering blank.
+   */
+  localization: {
+    locales: [
+      {
+        label: 'Nederlands',
+        code: 'nl',
+      },
+    ],
+    defaultLocale: 'nl',
+    fallback: true,
+  },
+  /*
    * Sidebar grouping follows docs/design/09-admin-panel-dashboard.png:
    * Content, Mensen, Programma, Financieel, Systeem. Each collection and
    * global names its own group in admin.group. Only Content, Financieel and

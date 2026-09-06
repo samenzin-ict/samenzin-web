@@ -71,6 +71,7 @@ export const Media: CollectionConfig = {
       name: 'alt',
       type: 'text',
       required: true,
+      localized: true,
       label: 'Alternatieve tekst',
       admin: {
         description:
@@ -80,6 +81,7 @@ export const Media: CollectionConfig = {
     {
       name: 'caption',
       type: 'text',
+      localized: true,
       label: 'Bijschrift',
       admin: {
         description: 'Optioneel. Wordt zichtbaar onder de afbeelding getoond.',

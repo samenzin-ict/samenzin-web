@@ -88,7 +88,7 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  fallbackLocale: null;
+  fallbackLocale: ('false' | 'none' | 'null') | false | null | 'nl' | 'nl'[];
   globals: {
     'site-settings': SiteSetting;
     'anbi-gegevens': AnbiGegeven;
@@ -97,7 +97,7 @@ export interface Config {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     'anbi-gegevens': AnbiGegevensSelect<false> | AnbiGegevensSelect<true>;
   };
-  locale: null;
+  locale: 'nl';
   widgets: {
     collections: CollectionsWidget;
   };

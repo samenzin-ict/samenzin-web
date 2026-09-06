@@ -43,6 +43,7 @@ export const SiteSettings: GlobalConfig = {
             {
               name: 'tagline',
               type: 'text',
+              localized: true,
               label: 'Slogan',
               admin: {
                 description: 'Korte zin onder of naast de naam. Optioneel.',
@@ -88,6 +89,7 @@ export const SiteSettings: GlobalConfig = {
                   name: 'label',
                   type: 'text',
                   required: true,
+                  localized: true,
                   label: 'Naam van de locatie',
                   admin: {
                     description: 'Bijvoorbeeld: Tilburg.',
@@ -154,6 +156,7 @@ export const SiteSettings: GlobalConfig = {
             {
               name: 'footerIntro',
               type: 'textarea',
+              localized: true,
               label: 'Tekst in de footer',
               admin: {
                 description: 'Korte tekst over de stichting. Optioneel.',
@@ -162,6 +165,9 @@ export const SiteSettings: GlobalConfig = {
             {
               name: 'footerColumns',
               type: 'array',
+              // Localized as a whole: a second locale needs its own link
+              // labels and may not want the same columns at all.
+              localized: true,
               label: 'Kolommen met links',
               labels: {
                 singular: 'Kolom',
@@ -202,6 +208,7 @@ export const SiteSettings: GlobalConfig = {
             {
               name: 'copyright',
               type: 'text',
+              localized: true,
               label: 'Copyrightregel',
             },
           ],

@@ -92,6 +92,7 @@ export const AnbiGegevens: GlobalConfig = {
             {
               name: 'objective',
               type: 'richText',
+              localized: true,
               label: 'Doelstelling',
               admin: {
                 description: 'De doelstelling van de stichting, zoals omschreven in de statuten.',
@@ -100,6 +101,7 @@ export const AnbiGegevens: GlobalConfig = {
             {
               name: 'policyPlan',
               type: 'richText',
+              localized: true,
               label: 'Beleidsplan',
               admin: {
                 description: 'Een samenvatting van het beleidsplan, of het plan in zijn geheel.',
@@ -117,6 +119,7 @@ export const AnbiGegevens: GlobalConfig = {
             {
               name: 'remunerationPolicy',
               type: 'richText',
+              localized: true,
               label: 'Beloningsbeleid',
               admin: {
                 description:
@@ -131,6 +134,7 @@ export const AnbiGegevens: GlobalConfig = {
             {
               name: 'boardComposition',
               type: 'richText',
+              localized: true,
               label: 'Bestuurssamenstelling',
               admin: {
                 description: 'Een korte toelichting op de samenstelling van het bestuur.',
@@ -158,6 +162,8 @@ export const AnbiGegevens: GlobalConfig = {
                   name: 'role',
                   type: 'text',
                   required: true,
+                  // The job title translates; the person's name does not.
+                  localized: true,
                   label: 'Functie',
                   admin: {
                     description: 'Bijvoorbeeld: voorzitter, secretaris, penningmeester.',
@@ -192,11 +198,13 @@ export const AnbiGegevens: GlobalConfig = {
                 {
                   name: 'activityReport',
                   type: 'richText',
+                  localized: true,
                   label: 'Verslag van de activiteiten',
                 },
                 {
                   name: 'financialStatement',
                   type: 'richText',
+                  localized: true,
                   label: 'Financiële verantwoording',
                 },
                 {
