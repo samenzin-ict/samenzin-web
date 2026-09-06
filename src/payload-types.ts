@@ -67,8 +67,9 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    users: User;
+    pages: Page;
     media: Media;
+    users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -76,8 +77,9 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -124,36 +126,114 @@ export interface UserAuthOperations {
   };
 }
 /**
- * Accounts voor het beheerpaneel. Beheerders kunnen gebruikers toevoegen en rollen wijzigen.
+ * De pagina's van de website.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "pages".
  */
-export interface User {
+export interface Page {
   id: number;
-  name: string;
+  title: string;
   /**
-   * Beheerder: volledige toegang, inclusief gebruikers en instellingen. Redacteur: alleen inhoud bewerken.
+   * Het deel van het webadres na de schuine streep, bijvoorbeeld over-ons. Wordt automatisch ingevuld vanuit de titel. Wijzig dit niet meer zodra de pagina online staat, want bestaande links werken dan niet meer.
    */
-  role: 'admin' | 'editor';
+  slug: string;
+  /**
+   * Bouw de pagina op uit blokken. Sleep om de volgorde te wijzigen.
+   */
+  body?:
+    | (
+        | {
+            heading: string;
+            /**
+             * Een of twee zinnen onder de kop.
+             */
+            intro?: string | null;
+            links?:
+              | {
+                  label: string;
+                  /**
+                   * Een pad op deze website, zoals /doneren, of een volledig adres.
+                   */
+                  url: string;
+                  style: 'cta' | 'primary' | 'outline';
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Optioneel. Wordt naast of achter de tekst getoond.
+             */
+            image?: (number | null) | Media;
+            /**
+             * De balk onder de banner. Laat leeg om de balk te verbergen. Bijvoorbeeld: 40+ vrijwilligers.
+             */
+            stats?:
+              | {
+                  /**
+                   * Optioneel. Laat leeg voor een gegeven zonder getal.
+                   */
+                  value?: string | null;
+                  label: string;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'hero';
+          }
+        | {
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richText';
+          }
+        | {
+            heading: string;
+            text?: string | null;
+            links?:
+              | {
+                  label: string;
+                  /**
+                   * Een pad op deze website, zoals /doneren, of een volledig adres.
+                   */
+                  url: string;
+                  style: 'cta' | 'primary' | 'outline';
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'callToAction';
+          }
+      )[]
+    | null;
+  /**
+   * Hoe de pagina getoond wordt in Google en bij het delen op sociale media. Laat leeg om de titel van de pagina te gebruiken.
+   */
+  meta?: {
+    title?: string | null;
+    /**
+     * Ongeveer 150 tekens.
+     */
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
   updatedAt: string;
   createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-  collection: 'users';
 }
 /**
  * Afbeeldingen en documenten voor de website.
@@ -218,6 +298,38 @@ export interface Media {
   };
 }
 /**
+ * Accounts voor het beheerpaneel. Beheerders kunnen gebruikers toevoegen en rollen wijzigen.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  name: string;
+  /**
+   * Beheerder: volledige toegang, inclusief gebruikers en instellingen. Redacteur: alleen inhoud bewerken.
+   */
+  role: 'admin' | 'editor';
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -242,12 +354,16 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'users';
-        value: number | User;
+        relationTo: 'pages';
+        value: number | Page;
       } | null)
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -293,27 +409,71 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "pages_select".
  */
-export interface UsersSelect<T extends boolean = true> {
-  name?: T;
-  role?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  body?:
     | T
     | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
+        hero?:
+          | T
+          | {
+              heading?: T;
+              intro?: T;
+              links?:
+                | T
+                | {
+                    label?: T;
+                    url?: T;
+                    style?: T;
+                    id?: T;
+                  };
+              image?: T;
+              stats?:
+                | T
+                | {
+                    value?: T;
+                    label?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        richText?:
+          | T
+          | {
+              content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        callToAction?:
+          | T
+          | {
+              heading?: T;
+              text?: T;
+              links?:
+                | T
+                | {
+                    label?: T;
+                    url?: T;
+                    style?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
       };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -376,6 +536,30 @@ export interface MediaSelect<T extends boolean = true> {
               filesize?: T;
               filename?: T;
             };
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
       };
 }
 /**

@@ -7,6 +7,7 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
 import { Media } from './collections/Media'
+import { Pages } from './collections/Pages'
 import { Users } from './collections/Users'
 import { AnbiGegevens, SiteSettings } from './globals'
 
@@ -20,7 +21,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media],
+  collections: [Pages, Media, Users],
   globals: [SiteSettings, AnbiGegevens],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
