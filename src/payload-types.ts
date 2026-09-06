@@ -639,6 +639,26 @@ export interface SiteSetting {
         id?: string | null;
       }[]
     | null;
+  /**
+   * De links bovenaan elke pagina, in deze volgorde. Sleep om de volgorde te wijzigen.
+   */
+  mainNavigation?:
+    | {
+        label: string;
+        /**
+         * Een pad op deze website, zoals /over-ons.
+         */
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * De opvallende knop in de kop van de pagina, en op mobiel de balk onderaan het scherm. Laat de tekst leeg om de knop te verbergen.
+   */
+  headerCta?: {
+    label?: string | null;
+    url?: string | null;
+  };
   socialLinks?:
     | {
         platform: 'facebook' | 'instagram' | 'linkedin' | 'youtube' | 'x';
@@ -848,6 +868,19 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         postalCode?: T;
         city?: T;
         id?: T;
+      };
+  mainNavigation?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        id?: T;
+      };
+  headerCta?:
+    | T
+    | {
+        label?: T;
+        url?: T;
       };
   socialLinks?:
     | T

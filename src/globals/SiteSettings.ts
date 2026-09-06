@@ -116,6 +116,66 @@ export const SiteSettings: GlobalConfig = {
           ],
         },
         {
+          label: 'Menu',
+          fields: [
+            {
+              name: 'mainNavigation',
+              type: 'array',
+              // Localized as a whole: a second locale needs its own labels and
+              // may not want the same items.
+              localized: true,
+              label: 'Hoofdmenu',
+              labels: {
+                singular: 'Menu-item',
+                plural: 'Menu-items',
+              },
+              admin: {
+                description:
+                  'De links bovenaan elke pagina, in deze volgorde. Sleep om de volgorde te wijzigen.',
+              },
+              fields: [
+                {
+                  name: 'label',
+                  type: 'text',
+                  required: true,
+                  label: 'Tekst van de link',
+                },
+                {
+                  name: 'url',
+                  type: 'text',
+                  required: true,
+                  label: 'Adres',
+                  admin: {
+                    description: 'Een pad op deze website, zoals /over-ons.',
+                  },
+                },
+              ],
+            },
+            {
+              name: 'headerCta',
+              type: 'group',
+              localized: true,
+              label: 'Knop rechtsboven',
+              admin: {
+                description:
+                  'De opvallende knop in de kop van de pagina, en op mobiel de balk onderaan het scherm. Laat de tekst leeg om de knop te verbergen.',
+              },
+              fields: [
+                {
+                  name: 'label',
+                  type: 'text',
+                  label: 'Tekst op de knop',
+                },
+                {
+                  name: 'url',
+                  type: 'text',
+                  label: 'Adres',
+                },
+              ],
+            },
+          ],
+        },
+        {
           label: 'Sociale media',
           fields: [
             {
