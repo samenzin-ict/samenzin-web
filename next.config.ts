@@ -8,10 +8,15 @@ const dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
   /*
-   * Emit a self-contained server bundle, so the production image carries only
-   * the dependencies actually used instead of the whole node_modules tree.
+   * Emit a self-contained server bundle, so the Docker image carries only the
+   * dependencies actually used instead of the whole node_modules tree.
+   *
+   * Not on Vercel. Vercel runs its own output tracing after next build and
+   * expects .next/next-server.js.nft.json, which standalone mode does not
+   * produce; the build then fails with ENOENT on that file. Vercel sets VERCEL
+   * in the build environment, so this switches itself off there.
    */
-  output: 'standalone',
+  output: process.env.VERCEL ? undefined : 'standalone',
   images: {
     localPatterns: [
       {
