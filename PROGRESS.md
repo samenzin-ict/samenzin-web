@@ -89,9 +89,14 @@ database stopped, which is the situation in GitHub Actions.
 - [ ] **The ANBI page still needs three values before it can go live:** e-mailadres,
       telefoonnummer and IBAN. `pnpm check:anbi` reports them as aandachtspunten. The
       guide lists them as outstanding too.
-- [ ] **The real ANBI content is not in the repository.** It was loaded into the local
-      development database only. Whoever sets up production enters it through the admin
-      panel, or restores a database dump.
+- [ ] **The real ANBI content is not in the repository** and must not be: it carries the
+      board members' names and the postal address. The loader lives in `.devseed/`, which
+      is gitignored. Keep a copy outside git; if it is lost, it can be rebuilt from
+      `docs/ANBI_guide.docx`.
+- [ ] **Production content is placeholder apart from the ANBI page.** `Voorbeeldtekst`,
+      `voorbeeld@example.org` and invented project names are publicly visible. Replace
+      them before the site is announced, and before the contact form faces the public.
+      The seeded privacy statement says in capitals that it is not valid.
 - [ ] **The privacy statement does not exist. This blocks launch.** The contact form now
       collects personal data and links to `/privacyverklaring`, which returns 404 until
       someone creates a page with that slug. Do not put the contact form in front of the
@@ -158,6 +163,7 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-12 | Rate limiting moved to Payload's key-value store | Serverless gives every invocation a fresh instance, so an in-memory counter would let each one allow the whole quota. |
 | 2026-09-12 | Cloudflare R2 instead of Vercel Blob | The maintainer's choice. Files are served straight from the bucket, so images cost no function invocations. |
 | 2026-09-12 | One R2 bucket shared by every environment, with no per-environment prefix | Payload stores each file's path with the document, so an environment prefix would make a database copied from production point at paths that do not exist. One namespace means `pnpm db:pull` works without copying files. |
+| 2026-09-12 | A new environment is filled by running the seeders against it, not by pushing a database | Keeps the one-way rule intact. `pnpm seed` refuses a non-local database unless `SEED_ALLOW_REMOTE` is set, and prints the host first. |
 | 2026-09-12 | `pnpm db:pull` exists; there is no `db:push` | Schema travels upward as a reviewed migration, content downward as a dump. A script that overwrote production content from a laptop is a bad thing to have lying around. |
 | 2026-09-12 | Functions pinned to `fra1` | Keeps requests inside the EU, which is what the privacy section of ARCHITECTURE.md assumes. |
 | 2026-09-12 | The ANBI page follows `docs/ANBI_guide.docx` exactly, including its order | The Belastingdienst prescribes what must appear. Publishing it is condition 12 of twelve; if the page is wrong the application can be refused on that ground. |

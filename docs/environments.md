@@ -139,6 +139,51 @@ rather than a prefix.
 Without `R2_PUBLIC_URL` the files are still served, but through the application,
 which costs a function invocation per image.
 
+## Filling a new environment for the first time
+
+A fresh Neon branch is empty. This puts the same content into it that
+`pnpm seed` puts on a laptop, with images going to R2 rather than to disk.
+
+Run it from your own machine with the target's variables in front of the
+command, so nothing has to be changed in `.env`:
+
+```bash
+# 1. Schema. The Vercel build also does this, so skip it if a deploy has
+#    already succeeded.
+DATABASE_URI="<neon pooled>" pnpm payload migrate
+
+# 2. Content and images. SEED_ALLOW_REMOTE is required on purpose: the script
+#    refuses a non-local database without it, and prints the host it is about
+#    to write to.
+DATABASE_URI="<neon pooled>" \
+R2_BUCKET=samenzin-media \
+R2_ENDPOINT="https://<account-id>.r2.cloudflarestorage.com" \
+R2_ACCESS_KEY_ID="<token>" \
+R2_SECRET_ACCESS_KEY="<secret>" \
+R2_PUBLIC_URL="<public bucket address>" \
+SEED_ALLOW_REMOTE=true pnpm seed
+
+# 3. The real ANBI content, which is not in this repository. Run the loader
+#    the ICT commission keeps in .devseed, against the same database.
+DATABASE_URI="<neon pooled>" pnpm payload run .devseed/load-anbi.ts
+```
+
+The R2 variables matter in step 2. Without them the images are written to a
+`media` directory on your laptop and the database records point at files the
+deployment does not have, so every image is broken.
+
+Step 3 has to come after step 2. `pnpm seed` writes placeholder ANBI values and
+would otherwise overwrite the real ones.
+
+Finally, open `https://<the deployment>/admin` and create the first account. It
+becomes an administrator automatically.
+
+**What this content is.** Everything except the ANBI page is placeholder:
+`Voorbeeldtekst`, `voorbeeld@example.org`, invented project names. It is there
+so the site has shape, not because it is true. The seeded privacy statement
+says in capitals that it is not valid. Replace it before the site is announced,
+and certainly before the contact form is put in front of the public.
+
 ## Keeping things in sync
 
 ### Schema

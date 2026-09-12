@@ -21,11 +21,36 @@ import { getPayload } from 'payload'
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const assets = path.resolve(dirname, 'demo-assets')
 
-const payload = await getPayload({ config })
-
+/*
+ * Two guards, because the first one is weaker than it looks, and both run
+ * before connecting: checking after the connection is open defeats the point.
+ *
+ * NODE_ENV only says how this process was started; it is not 'production' when
+ * you run this on a laptop with DATABASE_URI pointed at Neon, which is exactly
+ * the accident worth preventing. So the host is checked as well.
+ *
+ * Seeding a hosted database is a legitimate one-off when bootstrapping a new
+ * environment, so it is possible, but only on purpose: set SEED_ALLOW_REMOTE.
+ */
 if (process.env.NODE_ENV === 'production') {
   throw new Error('Refusing to seed demo content into a production database.')
 }
+
+const databaseUri = process.env.DATABASE_URI ?? ''
+const targetHost = databaseUri.replace(/^[^@]*@/, '').replace(/\/.*$/, '') || 'unknown host'
+const isLocalDatabase = /(localhost|127\.0\.0\.1|::1)/.test(databaseUri)
+
+if (!isLocalDatabase && process.env.SEED_ALLOW_REMOTE !== 'true') {
+  throw new Error(
+    `Refusing to seed ${targetHost}, which is not a local database.\n` +
+      '  This writes placeholder content over whatever is already there.\n' +
+      '  If that is genuinely what you want, run it again with SEED_ALLOW_REMOTE=true.',
+  )
+}
+
+console.log(`Seeding ${targetHost}${isLocalDatabase ? '' : '   <-- NOT LOCAL'}\n`)
+
+const payload = await getPayload({ config })
 
 /** A minimal Lexical document, so rich text fields are not left empty. */
 const richText = (...paragraphs: string[]) =>
