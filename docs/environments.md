@@ -62,6 +62,21 @@ Functions are pinned to `fra1` in `vercel.json` so requests are served from
 inside the EU. **Create the Neon project in an EU region too** — that is chosen
 at creation and cannot be moved afterwards.
 
+### When a deploy fails
+
+**`connect ECONNREFUSED 127.0.0.1:5432`** during `payload migrate`. `DATABASE_URI`
+is not set for the environment being built, so PostgreSQL fell back to
+localhost. Set it in Vercel for that environment. The build now stops with a
+message naming the variable instead of this.
+
+**`DATABASE_URI is not set`.** The same cause, caught earlier and said plainly.
+
+Note that Vercel builds where it likes, often `iad1`, regardless of the function
+region in `vercel.json`. The migration therefore runs from the build machine to
+Neon, which may cross the Atlantic even though requests are served from `fra1`.
+Runtime data stays in the EU. If the build path matters for your data protection
+record, the build region can be pinned in the project settings on a paid plan.
+
 ## Cloudflare R2
 
 One bucket, `samenzin-media`, shared by every environment.

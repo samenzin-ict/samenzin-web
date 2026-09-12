@@ -46,6 +46,10 @@ jobs:
           # nothing produced by this job is deployed.
           PAYLOAD_SECRET: ci-build-only-not-a-real-secret
           NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+          # Never connected to. The build must not need a database, but the
+          # config refuses to load without a connection string at all, which is
+          # what stops a deploy going out with the variable unset.
+          DATABASE_URI: postgres://ci:ci@127.0.0.1:5432/ci
 
   docker:
     name: Container image builds

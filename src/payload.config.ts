@@ -29,6 +29,26 @@ const r2Enabled = Boolean(
     process.env.R2_SECRET_ACCESS_KEY,
 )
 
+/*
+ * Fail loudly when the connection string is missing.
+ *
+ * Without this, an unset variable becomes an empty string, pg falls back to
+ * 127.0.0.1:5432, and the error is "connect ECONNREFUSED 127.0.0.1:5432" —
+ * which on a build server sends you looking for a database that was never
+ * supposed to be there. The real problem is a variable nobody set.
+ */
+const databaseUri = process.env.DATABASE_URI?.trim()
+
+if (!databaseUri) {
+  throw new Error(
+    'DATABASE_URI is not set.\n' +
+      '  Locally:  copy .env.example to .env and run `docker compose up -d`.\n' +
+      '  Vercel:   Settings > Environment Variables. Set it for the environment\n' +
+      '            being built, using the Neon pooled connection string (the host\n' +
+      '            ends in -pooler). See docs/environments.md.',
+  )
+}
+
 /** Public base URL of the bucket: an r2.dev address or a custom domain. */
 const r2PublicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, '')
 
@@ -104,7 +124,7 @@ export default buildConfig({
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI || '',
+      connectionString: databaseUri,
     },
     /*
      * Push the schema straight to the database in development, so a change to
