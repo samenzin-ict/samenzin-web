@@ -10,7 +10,8 @@ Keep it short. This is a status board, not a diary.
 ## Current state
 
 **Phase:** 1 — Live site
-**Deployment:** Vercel (production) with Neon PostgreSQL, replacing the EU VPS plan
+**Deployment:** Vercel, Neon PostgreSQL (branches `production` and `dev`) and Cloudflare
+R2 for media, replacing the EU VPS plan. See `docs/environments.md`.
 **Status:** All six phase 1 routes are built, the initial migration exists and the
 production image builds and runs. The remaining work before launch is content, a privacy
 statement, the deployment target and a Lighthouse pass — not features.
@@ -44,8 +45,10 @@ the first account you create becomes an administrator automatically.
 - Rate limiting on the contact form, five per caller per ten minutes, IP never stored
 - The initial database migration, covering all 34 tables
 - A production Dockerfile and a CI workflow that lints, type checks and builds
-- Vercel deployment: Blob storage for uploads, migrations in `vercel-build`, functions
+- Vercel deployment: Cloudflare R2 for uploads, migrations in `vercel-build`, functions
   pinned to `fra1`, and rate limiting moved onto Payload's database-backed key-value store
+- `docs/environments.md` documents local, preview and production, every variable, and how
+  content is copied down with `pnpm db:pull`
 - Two more blocks, Kaartenrij and Agenda, so the homepage matches the approved mockup
 - `pnpm seed` fills an empty database with obviously fake demo content
 - The admin panel carries the brand colours; the palette now lives in one file that both
@@ -153,6 +156,9 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-12 | Production moved from an EU VPS to Vercel with Neon | The maintainer's decision. Brings Blob storage for uploads, migrations in the build, and no shared memory between instances. |
 | 2026-09-12 | `output: standalone` is switched off on Vercel | Vercel does its own output tracing and expects `.next/next-server.js.nft.json`, which standalone never produces. The setting stays for the Docker image. |
 | 2026-09-12 | Rate limiting moved to Payload's key-value store | Serverless gives every invocation a fresh instance, so an in-memory counter would let each one allow the whole quota. |
+| 2026-09-12 | Cloudflare R2 instead of Vercel Blob | The maintainer's choice. Files are served straight from the bucket, so images cost no function invocations. |
+| 2026-09-12 | One R2 bucket shared by every environment, with no per-environment prefix | Payload stores each file's path with the document, so an environment prefix would make a database copied from production point at paths that do not exist. One namespace means `pnpm db:pull` works without copying files. |
+| 2026-09-12 | `pnpm db:pull` exists; there is no `db:push` | Schema travels upward as a reviewed migration, content downward as a dump. A script that overwrote production content from a laptop is a bad thing to have lying around. |
 | 2026-09-12 | Functions pinned to `fra1` | Keeps requests inside the EU, which is what the privacy section of ARCHITECTURE.md assumes. |
 | 2026-09-12 | The ANBI page follows `docs/ANBI_guide.docx` exactly, including its order | The Belastingdienst prescribes what must appear. Publishing it is condition 12 of twelve; if the page is wrong the application can be refused on that ground. |
 | 2026-09-12 | No full beleidsplan PDF on the site | The guide decided only the hoofdlijnen are published, which is also all the legislation asks for. The `policyPlanDocument` upload field was removed. |

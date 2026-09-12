@@ -32,26 +32,16 @@ The admin panel is at `/admin`. On first run it asks you to create the first use
 
 ## Deployment
 
-Production runs on Vercel, deployed from GitHub. Set these in the Vercel project
-before the first build:
+Production runs on Vercel from GitHub, with Neon for PostgreSQL and Cloudflare R2
+for uploaded files. A push to `main` goes to production; a pull request gets a
+preview deployment against the Neon `dev` branch.
 
-| Variable | Value |
-|---|---|
-| `DATABASE_URI` | Neon **pooled** connection string, host ending in `-pooler` |
-| `PAYLOAD_SECRET` | A long random string |
-| `NEXT_PUBLIC_SERVER_URL` | `https://samenzin.org` |
-| `BLOB_READ_WRITE_TOKEN` | Set by Vercel once a Blob store is connected |
+**See `docs/environments.md`** for the variables each environment needs, how the
+three of them relate, and how to copy content down from Neon.
 
-`NEXT_PUBLIC_SERVER_URL` is inlined at build time, so it has to exist before the
-build runs, not just at runtime.
-
-Migrations run from the `vercel-build` script, before `next build`. A failed
-migration therefore stops the deployment instead of leaving a half-applied
-schema behind a live site.
-
-Preview deployments use whatever `DATABASE_URI` is set for the Preview
-environment. Point it at a Neon branch, not at production, or a pull request
-will migrate the live database.
+Migrations run from the `vercel-build` script before `next build`, so a failed
+migration stops the deployment instead of leaving a half-applied schema behind a
+live site.
 
 ## Self-hosted image
 
@@ -81,6 +71,7 @@ a deploy step before the new container takes over.
 | `ROADMAP.md` | What is in scope now and what deliberately is not |
 | `PROGRESS.md` | Where the work currently stands |
 | `docs/design/README.md` | Approved mockups and design tokens |
+| `docs/environments.md` | Local, preview and production: variables and syncing |
 
 Governance, access control, GDPR records and infrastructure runbooks live in the separate
 `samenzin-ict` repository.

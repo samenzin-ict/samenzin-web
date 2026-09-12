@@ -17,13 +17,14 @@
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/seed-demo.ts",
     "check:anbi": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/check-anbi.ts",
-    "vercel-build": "pnpm payload migrate && pnpm build"
+    "vercel-build": "pnpm payload migrate && pnpm build",
+    "db:pull": "bash scripts/db-pull.sh"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.88.0",
     "@payloadcms/next": "3.88.0",
     "@payloadcms/richtext-lexical": "3.88.0",
-    "@payloadcms/storage-vercel-blob": "3.88.0",
+    "@payloadcms/storage-s3": "3.88.0",
     "@payloadcms/translations": "3.88.0",
     "@payloadcms/ui": "3.88.0",
     "@tailwindcss/postcss": "4.3.3",

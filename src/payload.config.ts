@@ -2,7 +2,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 import { postgresAdapter } from '@payloadcms/db-postgres'
-import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
+import { s3Storage } from '@payloadcms/storage-s3'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { nl } from '@payloadcms/translations/languages/nl'
 import { buildConfig } from 'payload'
@@ -16,6 +16,21 @@ import { AnbiGegevens, SiteSettings } from './globals'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
+
+/*
+ * Object storage is optional. All four variables must be present before it is
+ * used, so a half-configured environment falls back to the local disk instead
+ * of failing at the first upload.
+ */
+const r2Enabled = Boolean(
+  process.env.R2_BUCKET &&
+    process.env.R2_ENDPOINT &&
+    process.env.R2_ACCESS_KEY_ID &&
+    process.env.R2_SECRET_ACCESS_KEY,
+)
+
+/** Public base URL of the bucket: an r2.dev address or a custom domain. */
+const r2PublicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, '')
 
 export default buildConfig({
   admin: {
@@ -105,21 +120,52 @@ export default buildConfig({
   sharp,
   plugins: [
     /*
-     * Uploads go to Vercel Blob in production.
+     * Uploads go to Cloudflare R2 in every deployed environment.
      *
      * The serverless filesystem is read-only apart from /tmp and is discarded
      * between invocations, so writing to the media directory there would lose
-     * every file a volunteer uploads. Blob storage is the only way uploads
-     * survive on this platform.
+     * every file a volunteer uploads.
      *
-     * Switched on by the presence of the token, which Vercel sets when a Blob
-     * store is connected. Without it, development keeps writing to ./media so
-     * a local clone needs no cloud account.
+     * Switched on only when all four R2 variables are present. Without them
+     * development keeps writing to ./media, so a local clone needs no cloud
+     * account and no credentials.
+     *
+     * One bucket is shared by production, preview and any local machine that
+     * opts in, with no per-environment prefix. That is deliberate: Payload
+     * stores a file's prefix per document, so an environment-specific prefix
+     * would make a database copied from production resolve to paths that do
+     * not exist. Sharing one namespace means a database dump works anywhere
+     * without also copying files. Media is public content, so the isolation
+     * being given up is small; if it is ever needed, use a separate bucket
+     * with its own credentials rather than a prefix.
      */
-    vercelBlobStorage({
-      enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
-      collections: { media: true },
-      token: process.env.BLOB_READ_WRITE_TOKEN,
+    s3Storage({
+      enabled: r2Enabled,
+      bucket: process.env.R2_BUCKET ?? '',
+      collections: {
+        media: r2PublicUrl
+          ? {
+              /*
+               * Serve files straight from R2 rather than proxying them
+               * through this application. Media is already publicly readable,
+               * so routing every image through a serverless function would
+               * add latency and cost for nothing.
+               */
+              disablePayloadAccessControl: true,
+              generateFileURL: ({ filename, prefix }) =>
+                `${r2PublicUrl}/${prefix ? `${prefix}/` : ''}${filename}`,
+            }
+          : true,
+      },
+      config: {
+        // R2 has no regions; the SDK still requires the field to be set.
+        region: 'auto',
+        endpoint: process.env.R2_ENDPOINT,
+        credentials: {
+          accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+        },
+      },
     }),
   ],
 })

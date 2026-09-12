@@ -24,15 +24,25 @@ const nextConfig: NextConfig = {
       },
     ],
     /*
-     * In production uploads are served from Vercel Blob rather than from this
-     * application, so next/image has to be told the host is allowed. Without
-     * it every CMS image renders as a broken link.
+     * Uploads are served from Cloudflare R2, not from this application, so
+     * next/image has to be told the host is allowed or every CMS image renders
+     * as a broken link.
+     *
+     * Both forms are listed: the r2.dev address a bucket gets when public
+     * access is switched on, and whatever custom domain is configured in
+     * R2_PUBLIC_URL. The second is read at build time, so changing the domain
+     * needs a rebuild, not just a new environment variable.
      */
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**.public.blob.vercel-storage.com',
-      },
+      { protocol: 'https', hostname: '**.r2.dev' },
+      ...(process.env.R2_PUBLIC_URL?.startsWith('https://')
+        ? [
+            {
+              protocol: 'https' as const,
+              hostname: new URL(process.env.R2_PUBLIC_URL).hostname,
+            },
+          ]
+        : []),
     ],
   },
   webpack: (webpackConfig) => {

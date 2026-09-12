@@ -7,9 +7,9 @@ build, one deployment, one authentication system.
 
 ```
 Visitor ──▶ Vercel (TLS, EU region) ──▶ Next.js + Payload ──▶ Neon PostgreSQL
-                                              │
-                                              ├──▶ Vercel Blob (media)
-                                              └──▶ Mollie (hosted checkout)
+                     │                        │
+                     │                        └──▶ Mollie (hosted checkout)
+                     └──▶ Cloudflare R2 (media, served directly)
 ```
 
 Why one application: a volunteer organisation cannot operate four services. Every service
@@ -94,8 +94,9 @@ the `samenzin-ict` repository still describes the VPS and needs rewriting to mat
 What that change brings with it:
 
 - **Serverless has no disk.** The filesystem is read-only apart from `/tmp` and is thrown
-  away between invocations, so uploads go to Vercel Blob. Without it every image a
-  volunteer uploads is lost.
+  away between invocations, so uploads go to Cloudflare R2. Without it every image a
+  volunteer uploads is lost. Files are served straight from the bucket rather than
+  proxied, so images cost no function invocations.
 - **Nothing shared lives in memory.** Each invocation can be a fresh instance, so the
   contact form's rate limiting uses Payload's key-value store, which is backed by the
   database.
@@ -104,7 +105,11 @@ What that change brings with it:
   behaviour we want.
 - **Region.** `vercel.json` pins functions to `fra1` (Frankfurt) so requests are served
   from inside the EU. Neon must be created in an EU region too; that is chosen when the
-  project is created and cannot be moved afterwards.
+  project is created and cannot be moved afterwards. R2 is chosen at bucket creation as
+  well; pick an EU jurisdiction.
+- **Two Neon branches.** `production` serves production, `dev` serves preview
+  deployments. Environments, variables and how content is copied downward are documented
+  in `docs/environments.md`.
 
 Still open: backups. The VPS plan had a nightly encrypted dump shipped to a different
 provider. Neon keeps its own point-in-time history, which is not the same thing as a copy
