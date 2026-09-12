@@ -57,3 +57,7 @@ node_modules/
 /docs/*.docx
 /docs/*.doc
 /docs/*.pdf
+
+# Local one-off scripts. Handy for loading real content into a development
+# database; must never be committed, for the same reason.
+/.devseed/
