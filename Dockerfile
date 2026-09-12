@@ -37,6 +37,18 @@ ENV NEXT_PUBLIC_SERVER_URL=$NEXT_PUBLIC_SERVER_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
+# A placeholder, never connected to.
+#
+# Collecting page data loads the Payload config, which refuses to start without
+# a connection string. That check is what stops a deploy going out with the
+# variable unset, so it stays; but a container image is built once and run in
+# many places, and the build itself has no database and needs none.
+#
+# Deliberately not an ARG: the real connection string is supplied when the
+# container runs. Passing a live one at build time would bake a credential into
+# an image layer.
+ENV DATABASE_URI=postgres://build-time-placeholder@127.0.0.1:5432/placeholder
+
 RUN pnpm build
 
 # ---- Runtime ----------------------------------------------------------------

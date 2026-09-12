@@ -114,6 +114,11 @@ bucket is not publicly readable.
 **A variable is set but nothing changed** — variables are read when a build
 runs. Redeploy.
 
+**The container image build fails on `DATABASE_URI is not set`** — the
+Dockerfile sets a placeholder for the build, which never connects to anything;
+the real connection string is supplied when the container runs. If you see this,
+the placeholder line in the builder stage has been removed.
+
 Note that Vercel builds where it likes, often `iad1`, regardless of the function
 region in `vercel.json`. The migration therefore runs from the build machine to
 Neon, which may cross the Atlantic even though requests are served from `fra1`.
