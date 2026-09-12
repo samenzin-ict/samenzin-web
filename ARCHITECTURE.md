@@ -6,10 +6,10 @@ One Next.js application. Payload CMS runs inside it, not beside it. One reposito
 build, one deployment, one authentication system.
 
 ```
-Visitor ──▶ Caddy (TLS) ──▶ Next.js + Payload ──▶ PostgreSQL
-                                    │
-                                    ├──▶ Object storage (media)
-                                    └──▶ Mollie (hosted checkout)
+Visitor ──▶ Vercel (TLS, EU region) ──▶ Next.js + Payload ──▶ Neon PostgreSQL
+                                              │
+                                              ├──▶ Vercel Blob (media)
+                                              └──▶ Mollie (hosted checkout)
 ```
 
 Why one application: a volunteer organisation cannot operate four services. Every service
@@ -85,6 +85,31 @@ is the only source of truth. Card details never touch our servers.
 
 ## Deployment
 
-GitHub Actions builds a container image on merge to `main`, pushes it to a registry, and
-deploys over SSH. Caddy terminates TLS. PostgreSQL is dumped nightly, encrypted, and
-shipped to object storage at a different provider than the VPS.
+Vercel, from GitHub. A push to `main` builds and promotes to production; a pull request
+gets a preview deployment. Vercel terminates TLS.
+
+This replaced the original plan of Docker Compose and Caddy on an EU VPS. **ADR-0003 in
+the `samenzin-ict` repository still describes the VPS and needs rewriting to match.**
+
+What that change brings with it:
+
+- **Serverless has no disk.** The filesystem is read-only apart from `/tmp` and is thrown
+  away between invocations, so uploads go to Vercel Blob. Without it every image a
+  volunteer uploads is lost.
+- **Nothing shared lives in memory.** Each invocation can be a fresh instance, so the
+  contact form's rate limiting uses Payload's key-value store, which is backed by the
+  database.
+- **Migrations run in the build**, through the `vercel-build` script, because there is no
+  separate deploy step. A migration that fails stops the deployment, which is the
+  behaviour we want.
+- **Region.** `vercel.json` pins functions to `fra1` (Frankfurt) so requests are served
+  from inside the EU. Neon must be created in an EU region too; that is chosen when the
+  project is created and cannot be moved afterwards.
+
+Still open: backups. The VPS plan had a nightly encrypted dump shipped to a different
+provider. Neon keeps its own point-in-time history, which is not the same thing as a copy
+held somewhere else. Decide what is acceptable before real donor data exists.
+
+The `Dockerfile` and `docker-compose.yml` remain. Compose runs PostgreSQL for local
+development, and the Dockerfile keeps the door open to self-hosting; it is no longer the
+production path.

@@ -1,31 +1,28 @@
 import { createHash } from 'crypto'
 
+import type { Payload } from 'payload'
+
 /**
- * A small in-memory rate limiter for the public form.
+ * Rate limiting for the public form.
  *
  * A honeypot stops ordinary bots but not somebody determined, and the contact
  * form writes to the database on every submission. This caps how fast one
  * caller can do that.
  *
- * Privacy: the caller's IP address is never stored, logged or written to the
- * database. It is hashed with the application secret and only the hash is held,
- * in memory, for the length of the window. ARCHITECTURE.md says the contact
- * form stores the minimum, and an address we cannot reverse is the least we can
- * work with while still counting requests.
+ * The counts live in Payload's key-value store, which is backed by the
+ * database. An in-memory counter would be close to useless in production:
+ * every serverless invocation can be a fresh instance, so each one would allow
+ * the whole quota. The database is the only thing all instances share.
  *
- * Two limitations a maintainer should know about, both acceptable for a single
- * container on one VPS but not if that ever changes:
- *
- * - The counts live in memory, so a restart clears them.
- * - They are per process, so several instances would each allow the limit.
- *
- * If the deployment ever grows past one instance, move this to the database or
- * put it in front of the application.
+ * Privacy: the caller's IP address is never stored, logged or written to a
+ * document. It is hashed with the application secret and only the hash is
+ * used as a key. ARCHITECTURE.md asks the contact form to keep the minimum,
+ * and an address we cannot reverse is the least we can work with while still
+ * counting requests.
  */
 const WINDOW_MS = 10 * 60 * 1000
 const MAX_REQUESTS_PER_WINDOW = 5
-
-const hits = new Map<string, number[]>()
+const KEY_PREFIX = 'contact-rate-limit:'
 
 const fingerprint = (identifier: string): string =>
   createHash('sha256')
@@ -34,12 +31,28 @@ const fingerprint = (identifier: string): string =>
 
 export type RateLimitResult = { allowed: boolean; retryAfterSeconds: number }
 
-export function checkRateLimit(identifier: string): RateLimitResult {
+export async function checkRateLimit(
+  payload: Payload,
+  identifier: string,
+): Promise<RateLimitResult> {
   const now = Date.now()
-  const key = fingerprint(identifier)
   const windowStart = now - WINDOW_MS
+  const key = `${KEY_PREFIX}${fingerprint(identifier)}`
 
-  const recent = (hits.get(key) ?? []).filter((time) => time > windowStart)
+  let recent: number[] = []
+
+  try {
+    const stored = await payload.kv.get<{ hits: number[] }>(key)
+    recent = (stored?.hits ?? []).filter((time) => time > windowStart)
+  } catch (error) {
+    /*
+     * Never let the limiter block a genuine message. If the store cannot be
+     * read the submission goes through: losing a contact form is worse than
+     * missing one rate-limit decision.
+     */
+    console.error('Rate limit lookup failed; allowing the request', error)
+    return { allowed: true, retryAfterSeconds: 0 }
+  }
 
   if (recent.length >= MAX_REQUESTS_PER_WINDOW) {
     const oldest = recent[0] ?? now
@@ -49,16 +62,35 @@ export function checkRateLimit(identifier: string): RateLimitResult {
     }
   }
 
-  recent.push(now)
-  hits.set(key, recent)
-
-  /*
-   * Drop keys whose window has passed. Without this the map grows for as long
-   * as the process lives, which on a long-running server is a slow leak.
-   */
-  for (const [existingKey, times] of hits) {
-    if (times.every((time) => time <= windowStart)) hits.delete(existingKey)
+  try {
+    await payload.kv.set(key, { hits: [...recent, now] })
+  } catch (error) {
+    console.error('Rate limit write failed; allowing the request', error)
   }
 
   return { allowed: true, retryAfterSeconds: 0 }
+}
+
+/**
+ * Removes entries whose window has passed.
+ *
+ * The store has no expiry of its own, so without this the table grows for
+ * every caller that ever submitted. Called after a successful submission,
+ * which is rare enough to be a cheap place to do it.
+ */
+export async function pruneRateLimits(payload: Payload): Promise<void> {
+  try {
+    const cutoff = Date.now() - WINDOW_MS
+    const keys = (await payload.kv.keys()).filter((key) => key.startsWith(KEY_PREFIX))
+
+    for (const key of keys) {
+      const stored = await payload.kv.get<{ hits: number[] }>(key)
+
+      if (!stored?.hits?.some((time) => time > cutoff)) {
+        await payload.kv.delete(key)
+      }
+    }
+  } catch (error) {
+    console.error('Pruning rate limit entries failed', error)
+  }
 }

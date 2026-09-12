@@ -23,6 +23,17 @@ const nextConfig: NextConfig = {
         pathname: '/api/media/file/**',
       },
     ],
+    /*
+     * In production uploads are served from Vercel Blob rather than from this
+     * application, so next/image has to be told the host is allowed. Without
+     * it every CMS image renders as a broken link.
+     */
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.public.blob.vercel-storage.com',
+      },
+    ],
   },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {

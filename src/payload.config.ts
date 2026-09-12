@@ -2,6 +2,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { nl } from '@payloadcms/translations/languages/nl'
 import { buildConfig } from 'payload'
@@ -102,5 +103,23 @@ export default buildConfig({
     migrationDir: path.resolve(dirname, 'migrations'),
   }),
   sharp,
-  plugins: [],
+  plugins: [
+    /*
+     * Uploads go to Vercel Blob in production.
+     *
+     * The serverless filesystem is read-only apart from /tmp and is discarded
+     * between invocations, so writing to the media directory there would lose
+     * every file a volunteer uploads. Blob storage is the only way uploads
+     * survive on this platform.
+     *
+     * Switched on by the presence of the token, which Vercel sets when a Blob
+     * store is connected. Without it, development keeps writing to ./media so
+     * a local clone needs no cloud account.
+     */
+    vercelBlobStorage({
+      enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+      collections: { media: true },
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    }),
+  ],
 })

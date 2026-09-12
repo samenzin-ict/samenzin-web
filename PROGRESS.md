@@ -10,6 +10,7 @@ Keep it short. This is a status board, not a diary.
 ## Current state
 
 **Phase:** 1 — Live site
+**Deployment:** Vercel (production) with Neon PostgreSQL, replacing the EU VPS plan
 **Status:** All six phase 1 routes are built, the initial migration exists and the
 production image builds and runs. The remaining work before launch is content, a privacy
 statement, the deployment target and a Lighthouse pass — not features.
@@ -43,6 +44,8 @@ the first account you create becomes an administrator automatically.
 - Rate limiting on the contact form, five per caller per ten minutes, IP never stored
 - The initial database migration, covering all 34 tables
 - A production Dockerfile and a CI workflow that lints, type checks and builds
+- Vercel deployment: Blob storage for uploads, migrations in `vercel-build`, functions
+  pinned to `fra1`, and rate limiting moved onto Payload's database-backed key-value store
 - Two more blocks, Kaartenrij and Agenda, so the homepage matches the approved mockup
 - `pnpm seed` fills an empty database with obviously fake demo content
 - The admin panel carries the brand colours; the palette now lives in one file that both
@@ -62,9 +65,8 @@ database stopped, which is the situation in GitHub Actions.
 1. **Write the privacy statement.** This is a launch blocker, see below.
 2. Fill in Instellingen and create the pages: `home`, `over-ons`, `contact`, `doneren`,
    `privacyverklaring`. The site is empty until someone does.
-3. Decide the canonical domain, the registry and the VPS, then finish the deploy
-   workflow. The image is built in CI but not pushed, because none of those are settled.
-4. Caddy configuration and TLS, and the nightly encrypted database dump
+3. Set the Vercel environment variables and connect a Blob store, then redeploy
+4. Decide the backup arrangement for Neon, see below
 5. Lighthouse pass on mobile once there is real content to measure
 
 ## Needs a decision before it can be finished
@@ -97,9 +99,13 @@ database stopped, which is the situation in GitHub Actions.
 - [ ] **Contact messages are visible to administrators only.** If a volunteer with the
       editor role is meant to answer them, that needs a deliberate decision, because the
       messages contain personal data.
-- [ ] **Rate limiting is per process and in memory.** Fine for one container on one VPS.
-      If the deployment ever runs more than one instance, each will allow the limit
-      separately and it must move to the database or in front of the application.
+- [ ] **Backups are not arranged.** The VPS plan had a nightly encrypted dump shipped to
+      a different provider. Neon keeps point-in-time history, which is not a copy held
+      somewhere else. Decide what is acceptable before real donor data exists.
+- [ ] **ADR-0003 in `samenzin-ict` still describes the VPS** and needs rewriting to match
+      the move to Vercel. `ARCHITECTURE.md` here has been updated.
+- [ ] **Preview deployments share whatever `DATABASE_URI` the Preview environment has.**
+      Point it at a Neon branch, or a pull request will migrate the live database.
 - [ ] **Analytics deliberately skipped.** Neither the ANBI application nor Google for
       Nonprofits needs it, and every option adds a service to the deployment. Revisit
       after launch.
@@ -144,6 +150,10 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-06 | The rate limiter hashes the caller's IP and keeps only the hash, in memory | ARCHITECTURE.md asks the contact form to keep the minimum. An address we cannot reverse is the least we can work with while still counting requests. |
 | 2026-09-06 | `push` is on in development and off in production | A deploy then makes exactly the schema change that was reviewed, and it can be rolled back. |
 | 2026-09-06 | The container does not run migrations on start | A failed migration should stop a deploy, not restart-loop the live site. |
+| 2026-09-12 | Production moved from an EU VPS to Vercel with Neon | The maintainer's decision. Brings Blob storage for uploads, migrations in the build, and no shared memory between instances. |
+| 2026-09-12 | `output: standalone` is switched off on Vercel | Vercel does its own output tracing and expects `.next/next-server.js.nft.json`, which standalone never produces. The setting stays for the Docker image. |
+| 2026-09-12 | Rate limiting moved to Payload's key-value store | Serverless gives every invocation a fresh instance, so an in-memory counter would let each one allow the whole quota. |
+| 2026-09-12 | Functions pinned to `fra1` | Keeps requests inside the EU, which is what the privacy section of ARCHITECTURE.md assumes. |
 | 2026-09-12 | The ANBI page follows `docs/ANBI_guide.docx` exactly, including its order | The Belastingdienst prescribes what must appear. Publishing it is condition 12 of twelve; if the page is wrong the application can be refused on that ground. |
 | 2026-09-12 | No full beleidsplan PDF on the site | The guide decided only the hoofdlijnen are published, which is also all the legislation asks for. The `policyPlanDocument` upload field was removed. |
 | 2026-09-12 | "Laatst bijgewerkt" comes from the record's own `updatedAt` | The guide requires it to change on every update. Deriving it means it cannot be forgotten or drift from reality. |

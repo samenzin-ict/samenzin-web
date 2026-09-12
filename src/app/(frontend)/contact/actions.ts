@@ -5,7 +5,7 @@ import { headers } from 'next/headers'
 import { HONEYPOT_FIELD } from '@/app/(frontend)/contact/honeypot'
 import { getMessages } from '@/i18n'
 import { getPayloadClient } from '@/lib/payload'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit, pruneRateLimits } from '@/lib/rate-limit'
 
 export type ContactFormState = {
   status: 'idle' | 'success' | 'error'
@@ -57,7 +57,8 @@ export async function submitContactForm(
     return { status: 'success' }
   }
 
-  const { allowed } = checkRateLimit(await getCallerIdentifier())
+  const payload = await getPayloadClient()
+  const { allowed } = await checkRateLimit(payload, await getCallerIdentifier())
 
   if (!allowed) {
     return { status: 'error', errors: { form: messages.contactErrorTooMany }, values }
@@ -74,8 +75,6 @@ export async function submitContactForm(
   }
 
   try {
-    const payload = await getPayloadClient()
-
     await payload.create({
       collection: 'contact-submissions',
       /*
@@ -99,6 +98,9 @@ export async function submitContactForm(
     console.error('Contact form submission failed', error)
     return { status: 'error', errors: { form: messages.contactErrorGeneric }, values }
   }
+
+  // Cheap to do here: a successful submission is rare.
+  await pruneRateLimits(payload)
 
   return { status: 'success' }
 }

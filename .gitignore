@@ -57,6 +57,9 @@ node_modules/
 /docs/*.docx
 /docs/*.doc
 /docs/*.pdf
+# LibreOffice and Word leave lock files next to an open document.
+/docs/.~lock.*
+/docs/~$*
 
 # Local one-off scripts. Handy for loading real content into a development
 # database; must never be committed, for the same reason.

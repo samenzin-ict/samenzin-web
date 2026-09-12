@@ -30,7 +30,32 @@ The admin panel is at `/admin`. On first run it asks you to create the first use
 | `pnpm payload migrate:create` | Create a database migration |
 | `pnpm payload migrate` | Apply migrations |
 
-## Production image
+## Deployment
+
+Production runs on Vercel, deployed from GitHub. Set these in the Vercel project
+before the first build:
+
+| Variable | Value |
+|---|---|
+| `DATABASE_URI` | Neon **pooled** connection string, host ending in `-pooler` |
+| `PAYLOAD_SECRET` | A long random string |
+| `NEXT_PUBLIC_SERVER_URL` | `https://samenzin.org` |
+| `BLOB_READ_WRITE_TOKEN` | Set by Vercel once a Blob store is connected |
+
+`NEXT_PUBLIC_SERVER_URL` is inlined at build time, so it has to exist before the
+build runs, not just at runtime.
+
+Migrations run from the `vercel-build` script, before `next build`. A failed
+migration therefore stops the deployment instead of leaving a half-applied
+schema behind a live site.
+
+Preview deployments use whatever `DATABASE_URI` is set for the Preview
+environment. Point it at a Neon branch, not at production, or a pull request
+will migrate the live database.
+
+## Self-hosted image
+
+Kept for local parity and as a way back to a VPS; not the production path.
 
 ```bash
 docker build -t samenzin-web --build-arg NEXT_PUBLIC_SERVER_URL=https://example.org .
