@@ -104,11 +104,22 @@ export async function Footer() {
           ) : null}
         </div>
 
-        {socialLinks.length > 0 || settings.copyright ? (
-          <div className="mt-12 flex flex-col-reverse gap-6 border-t border-primary-foreground/20 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col-reverse gap-6 border-t border-primary-foreground/20 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
             {settings.copyright ? (
               <p className="text-sm opacity-80">{settings.copyright}</p>
             ) : null}
+
+            {/*
+              Permanent, not one of the configurable footer columns. Publishing
+              the ANBI page and linking to it from the site is a statutory
+              requirement (docs/ANBI_guide.docx), so an editor rearranging the
+              footer must not be able to remove it.
+            */}
+            <Link href="/anbi" className="text-sm underline underline-offset-4">
+              {messages.anbiFooterLink}
+            </Link>
+          </div>
 
             {socialLinks.length > 0 ? (
               <nav aria-label={messages.socialNavigationLabel}>
@@ -128,8 +139,7 @@ export async function Footer() {
                 </ul>
               </nav>
             ) : null}
-          </div>
-        ) : null}
+        </div>
       </Container>
     </footer>
   )

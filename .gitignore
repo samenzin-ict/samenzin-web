@@ -48,3 +48,12 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Source documents that carry personal data. CLAUDE.md rule 2 keeps real names,
+# addresses and registration numbers out of this repository. docs/ANBI_guide.docx
+# contains the board members' full names and the foundation's postal address;
+# the content belongs in the CMS, not in git. Keep the file locally, share it
+# through the ICT commission's own channel.
+/docs/*.docx
+/docs/*.doc
+/docs/*.pdf

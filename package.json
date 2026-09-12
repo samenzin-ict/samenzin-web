@@ -15,7 +15,8 @@
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
-    "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/seed-demo.ts"
+    "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/seed-demo.ts",
+    "check:anbi": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/check-anbi.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.88.0",

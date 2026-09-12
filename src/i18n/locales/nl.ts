@@ -28,8 +28,12 @@ export const nl = {
   donateUnavailableBody:
     'We ronden de laatste stappen af om online doneren mogelijk te maken. Wilt u nu al bijdragen? Neem dan contact met ons op, dan helpen we u graag verder.',
   donateUnavailableAction: 'Neem contact op',
+  /*
+   * Wording taken from docs/ANBI_guide.docx. The page may not promise that a
+   * gift is deductible while the ANBI status is only applied for.
+   */
   donateAnbiNote:
-    'Wij hebben ANBI-status in aanvraag. Zodra deze is toegekend, is uw gift fiscaal aftrekbaar.',
+    'De stichting heeft de ANBI-status aangevraagd. Zolang deze niet is toegekend, kunnen wij niet garanderen dat uw gift aftrekbaar is voor de inkomstenbelasting. Contante giften zijn nooit aftrekbaar; doe uw gift daarom altijd per bank.',
 
   // The contact page and its form.
   contactFormHeading: 'Stuur ons een bericht',
@@ -55,26 +59,41 @@ export const nl = {
 
   // The ANBI page. These are the headings the Belastingdienst expects to see,
   // so they are interface labels rather than something an editor rewords.
-  anbiTitle: 'ANBI-gegevens',
+  anbiTitle: 'ANBI-gegevens en beleid',
   anbiIntro:
     'Op deze pagina publiceren wij de gegevens die de Belastingdienst van een algemeen nut beogende instelling verlangt.',
+  anbiOrganisationHeading: 'Gegevens van de stichting',
   anbiStatutoryName: 'Statutaire naam',
-  anbiRsin: 'RSIN',
   anbiKvk: 'KVK-nummer',
-  anbiContact: 'Contactgegevens',
-  anbiEmail: 'E-mailadres',
-  anbiPhone: 'Telefoonnummer',
+  anbiRsin: 'RSIN / fiscaal nummer',
+  anbiFoundedOn: 'Opgericht',
+  anbiSeat: 'Statutaire zetel',
+  anbiOperatingArea: 'Werkgebied',
   anbiAddress: 'Postadres',
+  anbiEmail: 'E-mailadres',
+  anbiPhone: 'Telefoon',
+  anbiIban: 'Bankrekening',
+  anbiFiscalYear: 'Boekjaar',
+  anbiGranted: 'ANBI-status toegekend per',
   anbiObjective: 'Doelstelling',
-  anbiPolicyPlan: 'Beleidsplan',
-  anbiPolicyPlanDocument: 'Download het beleidsplan',
+  anbiMission: 'Missie in het kort',
+  anbiPolicyHeading: 'Hoofdlijnen van het beleidsplan',
+  anbiPolicyActivities: 'Wat wij doen',
+  anbiPolicyIncome: 'Hoe wij onze inkomsten werven',
+  anbiPolicyAssets: 'Hoe wij ons vermogen beheren en besteden',
+  anbiBoard: 'Bestuur',
+  anbiBoardRole: 'Functie',
+  anbiBoardName: 'Naam',
   anbiRemuneration: 'Beloningsbeleid',
-  anbiBoard: 'Bestuurssamenstelling',
-  anbiAnnualReports: 'Verslagen en financiële verantwoording',
-  anbiActivityReport: 'Verslag van de activiteiten',
+  anbiActivityReport: 'Activiteitenverslag',
   anbiFinancialStatement: 'Financiële verantwoording',
+  anbiAnnualReports: 'Verslagen en financiële verantwoording',
   anbiDocuments: 'Documenten',
   anbiFinancialYear: 'Boekjaar',
+  anbiSupport: 'Steun ons',
+  anbiLastUpdated: 'Laatst bijgewerkt',
+  anbiFooterLink: 'ANBI',
+  anbiStatusNoticeTitle: 'Let op: de ANBI-status is aangevraagd en nog niet toegekend',
 
   notFoundTitle: 'Deze pagina bestaat niet',
   notFoundBody:

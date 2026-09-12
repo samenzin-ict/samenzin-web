@@ -136,37 +136,39 @@ await payload.updateGlobal({
   slug: 'anbi-gegevens',
   overrideAccess: true,
   data: {
-    statutoryName: 'Stichting Samenleving en Zingeving',
-    rsin: '000000000',
+    statutoryName: 'Stichting Voorbeeld',
     kvkNumber: '00000000',
+    rsin: '000000000',
+    foundedOn: new Date('2026-01-01').toISOString(),
+    statutorySeat: 'Gemeente Voorbeeld',
+    operatingArea: 'Voorbeeldstad en overig Nederland',
+    fiscalYear: '1 januari tot en met 31 december.',
     contact: {
+      address: 'Postbus 0000\n0000 AA Voorbeeldstad',
       email: 'voorbeeld@example.org',
       phone: '013 000 0000',
-      address: 'Postbus 0000\n5000 AA Tilburg',
     },
-    objective: richText(
-      'Voorbeeldtekst. De stichting heeft ten doel het bevorderen van ontmoeting, dialoog en zingeving.',
+    iban: 'NL00BANK0000000000',
+    anbiStatus: 'aangevraagd',
+    statusNotice: richText(
+      'Voorbeeldtekst. De stichting heeft de ANBI-status aangevraagd. Zolang deze niet is toegekend kunnen wij niet garanderen dat uw gift aftrekbaar is.',
     ),
-    policyPlan: richText('Voorbeeldtekst. Het beleidsplan beschrijft de plannen voor de komende jaren.'),
-    remunerationPolicy: richText('Voorbeeldtekst. De bestuursleden ontvangen geen beloning voor hun werk.'),
-    boardComposition: richText('Voorbeeldtekst. Het bestuur bestaat uit drie onbezoldigde leden.'),
+    objective: richText('Voorbeeldtekst voor de doelstelling volgens de statuten.'),
+    mission: richText('Voorbeeldtekst voor de missie in het kort.'),
+    policyActivities: richText('Voorbeeldtekst. Hier staat wat de stichting doet.'),
+    policyIncome: richText('Voorbeeldtekst. Hier staat hoe de stichting inkomsten werft.'),
+    policyAssets: richText('Voorbeeldtekst. Hier staat hoe het vermogen wordt beheerd en besteed.'),
+    policyPlanOnRequest: 'Voorbeeldtekst. Het volledige beleidsplan sturen wij op verzoek toe.',
+    remunerationPolicy: richText('Voorbeeldtekst. Bestuursleden ontvangen geen beloning.'),
     boardMembers: [
-      { name: 'A. Voorbeeld', role: 'Voorzitter' },
-      { name: 'B. Voorbeeld', role: 'Secretaris' },
-      { name: 'C. Voorbeeld', role: 'Penningmeester' },
+      { role: 'Voorzitter', name: 'A. Voorbeeld' },
+      { role: 'Secretaris', name: 'B. Voorbeeld' },
+      { role: 'Penningmeester', name: 'C. Voorbeeld' },
     ],
-    annualReports: [
-      {
-        year: 2025,
-        activityReport: richText('Voorbeeldtekst. Verslag van de activiteiten over 2025.'),
-        financialStatement: richText('Voorbeeldtekst. Financiële verantwoording over 2025.'),
-      },
-      {
-        year: 2024,
-        activityReport: richText('Voorbeeldtekst. Verslag van de activiteiten over 2024.'),
-        financialStatement: richText('Voorbeeldtekst. Financiële verantwoording over 2024.'),
-      },
-    ],
+    boardComposition: richText('Voorbeeldtekst over de adviesraad en de commissies.'),
+    reportingNotice:
+      'Voorbeeldtekst. Het verslag over het eerste boekjaar wordt uiterlijk zes maanden na afloop daarvan op deze pagina gepubliceerd.',
+    supportText: richText('Voorbeeldtekst over doneren en periodieke giften.'),
   },
 })
 

@@ -7,6 +7,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE TYPE "public"."enum_pages_blocks_call_to_action_links_style" AS ENUM('cta', 'primary', 'outline');
   CREATE TYPE "public"."enum_users_role" AS ENUM('admin', 'editor');
   CREATE TYPE "public"."enum_site_settings_social_links_platform" AS ENUM('facebook', 'instagram', 'linkedin', 'youtube', 'x');
+  CREATE TYPE "public"."enum_anbi_gegevens_anbi_status" AS ENUM('aangevraagd', 'toegekend');
   CREATE TABLE "pages_blocks_hero_links" (
   	"_order" integer NOT NULL,
   	"_parent_id" varchar NOT NULL,
@@ -45,6 +46,50 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"_locale" "_locales" NOT NULL,
   	"id" varchar PRIMARY KEY NOT NULL,
   	"content" jsonb NOT NULL,
+  	"block_name" varchar
+  );
+  
+  CREATE TABLE "pages_blocks_featured_items_items" (
+  	"_order" integer NOT NULL,
+  	"_parent_id" varchar NOT NULL,
+  	"_locale" "_locales" NOT NULL,
+  	"id" varchar PRIMARY KEY NOT NULL,
+  	"title" varchar NOT NULL,
+  	"description" varchar,
+  	"image_id" integer,
+  	"url" varchar,
+  	"link_label" varchar
+  );
+  
+  CREATE TABLE "pages_blocks_featured_items" (
+  	"_order" integer NOT NULL,
+  	"_parent_id" integer NOT NULL,
+  	"_path" text NOT NULL,
+  	"_locale" "_locales" NOT NULL,
+  	"id" varchar PRIMARY KEY NOT NULL,
+  	"heading" varchar NOT NULL,
+  	"block_name" varchar
+  );
+  
+  CREATE TABLE "pages_blocks_agenda_items" (
+  	"_order" integer NOT NULL,
+  	"_parent_id" varchar NOT NULL,
+  	"_locale" "_locales" NOT NULL,
+  	"id" varchar PRIMARY KEY NOT NULL,
+  	"date" timestamp(3) with time zone NOT NULL,
+  	"title" varchar NOT NULL,
+  	"location" varchar,
+  	"badge" varchar,
+  	"url" varchar
+  );
+  
+  CREATE TABLE "pages_blocks_agenda" (
+  	"_order" integer NOT NULL,
+  	"_parent_id" integer NOT NULL,
+  	"_path" text NOT NULL,
+  	"_locale" "_locales" NOT NULL,
+  	"id" varchar PRIMARY KEY NOT NULL,
+  	"heading" varchar NOT NULL,
   	"block_name" varchar
   );
   
@@ -318,21 +363,34 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE TABLE "anbi_gegevens" (
   	"id" serial PRIMARY KEY NOT NULL,
   	"statutory_name" varchar NOT NULL,
-  	"rsin" varchar,
   	"kvk_number" varchar,
+  	"rsin" varchar,
+  	"founded_on" timestamp(3) with time zone,
+  	"statutory_seat" varchar,
+  	"operating_area" varchar,
+  	"fiscal_year" varchar,
+  	"contact_address" varchar,
   	"contact_email" varchar,
   	"contact_phone" varchar,
-  	"contact_address" varchar,
-  	"policy_plan_document_id" integer,
+  	"iban" varchar,
+  	"anbi_status" "enum_anbi_gegevens_anbi_status" DEFAULT 'aangevraagd' NOT NULL,
+  	"anbi_granted_on" timestamp(3) with time zone,
+  	"status_notice" jsonb,
   	"updated_at" timestamp(3) with time zone,
   	"created_at" timestamp(3) with time zone
   );
   
   CREATE TABLE "anbi_gegevens_locales" (
   	"objective" jsonb,
-  	"policy_plan" jsonb,
+  	"mission" jsonb,
+  	"policy_activities" jsonb,
+  	"policy_income" jsonb,
+  	"policy_assets" jsonb,
+  	"policy_plan_on_request" varchar,
   	"remuneration_policy" jsonb,
   	"board_composition" jsonb,
+  	"reporting_notice" varchar,
+  	"support_text" jsonb,
   	"id" serial PRIMARY KEY NOT NULL,
   	"_locale" "_locales" NOT NULL,
   	"_parent_id" integer NOT NULL
@@ -351,6 +409,11 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "pages_blocks_hero" ADD CONSTRAINT "pages_blocks_hero_image_id_media_id_fk" FOREIGN KEY ("image_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "pages_blocks_hero" ADD CONSTRAINT "pages_blocks_hero_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."pages"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "pages_blocks_rich_text" ADD CONSTRAINT "pages_blocks_rich_text_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."pages"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "pages_blocks_featured_items_items" ADD CONSTRAINT "pages_blocks_featured_items_items_image_id_media_id_fk" FOREIGN KEY ("image_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;
+  ALTER TABLE "pages_blocks_featured_items_items" ADD CONSTRAINT "pages_blocks_featured_items_items_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."pages_blocks_featured_items"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "pages_blocks_featured_items" ADD CONSTRAINT "pages_blocks_featured_items_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."pages"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "pages_blocks_agenda_items" ADD CONSTRAINT "pages_blocks_agenda_items_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."pages_blocks_agenda"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "pages_blocks_agenda" ADD CONSTRAINT "pages_blocks_agenda_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."pages"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "pages_blocks_call_to_action_links" ADD CONSTRAINT "pages_blocks_call_to_action_links_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."pages_blocks_call_to_action"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "pages_blocks_call_to_action" ADD CONSTRAINT "pages_blocks_call_to_action_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."pages"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "pages_locales" ADD CONSTRAINT "pages_locales_meta_image_id_media_id_fk" FOREIGN KEY ("meta_image_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;
@@ -376,7 +439,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "anbi_gegevens_board_members_locales" ADD CONSTRAINT "anbi_gegevens_board_members_locales_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."anbi_gegevens_board_members"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "anbi_gegevens_annual_reports" ADD CONSTRAINT "anbi_gegevens_annual_reports_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."anbi_gegevens"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "anbi_gegevens_annual_reports_locales" ADD CONSTRAINT "anbi_gegevens_annual_reports_locales_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."anbi_gegevens_annual_reports"("id") ON DELETE cascade ON UPDATE no action;
-  ALTER TABLE "anbi_gegevens" ADD CONSTRAINT "anbi_gegevens_policy_plan_document_id_media_id_fk" FOREIGN KEY ("policy_plan_document_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "anbi_gegevens_locales" ADD CONSTRAINT "anbi_gegevens_locales_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."anbi_gegevens"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "anbi_gegevens_rels" ADD CONSTRAINT "anbi_gegevens_rels_parent_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."anbi_gegevens"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "anbi_gegevens_rels" ADD CONSTRAINT "anbi_gegevens_rels_media_fk" FOREIGN KEY ("media_id") REFERENCES "public"."media"("id") ON DELETE cascade ON UPDATE no action;
@@ -395,6 +457,21 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "pages_blocks_rich_text_parent_id_idx" ON "pages_blocks_rich_text" USING btree ("_parent_id");
   CREATE INDEX "pages_blocks_rich_text_path_idx" ON "pages_blocks_rich_text" USING btree ("_path");
   CREATE INDEX "pages_blocks_rich_text_locale_idx" ON "pages_blocks_rich_text" USING btree ("_locale");
+  CREATE INDEX "pages_blocks_featured_items_items_order_idx" ON "pages_blocks_featured_items_items" USING btree ("_order");
+  CREATE INDEX "pages_blocks_featured_items_items_parent_id_idx" ON "pages_blocks_featured_items_items" USING btree ("_parent_id");
+  CREATE INDEX "pages_blocks_featured_items_items_locale_idx" ON "pages_blocks_featured_items_items" USING btree ("_locale");
+  CREATE INDEX "pages_blocks_featured_items_items_image_idx" ON "pages_blocks_featured_items_items" USING btree ("image_id");
+  CREATE INDEX "pages_blocks_featured_items_order_idx" ON "pages_blocks_featured_items" USING btree ("_order");
+  CREATE INDEX "pages_blocks_featured_items_parent_id_idx" ON "pages_blocks_featured_items" USING btree ("_parent_id");
+  CREATE INDEX "pages_blocks_featured_items_path_idx" ON "pages_blocks_featured_items" USING btree ("_path");
+  CREATE INDEX "pages_blocks_featured_items_locale_idx" ON "pages_blocks_featured_items" USING btree ("_locale");
+  CREATE INDEX "pages_blocks_agenda_items_order_idx" ON "pages_blocks_agenda_items" USING btree ("_order");
+  CREATE INDEX "pages_blocks_agenda_items_parent_id_idx" ON "pages_blocks_agenda_items" USING btree ("_parent_id");
+  CREATE INDEX "pages_blocks_agenda_items_locale_idx" ON "pages_blocks_agenda_items" USING btree ("_locale");
+  CREATE INDEX "pages_blocks_agenda_order_idx" ON "pages_blocks_agenda" USING btree ("_order");
+  CREATE INDEX "pages_blocks_agenda_parent_id_idx" ON "pages_blocks_agenda" USING btree ("_parent_id");
+  CREATE INDEX "pages_blocks_agenda_path_idx" ON "pages_blocks_agenda" USING btree ("_path");
+  CREATE INDEX "pages_blocks_agenda_locale_idx" ON "pages_blocks_agenda" USING btree ("_locale");
   CREATE INDEX "pages_blocks_call_to_action_links_order_idx" ON "pages_blocks_call_to_action_links" USING btree ("_order");
   CREATE INDEX "pages_blocks_call_to_action_links_parent_id_idx" ON "pages_blocks_call_to_action_links" USING btree ("_parent_id");
   CREATE INDEX "pages_blocks_call_to_action_links_locale_idx" ON "pages_blocks_call_to_action_links" USING btree ("_locale");
@@ -464,7 +541,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "anbi_gegevens_annual_reports_order_idx" ON "anbi_gegevens_annual_reports" USING btree ("_order");
   CREATE INDEX "anbi_gegevens_annual_reports_parent_id_idx" ON "anbi_gegevens_annual_reports" USING btree ("_parent_id");
   CREATE UNIQUE INDEX "anbi_gegevens_annual_reports_locales_locale_parent_id_unique" ON "anbi_gegevens_annual_reports_locales" USING btree ("_locale","_parent_id");
-  CREATE INDEX "anbi_gegevens_policy_plan_document_idx" ON "anbi_gegevens" USING btree ("policy_plan_document_id");
   CREATE UNIQUE INDEX "anbi_gegevens_locales_locale_parent_id_unique" ON "anbi_gegevens_locales" USING btree ("_locale","_parent_id");
   CREATE INDEX "anbi_gegevens_rels_order_idx" ON "anbi_gegevens_rels" USING btree ("order");
   CREATE INDEX "anbi_gegevens_rels_parent_idx" ON "anbi_gegevens_rels" USING btree ("parent_id");
@@ -478,6 +554,10 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP TABLE "pages_blocks_hero_stats" CASCADE;
   DROP TABLE "pages_blocks_hero" CASCADE;
   DROP TABLE "pages_blocks_rich_text" CASCADE;
+  DROP TABLE "pages_blocks_featured_items_items" CASCADE;
+  DROP TABLE "pages_blocks_featured_items" CASCADE;
+  DROP TABLE "pages_blocks_agenda_items" CASCADE;
+  DROP TABLE "pages_blocks_agenda" CASCADE;
   DROP TABLE "pages_blocks_call_to_action_links" CASCADE;
   DROP TABLE "pages_blocks_call_to_action" CASCADE;
   DROP TABLE "pages" CASCADE;
@@ -512,5 +592,6 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP TYPE "public"."enum_pages_blocks_hero_links_style";
   DROP TYPE "public"."enum_pages_blocks_call_to_action_links_style";
   DROP TYPE "public"."enum_users_role";
-  DROP TYPE "public"."enum_site_settings_social_links_platform";`)
+  DROP TYPE "public"."enum_site_settings_social_links_platform";
+  DROP TYPE "public"."enum_anbi_gegevens_anbi_status";`)
 }

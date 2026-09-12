@@ -81,6 +81,12 @@ database stopped, which is the situation in GitHub Actions.
       whether a minimal published checkbox is wanted before launch.
 - [ ] **`Donations` is not modelled yet.** `ARCHITECTURE.md` lists it in the phase 1
       content model; it was not in this session's scope and waits for the Mollie work.
+- [ ] **The ANBI page still needs three values before it can go live:** e-mailadres,
+      telefoonnummer and IBAN. `pnpm check:anbi` reports them as aandachtspunten. The
+      guide lists them as outstanding too.
+- [ ] **The real ANBI content is not in the repository.** It was loaded into the local
+      development database only. Whoever sets up production enters it through the admin
+      panel, or restores a database dump.
 - [ ] **The privacy statement does not exist. This blocks launch.** The contact form now
       collects personal data and links to `/privacyverklaring`, which returns 404 until
       someone creates a page with that slug. Do not put the contact form in front of the
@@ -138,6 +144,11 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-06 | The rate limiter hashes the caller's IP and keeps only the hash, in memory | ARCHITECTURE.md asks the contact form to keep the minimum. An address we cannot reverse is the least we can work with while still counting requests. |
 | 2026-09-06 | `push` is on in development and off in production | A deploy then makes exactly the schema change that was reviewed, and it can be rolled back. |
 | 2026-09-06 | The container does not run migrations on start | A failed migration should stop a deploy, not restart-loop the live site. |
+| 2026-09-12 | The ANBI page follows `docs/ANBI_guide.docx` exactly, including its order | The Belastingdienst prescribes what must appear. Publishing it is condition 12 of twelve; if the page is wrong the application can be refused on that ground. |
+| 2026-09-12 | No full beleidsplan PDF on the site | The guide decided only the hoofdlijnen are published, which is also all the legislation asks for. The `policyPlanDocument` upload field was removed. |
+| 2026-09-12 | "Laatst bijgewerkt" comes from the record's own `updatedAt` | The guide requires it to change on every update. Deriving it means it cannot be forgotten or drift from reality. |
+| 2026-09-12 | The footer link to /anbi is permanent, not a configurable footer column | Linking the page from the site is a statutory requirement, so an editor rearranging the footer must not be able to remove it. |
+| 2026-09-12 | Pre-deployment migrations squashed into one | Drizzle prompts interactively when a column is dropped while others are added, which blocks a non-interactive run. Nothing had been deployed, so one clean initial migration is honest and avoids the prompt entirely. |
 | 2026-09-06 | Canonical domain is `samenzin.org` | The `.org` is bought; `.nl` was not taken. This is the value for `NEXT_PUBLIC_SERVER_URL` at build time. |
 | 2026-09-06 | Homepage projects and agenda are blocks, not collections | Projecten and Agenda are phase 2. A curated row on the homepage is not, and blocks let the mockup be reproduced without pulling the content platform forward. |
 | 2026-09-06 | The palette moved to `src/styles/brand.css` | The admin panel does not use Tailwind, so branding it would have meant writing the six approved values a second time. |
@@ -162,6 +173,18 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
   placeholder privacy statement that says in capitals that it must not go live. It never
   touches users, so nobody's admin account is lost. Demo content only: never run it
   against production, and it refuses to when NODE_ENV is production.
+- `pnpm check:anbi` verifies the ANBI page against `docs/ANBI_guide.docx` while the site
+  is running: the ten items the Belastingdienst requires, the technical conditions, and
+  the claims that may not be made while the status is only applied for. It exits non-zero
+  when something mandatory is missing, so it can gate a deploy.
+- `docs/ANBI_guide.docx` is deliberately **not** in git. It carries the board members'
+  full names and the postal address, and `CLAUDE.md` rule 2 keeps personal data out of
+  the repository. `.gitignore` blocks `docs/*.docx`, `*.doc` and `*.pdf` so it cannot be
+  committed by accident. The content belongs in the CMS.
+- If `pnpm dev` hangs with every request timing out, look at the top of the dev log. In
+  development Payload pushes the schema on boot, and when a column is dropped while
+  others are added Drizzle asks on stdin whether it is a rename. It waits forever and the
+  app never finishes starting. Answer it in a terminal, or reset the development database.
 - The admin panel will not look like `docs/design/09-admin-panel-dashboard.png`. Payload
   generates it, and `docs/design/README.md` asks for the information architecture rather
   than a rebuild. The grouping, the Dutch labels and the brand colours match; the

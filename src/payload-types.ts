@@ -812,7 +812,7 @@ export interface SiteSetting {
   createdAt?: string | null;
 }
 /**
- * De gegevens die de Belastingdienst verplicht stelt voor een ANBI. Alle velden zijn openbaar op de website.
+ * De gegevens die de Belastingdienst verplicht stelt voor een ANBI. Alles op deze pagina is openbaar. Werk de pagina dezelfde dag bij als de statuten, het bestuur, het adres of de activiteiten veranderen.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "anbi-gegevens".
@@ -823,21 +823,58 @@ export interface AnbiGegeven {
    * De naam zoals die in de statuten en bij de KVK staat.
    */
   statutoryName: string;
-  /**
-   * Het RSIN of fiscaal nummer van de stichting.
-   */
-  rsin?: string | null;
   kvkNumber?: string | null;
+  rsin?: string | null;
+  foundedOn?: string | null;
   /**
-   * De contactgegevens zoals geregistreerd bij de KVK. Dit mag een postadres zijn en hoeft niet hetzelfde te zijn als het bezoekadres bij Instellingen.
+   * Bijvoorbeeld: Gemeente Tilburg.
+   */
+  statutorySeat?: string | null;
+  operatingArea?: string | null;
+  /**
+   * Bijvoorbeeld: 1 januari tot en met 31 december. Vermeld ook het eerste, afwijkende boekjaar.
+   */
+  fiscalYear?: string | null;
+  /**
+   * Het post- of bezoekadres is verplicht. Dit mag een postadres zijn en hoeft niet hetzelfde te zijn als het bezoekadres bij Instellingen.
    */
   contact?: {
+    address?: string | null;
     email?: string | null;
     phone?: string | null;
-    address?: string | null;
   };
   /**
-   * De doelstelling van de stichting, zoals omschreven in de statuten.
+   * Wordt op de pagina getoond bij "Steun ons".
+   */
+  iban?: string | null;
+  /**
+   * Zet dit pas op "toegekend" als de beschikking binnen is. Zolang de status is aangevraagd mag de website niet vermelden dat giften aftrekbaar zijn.
+   */
+  anbiStatus: 'aangevraagd' | 'toegekend';
+  /**
+   * De datum op de beschikking van de Belastingdienst.
+   */
+  anbiGrantedOn?: string | null;
+  /**
+   * Wordt bovenaan de pagina getoond zolang de status is aangevraagd. Vermeld dat de aftrekbaarheid nog niet gegarandeerd is en dat contante giften nooit aftrekbaar zijn.
+   */
+  statusNotice?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * De doelstelling zoals omschreven in de statuten, met het artikelnummer.
    */
   objective?: {
     root: {
@@ -855,9 +892,9 @@ export interface AnbiGegeven {
     [k: string]: unknown;
   } | null;
   /**
-   * Een samenvatting van het beleidsplan, of het plan in zijn geheel.
+   * Een korte toelichting in gewone taal. Optioneel.
    */
-  policyPlan?: {
+  mission?: {
     root: {
       type: string;
       children: {
@@ -873,11 +910,62 @@ export interface AnbiGegeven {
     [k: string]: unknown;
   } | null;
   /**
-   * Optioneel. Een PDF met het volledige beleidsplan.
+   * Onderdeel van de hoofdlijnen van het beleidsplan. Het volledige beleidsplan hoort niet op de website.
    */
-  policyPlanDocument?: (number | null) | Media;
+  policyActivities?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  policyIncome?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   /**
-   * Het beloningsbeleid voor het bestuur en voor eventueel personeel. Vermeld het ook als bestuursleden onbezoldigd zijn.
+   * Vermeld hier ook wat er bij opheffing met een batig saldo gebeurt.
+   */
+  policyAssets?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Zin waarmee bezoekers het volledige beleidsplan kunnen opvragen.
+   */
+  policyPlanOnRequest?: string | null;
+  /**
+   * Voor het bestuur en voor eventueel personeel. Vermeld het ook als bestuursleden onbezoldigd zijn.
    */
   remunerationPolicy?: {
     root: {
@@ -895,7 +983,17 @@ export interface AnbiGegeven {
     [k: string]: unknown;
   } | null;
   /**
-   * Een korte toelichting op de samenstelling van het bestuur.
+   * Alleen naam en functie. Woonadres, telefoonnummer en geboortedatum zijn niet verplicht en horen hier niet.
+   */
+  boardMembers?:
+    | {
+        role: string;
+        name: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Bijvoorbeeld over de adviesraad en de commissies. Optioneel.
    */
   boardComposition?: {
     root: {
@@ -913,20 +1011,11 @@ export interface AnbiGegeven {
     [k: string]: unknown;
   } | null;
   /**
-   * De namen en functies van de bestuursleden.
+   * Wordt getoond zolang hieronder geen boekjaar is toegevoegd. Vermeld de uiterste publicatiedatum. Een ANBI moet binnen zes maanden na afloop van het boekjaar publiceren; te laat publiceren is de belangrijkste reden dat de status wordt ingetrokken.
    */
-  boardMembers?:
-    | {
-        name: string;
-        /**
-         * Bijvoorbeeld: voorzitter, secretaris, penningmeester.
-         */
-        role: string;
-        id?: string | null;
-      }[]
-    | null;
+  reportingNotice?: string | null;
   /**
-   * Per boekjaar het verslag van de activiteiten en de financiële verantwoording. Een ANBI moet deze jaarlijks publiceren.
+   * Per boekjaar het verslag van de activiteiten en de financiële verantwoording: balans, staat van baten en lasten, en de toelichting daarop.
    */
   annualReports?:
     | {
@@ -946,6 +1035,9 @@ export interface AnbiGegeven {
           };
           [k: string]: unknown;
         } | null;
+        /**
+         * Balans en staat van baten en lasten, met toelichting.
+         */
         financialStatement?: {
           root: {
             type: string;
@@ -962,12 +1054,30 @@ export interface AnbiGegeven {
           [k: string]: unknown;
         } | null;
         /**
-         * Optioneel. Bijvoorbeeld de jaarrekening als PDF.
+         * Optioneel en aanvullend. De cijfers moeten ook als gewone tekst op de pagina staan, niet alleen in een PDF.
          */
         documents?: (number | Media)[] | null;
         id?: string | null;
       }[]
     | null;
+  /**
+   * Over doneren, periodieke giften en geoormerkte giften. Claim hier niet dat giften aftrekbaar zijn zolang de ANBI-status niet is toegekend.
+   */
+  supportText?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1036,27 +1146,39 @@ export interface SiteSettingsSelect<T extends boolean = true> {
  */
 export interface AnbiGegevensSelect<T extends boolean = true> {
   statutoryName?: T;
-  rsin?: T;
   kvkNumber?: T;
+  rsin?: T;
+  foundedOn?: T;
+  statutorySeat?: T;
+  operatingArea?: T;
+  fiscalYear?: T;
   contact?:
     | T
     | {
+        address?: T;
         email?: T;
         phone?: T;
-        address?: T;
       };
+  iban?: T;
+  anbiStatus?: T;
+  anbiGrantedOn?: T;
+  statusNotice?: T;
   objective?: T;
-  policyPlan?: T;
-  policyPlanDocument?: T;
+  mission?: T;
+  policyActivities?: T;
+  policyIncome?: T;
+  policyAssets?: T;
+  policyPlanOnRequest?: T;
   remunerationPolicy?: T;
-  boardComposition?: T;
   boardMembers?:
     | T
     | {
-        name?: T;
         role?: T;
+        name?: T;
         id?: T;
       };
+  boardComposition?: T;
+  reportingNotice?: T;
   annualReports?:
     | T
     | {
@@ -1066,6 +1188,7 @@ export interface AnbiGegevensSelect<T extends boolean = true> {
         documents?: T;
         id?: T;
       };
+  supportText?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
