@@ -141,42 +141,66 @@ which costs a function invocation per image.
 
 ## Filling a new environment for the first time
 
-A fresh Neon branch is empty. This puts the same content into it that
-`pnpm seed` puts on a laptop, with images going to R2 rather than to disk.
+A fresh Neon branch is empty. The deployment then shows the layout with nothing
+in it: the header and footer render but have nothing to list, and the homepage
+says "De website is nog niet ingericht".
 
-Run it from your own machine with the target's variables in front of the
-command, so nothing has to be changed in `.env`:
+That is content missing, not design missing. Every component, stylesheet and
+button is compiled into the deployment already; what they render comes from the
+database.
+
+### One command
 
 ```bash
-# 1. Schema. The Vercel build also does this, so skip it if a deploy has
-#    already succeeded.
+cp .env.example .env.remote     # then replace the values with the target's
+pnpm fill:remote                # reads .env.remote
+```
+
+`.env.remote` needs six values, all of them required:
+
+```
+DATABASE_URI="<neon pooled connection string>"
+R2_BUCKET="samenzin-media"
+R2_ENDPOINT="https://<account-id>.r2.cloudflarestorage.com"
+R2_ACCESS_KEY_ID="<token>"
+R2_SECRET_ACCESS_KEY="<secret>"
+R2_PUBLIC_URL="<public bucket address>"
+```
+
+It shows the database and bucket it is about to write to and waits for
+confirmation, then applies the schema, writes the content and uploads the
+images, and finally loads the real ANBI text if `.devseed/load-anbi.ts` is
+present.
+
+The R2 values are not optional and the script refuses without them. Left out,
+the images are written to a `media` directory on your own machine, the database
+records point at files the deployment does not have, and every image is broken
+with nothing on the page to say why.
+
+`.env.remote` holds credentials for a hosted environment and is gitignored.
+
+Point it at the Neon `dev` branch to fill the preview environment, and at
+`production` for production.
+
+Afterwards, open the deployment's `/admin` and create the first account. It
+becomes an administrator automatically.
+
+### Doing it by hand
+
+The same three steps, if you would rather see them:
+
+```bash
 DATABASE_URI="<neon pooled>" pnpm payload migrate
 
-# 2. Content and images. SEED_ALLOW_REMOTE is required on purpose: the script
-#    refuses a non-local database without it, and prints the host it is about
-#    to write to.
-DATABASE_URI="<neon pooled>" \
-R2_BUCKET=samenzin-media \
-R2_ENDPOINT="https://<account-id>.r2.cloudflarestorage.com" \
-R2_ACCESS_KEY_ID="<token>" \
-R2_SECRET_ACCESS_KEY="<secret>" \
-R2_PUBLIC_URL="<public bucket address>" \
+DATABASE_URI="<neon pooled>" R2_BUCKET=... R2_ENDPOINT=... \
+R2_ACCESS_KEY_ID=... R2_SECRET_ACCESS_KEY=... R2_PUBLIC_URL=... \
 SEED_ALLOW_REMOTE=true pnpm seed
 
-# 3. The real ANBI content, which is not in this repository. Run the loader
-#    the ICT commission keeps in .devseed, against the same database.
 DATABASE_URI="<neon pooled>" pnpm payload run .devseed/load-anbi.ts
 ```
 
-The R2 variables matter in step 2. Without them the images are written to a
-`media` directory on your laptop and the database records point at files the
-deployment does not have, so every image is broken.
-
-Step 3 has to come after step 2. `pnpm seed` writes placeholder ANBI values and
-would otherwise overwrite the real ones.
-
-Finally, open `https://<the deployment>/admin` and create the first account. It
-becomes an administrator automatically.
+The order matters: `pnpm seed` writes placeholder ANBI values and would
+otherwise overwrite the real ones.
 
 **What this content is.** Everything except the ANBI page is placeholder:
 `Voorbeeldtekst`, `voorbeeld@example.org`, invented project names. It is there

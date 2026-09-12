@@ -18,7 +18,8 @@
     "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/seed-demo.ts",
     "check:anbi": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/check-anbi.ts",
     "vercel-build": "pnpm payload migrate && pnpm build",
-    "db:pull": "bash scripts/db-pull.sh"
+    "db:pull": "bash scripts/db-pull.sh",
+    "fill:remote": "bash scripts/fill-remote.sh"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.88.0",
