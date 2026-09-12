@@ -38,8 +38,33 @@ MSG
   exit 1
 fi
 
-# shellcheck disable=SC1090
-set -a; source "$ENV_FILE"; set +a
+# The file is read, not executed.
+#
+# Sourcing it looked simpler and was wrong. A Neon connection string ends in
+# "?sslmode=require&channel_binding=require", and an unquoted & makes the shell
+# treat the assignment as a background job: it runs in a subshell and the value
+# never reaches this one. The variable then looks empty for no visible reason.
+# Parsing also means a stray line in the file cannot execute anything.
+read_env_value() {
+  local key="$1" line value
+  line="$(grep -E "^[[:space:]]*(export[[:space:]]+)?${key}=" "$ENV_FILE" | tail -1 || true)"
+  [[ -z "$line" ]] && return 0
+
+  value="${line#*=}"
+  value="${value%$'\r'}"                       # files written on Windows
+  value="${value%\"}"; value="${value#\"}"      # optional double quotes
+  value="${value%\'}"; value="${value#\'}"      # optional single quotes
+  printf '%s' "$value"
+}
+
+DATABASE_URI="$(read_env_value DATABASE_URI)"
+R2_BUCKET="$(read_env_value R2_BUCKET)"
+R2_ENDPOINT="$(read_env_value R2_ENDPOINT)"
+R2_ACCESS_KEY_ID="$(read_env_value R2_ACCESS_KEY_ID)"
+R2_SECRET_ACCESS_KEY="$(read_env_value R2_SECRET_ACCESS_KEY)"
+R2_PUBLIC_URL="$(read_env_value R2_PUBLIC_URL)"
+
+export DATABASE_URI R2_BUCKET R2_ENDPOINT R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_PUBLIC_URL
 
 MISSING=()
 for name in DATABASE_URI R2_BUCKET R2_ENDPOINT R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_PUBLIC_URL; do

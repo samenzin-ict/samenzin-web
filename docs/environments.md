@@ -114,6 +114,12 @@ bucket is not publicly readable.
 **A variable is set but nothing changed** — variables are read when a build
 runs. Redeploy.
 
+**`pnpm fill:remote` says `DATABASE_URI` is missing when it is clearly there** —
+fixed. The script used to execute `.env.remote` rather than read it, and a Neon
+string ends in `&channel_binding=require`; an unquoted `&` makes the shell run
+the assignment as a background job, so the value never arrived. The file is now
+parsed, and quotes, `export` prefixes and Windows line endings all work.
+
 **The container image build fails on `DATABASE_URI is not set`** — the
 Dockerfile sets a placeholder for the build, which never connects to anything;
 the real connection string is supplied when the container runs. If you see this,
