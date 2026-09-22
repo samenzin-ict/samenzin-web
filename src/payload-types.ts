@@ -70,6 +70,7 @@ export interface Config {
     pages: Page;
     media: Media;
     'contact-submissions': ContactSubmission;
+    donations: Donation;
     users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -81,6 +82,7 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
+    donations: DonationsSelect<false> | DonationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -365,6 +367,43 @@ export interface ContactSubmission {
   createdAt: string;
 }
 /**
+ * Donaties die via de website zijn gestart. Deze records bevatten persoonsgegevens en zijn niet openbaar.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "donations".
+ */
+export interface Donation {
+  id: number;
+  /**
+   * Het nummer waarmee deze betaling in het Mollie-dashboard te vinden is.
+   */
+  molliePaymentId: string;
+  amount: number;
+  /**
+   * Wordt automatisch bijgewerkt door Mollie. Alleen de status "Betaald" betekent dat het geld is ontvangen.
+   */
+  status: 'open' | 'pending' | 'paid' | 'canceled' | 'expired' | 'failed';
+  /**
+   * Waar de gever de gift aan wilde besteden. Leeg betekent algemeen.
+   */
+  fund?: string | null;
+  /**
+   * Bij een anonieme gift zijn naam en e-mailadres niet opgeslagen.
+   */
+  anonymous?: boolean | null;
+  /**
+   * Leeg bij een anonieme gift.
+   */
+  donorName?: string | null;
+  /**
+   * Alleen gebruikt om een donatiebevestiging te sturen. Leeg bij een anonieme gift.
+   */
+  donorEmail?: string | null;
+  paidAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Accounts voor het beheerpaneel. Beheerders kunnen gebruikers toevoegen en rollen wijzigen.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -431,6 +470,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'contact-submissions';
         value: number | ContactSubmission;
+      } | null)
+    | ({
+        relationTo: 'donations';
+        value: number | Donation;
       } | null)
     | ({
         relationTo: 'users';
@@ -652,6 +695,22 @@ export interface ContactSubmissionsSelect<T extends boolean = true> {
   email?: T;
   message?: T;
   handled?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "donations_select".
+ */
+export interface DonationsSelect<T extends boolean = true> {
+  molliePaymentId?: T;
+  amount?: T;
+  status?: T;
+  fund?: T;
+  anonymous?: T;
+  donorName?: T;
+  donorEmail?: T;
+  paidAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

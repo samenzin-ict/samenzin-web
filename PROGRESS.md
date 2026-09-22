@@ -49,6 +49,10 @@ the first account you create becomes an administrator automatically.
   pinned to `fra1`, and rate limiting moved onto Payload's database-backed key-value store
 - `docs/environments.md` documents local, preview and production, every variable, and how
   content is copied down with `pnpm db:pull`
+- Branded error pages: `error.tsx` for a page that throws, `global-error.tsx` for the root
+  layout failing, which is what an unreachable database causes
+- `Donations` collection and the Mollie one-off flow, behind the disabled state until the
+  bank account exists
 - Two more blocks, Kaartenrij and Agenda, so the homepage matches the approved mockup
 - `pnpm seed` fills an empty database with obviously fake demo content
 - The admin panel carries the brand colours; the palette now lives in one file that both
@@ -84,8 +88,16 @@ database stopped, which is the situation in GitHub Actions.
       live. Editorial workflow is phase 2 in `ROADMAP.md`, so it was deliberately not
       built, but a volunteer can currently publish a half-finished page. Worth deciding
       whether a minimal published checkbox is wanted before launch.
-- [ ] **`Donations` is not modelled yet.** `ARCHITECTURE.md` lists it in the phase 1
-      content model; it was not in this session's scope and waits for the Mollie work.
+- [ ] **The Mollie flow has never talked to Mollie.** The collection, the start action,
+      the webhook and the form are built and the disabled state still works, but no
+      request has reached Mollie because there is no account. Before switching it on:
+      create the payment with a test key, confirm the webhook is reachable from the
+      internet, and check a record moves from `open` to `paid`.
+- [ ] **`MOLLIE_WEBHOOK_URL` must be set in production**, to
+      `https://samenzin.org/api/mollie-webhook`. Without it Mollie never calls back and
+      every donation stays `open` regardless of whether it was paid.
+- [ ] **Donations hold personal data** and need a processing register entry in
+      `samenzin-ict`, including how long records are kept.
 - [ ] **The ANBI page still needs three values before it can go live:** e-mailadres,
       telefoonnummer and IBAN. `pnpm check:anbi` reports them as aandachtspunten. The
       guide lists them as outstanding too.
@@ -166,6 +178,10 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-12 | A new environment is filled by running the seeders against it, not by pushing a database | Keeps the one-way rule intact. `pnpm seed` refuses a non-local database unless `SEED_ALLOW_REMOTE` is set, and prints the host first. |
 | 2026-09-12 | `pnpm db:pull` exists; there is no `db:push` | Schema travels upward as a reviewed migration, content downward as a dump. A script that overwrote production content from a laptop is a bad thing to have lying around. |
 | 2026-09-12 | Functions pinned to `fra1` | Keeps requests inside the EU, which is what the privacy section of ARCHITECTURE.md assumes. |
+| 2026-09-22 | Donations are one-off only; monthly and five-year gifts wait for ROADMAP 3.3 | Recurring needs a mandate, and a signed mandate has legal weight. Phase 1 in ROADMAP.md is iDEAL one-off. |
+| 2026-09-22 | A donation record is created before the visitor leaves, and only the webhook may mark it paid | The return URL proves nothing; anyone can open it. ARCHITECTURE.md: webhook plus a server-side re-fetch is the only source of truth. |
+| 2026-09-22 | Anonymous donations store no name or e-mail at all | Same reasoning as the contact form: what is not collected cannot leak. The form hides the fields and the action refuses to store them. |
+| 2026-09-22 | Two error boundaries, not one | `error.tsx` renders inside the layout, so it cannot catch the layout failing. An unreachable database takes down the layout, which is the failure most likely in production. |
 | 2026-09-12 | The ANBI page follows `docs/ANBI_guide.docx` exactly, including its order | The Belastingdienst prescribes what must appear. Publishing it is condition 12 of twelve; if the page is wrong the application can be refused on that ground. |
 | 2026-09-12 | No full beleidsplan PDF on the site | The guide decided only the hoofdlijnen are published, which is also all the legislation asks for. The `policyPlanDocument` upload field was removed. |
 | 2026-09-12 | "Laatst bijgewerkt" comes from the record's own `updatedAt` | The guide requires it to change on every update. Deriving it means it cannot be forgotten or drift from reality. |

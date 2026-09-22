@@ -22,6 +22,7 @@
     "fill:remote": "bash scripts/fill-remote.sh"
   },
   "dependencies": {
+    "@mollie/api-client": "4.6.0",
     "@payloadcms/db-postgres": "3.88.0",
     "@payloadcms/next": "3.88.0",
     "@payloadcms/richtext-lexical": "3.88.0",

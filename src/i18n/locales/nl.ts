@@ -32,6 +32,29 @@ export const nl = {
    * Wording taken from docs/ANBI_guide.docx. The page may not promise that a
    * gift is deductible while the ANBI status is only applied for.
    */
+  donateDescription: 'Gift aan Stichting Samenleving en Zingeving',
+  donateAmountLabel: 'Bedrag',
+  donateOtherAmount: 'Ander bedrag',
+  donateFundLabel: 'Waar gaat uw gift naartoe?',
+  donateFundGeneral: 'Algemeen',
+  donateNameLabel: 'Naam',
+  donateEmailLabel: 'E-mailadres',
+  donateAnonymousLabel: 'Ik wil anoniem doneren',
+  donateAnonymousHint:
+    'Bij een anonieme gift bewaren wij uw naam en e-mailadres niet. U ontvangt dan ook geen donatiebevestiging.',
+  donateSubmit: 'Doneer',
+  donateSubmitting: 'Bezig met doorsturen…',
+  donateErrorAmount: 'Vul een bedrag in van minimaal € 1.',
+  donateErrorName: 'Vul uw naam in, of kies ervoor anoniem te doneren.',
+  donateErrorEmail: 'Vul een geldig e-mailadres in, of kies ervoor anoniem te doneren.',
+  donateErrorGeneric: 'Het doneren kon niet gestart worden. Probeer het later opnieuw.',
+  donatePrivacyNotice:
+    'Wij gebruiken uw naam en e-mailadres alleen om uw gift te bevestigen. Uw betaalgegevens komen nooit bij ons binnen; u betaalt bij Mollie.',
+  donateThanksTitle: 'Bedankt voor uw gift',
+  donateThanksBody:
+    'Wij hebben uw betaling in goede orde ontvangen zodra de bank die aan ons heeft bevestigd. Duurt dat langer dan een dag, neem dan gerust contact met ons op.',
+  donateThanksAction: 'Naar de homepagina',
+
   donateAnbiNote:
     'De stichting heeft de ANBI-status aangevraagd. Zolang deze niet is toegekend, kunnen wij niet garanderen dat uw gift aftrekbaar is voor de inkomstenbelasting. Contante giften zijn nooit aftrekbaar; doe uw gift daarom altijd per bank.',
 

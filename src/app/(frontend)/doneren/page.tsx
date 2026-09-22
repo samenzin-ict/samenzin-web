@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+import { DonationForm } from '@/components/donate/DonationForm'
 import { RenderBlocks } from '@/components/blocks/RenderBlocks'
 import { Container } from '@/components/layout/Container'
 import { Button } from '@/components/ui/button'
 import { Notice } from '@/components/ui/notice'
 import { getMessages } from '@/i18n'
 import { buildPageMetadata } from '@/lib/metadata'
+import { isDonationEnabled } from '@/lib/mollie'
 import { getPageBySlug, getSiteSettings } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
@@ -43,6 +45,7 @@ export default async function DonatePage() {
   const messages = getMessages()
 
   const hasHero = page?.body?.[0]?.blockType === 'hero'
+  const donationsEnabled = isDonationEnabled()
 
   return (
     <>
@@ -55,13 +58,21 @@ export default async function DonatePage() {
       ) : null}
 
       <Container className="pt-6">
-        <div className="max-w-prose space-y-4">
-          <Notice title={messages.donateUnavailableTitle}>
-            <p>{messages.donateUnavailableBody}</p>
-            <Button asChild variant="default" size="sm">
-              <Link href="/contact">{messages.donateUnavailableAction}</Link>
-            </Button>
-          </Notice>
+        <div className="max-w-prose space-y-6">
+          {/*
+            The form appears only once Mollie is configured. Until then the
+            page says so plainly rather than showing controls that cannot work.
+          */}
+          {donationsEnabled ? (
+            <DonationForm messages={messages} funds={[]} />
+          ) : (
+            <Notice title={messages.donateUnavailableTitle}>
+              <p>{messages.donateUnavailableBody}</p>
+              <Button asChild variant="default" size="sm">
+                <Link href="/contact">{messages.donateUnavailableAction}</Link>
+              </Button>
+            </Notice>
+          )}
 
           <p className="text-sm">{messages.donateAnbiNote}</p>
         </div>
