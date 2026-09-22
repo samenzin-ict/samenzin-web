@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 
 import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
+import { PreviewBanner } from '@/components/layout/PreviewBanner'
 import { StickyDonateBar } from '@/components/layout/StickyDonateBar'
 import { sansBody, serifHeading } from '@/fonts'
 import { defaultLocale, getMessages } from '@/i18n'
@@ -57,6 +58,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           {messages.skipToContent}
         </a>
+
+        {/* Above the header, so it cannot be mistaken for site content. */}
+        <PreviewBanner />
 
         <Header />
 

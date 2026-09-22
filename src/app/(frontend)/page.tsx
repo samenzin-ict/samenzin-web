@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { draftMode } from 'next/headers'
 import Link from 'next/link'
 
 import { RenderBlocks } from '@/components/blocks/RenderBlocks'
@@ -20,7 +21,8 @@ export const dynamic = 'force-dynamic'
 const HOME_SLUG = 'home'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [page, settings] = await Promise.all([getPageBySlug(HOME_SLUG), getSiteSettings()])
+  const { isEnabled: isDraft } = await draftMode()
+  const [page, settings] = await Promise.all([getPageBySlug(HOME_SLUG, undefined, isDraft), getSiteSettings()])
 
   const siteTitle = [settings.organisationName, settings.tagline].filter(Boolean).join(' — ')
 
@@ -30,7 +32,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const page = await getPageBySlug(HOME_SLUG)
+  const { isEnabled: isDraft } = await draftMode()
+  const page = await getPageBySlug(HOME_SLUG, undefined, isDraft)
 
   /*
    * A fresh installation has no pages yet. Saying so, and pointing at the

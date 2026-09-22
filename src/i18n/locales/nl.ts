@@ -118,6 +118,11 @@ export const nl = {
   anbiFooterLink: 'ANBI',
   anbiStatusNoticeTitle: 'Let op: de ANBI-status is aangevraagd en nog niet toegekend',
 
+  previewBannerTitle: 'U bekijkt een voorbeeld',
+  previewBannerBody:
+    'Deze pagina is nog niet gepubliceerd, of u ziet een versie die afwijkt van de gepubliceerde. Bezoekers zien dit niet.',
+  previewBannerExit: 'Voorbeeld verlaten',
+
   errorTitle: 'Er is iets misgegaan',
   errorBody:
     'Door een storing kon deze pagina niet geladen worden. Probeer het opnieuw. Blijft het misgaan, neem dan contact met ons op.',

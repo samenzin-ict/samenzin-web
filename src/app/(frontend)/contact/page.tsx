@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { draftMode } from 'next/headers'
 
 import { RenderBlocks } from '@/components/blocks/RenderBlocks'
 import { Container } from '@/components/layout/Container'
@@ -19,7 +20,8 @@ const CONTACT_SLUG = 'contact'
  * the slug "contact"; its blocks render above the form.
  */
 export async function generateMetadata(): Promise<Metadata> {
-  const [page, settings] = await Promise.all([getPageBySlug(CONTACT_SLUG), getSiteSettings()])
+  const { isEnabled: isDraft } = await draftMode()
+  const [page, settings] = await Promise.all([getPageBySlug(CONTACT_SLUG, undefined, isDraft), getSiteSettings()])
   const messages = getMessages()
 
   if (!page) {
@@ -30,7 +32,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ContactPage() {
-  const [page, settings] = await Promise.all([getPageBySlug(CONTACT_SLUG), getSiteSettings()])
+  const { isEnabled: isDraft } = await draftMode()
+  const [page, settings] = await Promise.all([getPageBySlug(CONTACT_SLUG, undefined, isDraft), getSiteSettings()])
   const messages = getMessages()
 
   const addresses = settings.addresses ?? []

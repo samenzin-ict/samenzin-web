@@ -205,8 +205,19 @@ const soon = (days: number) => {
   return date.toISOString()
 }
 
+/*
+ * Seeded pages are published, not drafts.
+ *
+ * Pages carry a draft state (ROADMAP 2.1) and Payload creates a document as a
+ * draft unless told otherwise. Without this the seed fills a database with
+ * content nobody can see, which on a fresh deployment looks exactly like the
+ * seed never ran.
+ */
+const PUBLISHED = { _status: 'published' as const }
+
 const pages = [
   {
+    ...PUBLISHED,
     title: 'Home',
     slug: 'home',
     body: [
@@ -272,6 +283,7 @@ const pages = [
     ],
   },
   {
+    ...PUBLISHED,
     title: 'Over ons',
     slug: 'over-ons',
     body: [
@@ -285,6 +297,7 @@ const pages = [
     ],
   },
   {
+    ...PUBLISHED,
     title: 'Contact',
     slug: 'contact',
     body: [
@@ -295,6 +308,7 @@ const pages = [
     ],
   },
   {
+    ...PUBLISHED,
     title: 'Doneren',
     slug: 'doneren',
     body: [
@@ -305,6 +319,7 @@ const pages = [
     ],
   },
   {
+    ...PUBLISHED,
     title: 'Privacyverklaring',
     slug: 'privacyverklaring',
     body: [

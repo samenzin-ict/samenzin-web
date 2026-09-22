@@ -62,6 +62,7 @@ Deployed from `main`, serving `samenzin.org`.
 |---|---|
 | `DATABASE_URI` | Neon **`production`** branch, pooled string |
 | `PAYLOAD_SECRET` | `openssl rand -hex 32` |
+| `PREVIEW_SECRET` | `openssl rand -hex 32`, different again |
 | `NEXT_PUBLIC_SERVER_URL` | `https://samenzin.org` |
 | `R2_BUCKET` | `samenzin-media` |
 | `R2_ENDPOINT` | `https://<account-id>.r2.cloudflarestorage.com` |
@@ -71,12 +72,13 @@ Deployed from `main`, serving `samenzin.org`.
 
 ### Preview
 
-Every pull request. Same variables, two differences:
+Every pull request. Same variables, with these differences:
 
 | Variable | Value |
 |---|---|
 | `DATABASE_URI` | Neon **`dev`** branch, pooled string |
 | `PAYLOAD_SECRET` | A **different** random string from production |
+| `PREVIEW_SECRET` | A different random string again |
 | `NEXT_PUBLIC_SERVER_URL` | Leave unset |
 | `R2_*` | Identical to production |
 

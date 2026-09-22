@@ -44,23 +44,40 @@ export const getAnbiGegevens = cache(async (locale: Locale = defaultLocale) => {
  *
  * Returns null rather than throwing so a route can render notFound() and give
  * the visitor the 404 page instead of an error.
+ *
+ * `overrideAccess: false` is the important argument. The Payload local API
+ * skips access control unless told not to, so without it this would happily
+ * return an unpublished page to anybody. With it, the rule on the collection
+ * applies and an anonymous caller only ever sees published documents.
+ *
+ * In draft mode the opposite is wanted: the caller has already been checked by
+ * the preview route, so access is overridden and the newest draft returned.
  */
-export const getPageBySlug = cache(async (slug: string, locale: Locale = defaultLocale) => {
-  const payload = await getPayloadClient()
+export const getPageBySlug = cache(
+  async (slug: string, locale: Locale = defaultLocale, draft = false) => {
+    const payload = await getPayloadClient()
 
-  const { docs } = await payload.find({
-    collection: 'pages',
-    where: { slug: { equals: slug } },
-    // Blocks reference media and the media needs its own fields resolved.
-    depth: 2,
-    limit: 1,
-    locale,
-  })
+    const { docs } = await payload.find({
+      collection: 'pages',
+      where: { slug: { equals: slug } },
+      // Blocks reference media and the media needs its own fields resolved.
+      depth: 2,
+      limit: 1,
+      locale,
+      draft,
+      overrideAccess: draft,
+    })
 
-  return docs[0] ?? null
-})
+    return docs[0] ?? null
+  },
+)
 
-/** Every page slug, for the sitemap and for static generation. */
+/**
+ * Every published page slug, for the sitemap.
+ *
+ * Never includes drafts, whatever the caller is doing: an unpublished page
+ * must not be advertised to a search engine.
+ */
 export const getAllPageSlugs = cache(async (locale: Locale = defaultLocale) => {
   const payload = await getPayloadClient()
 
@@ -69,6 +86,7 @@ export const getAllPageSlugs = cache(async (locale: Locale = defaultLocale) => {
     depth: 0,
     limit: 1000,
     locale,
+    overrideAccess: false,
     select: { slug: true, updatedAt: true },
   })
 

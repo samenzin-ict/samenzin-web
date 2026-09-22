@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { draftMode } from 'next/headers'
 import Link from 'next/link'
 
 import { DonationForm } from '@/components/donate/DonationForm'
@@ -32,7 +33,8 @@ const DONATE_SLUG = 'doneren'
  * is the only source of truth, never the return URL.
  */
 export async function generateMetadata(): Promise<Metadata> {
-  const [page, settings] = await Promise.all([getPageBySlug(DONATE_SLUG), getSiteSettings()])
+  const { isEnabled: isDraft } = await draftMode()
+  const [page, settings] = await Promise.all([getPageBySlug(DONATE_SLUG, undefined, isDraft), getSiteSettings()])
   const messages = getMessages()
 
   if (!page) return { title: messages.donateTitle }
@@ -41,7 +43,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function DonatePage() {
-  const page = await getPageBySlug(DONATE_SLUG)
+  const { isEnabled: isDraft } = await draftMode()
+  const page = await getPageBySlug(DONATE_SLUG, undefined, isDraft)
   const messages = getMessages()
 
   const hasHero = page?.body?.[0]?.blockType === 'hero'

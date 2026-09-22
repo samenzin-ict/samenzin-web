@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { isAdminOrEditor, isPublic } from '@/access'
+import { isAdminOrEditor, isPublishedOrAuthenticated } from '@/access'
 import { Agenda, CallToAction, FeaturedItems, Hero, RichText } from '@/blocks'
 import { formatSlug } from '@/fields/slug'
 
@@ -15,8 +15,9 @@ import { formatSlug } from '@/fields/slug'
  * Three blocks to start with. Adding a fourth is cheap; removing one after
  * editors have used it is not.
  *
- * No draft or published state yet. Editorial workflow is phase 2
- * (ROADMAP.md), so anything saved here is immediately live.
+ * Drafts are on (ROADMAP 2.1). Saving leaves a page unpublished until someone
+ * presses publish, and the public read rule returns only published documents,
+ * so an unfinished page cannot be reached by guessing its address.
  */
 export const Pages: CollectionConfig = {
   slug: 'pages',
@@ -25,16 +26,50 @@ export const Pages: CollectionConfig = {
     plural: "Pagina's",
   },
   access: {
-    read: isPublic,
+    read: isPublishedOrAuthenticated,
     create: isAdminOrEditor,
     update: isAdminOrEditor,
     delete: isAdminOrEditor,
   },
+  versions: {
+    drafts: {
+      /*
+       * Drafts are not validated, so an editor can save a half-written page
+       * without filling in every required field. Publishing validates.
+       */
+      validate: false,
+    },
+    /*
+       A page is small and the history is what makes a mistake recoverable, so
+       this is generous. It is not unlimited: unbounded version rows on a
+       serverless database is a bill nobody reviews.
+     */
+    maxPerDoc: 50,
+  },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'slug', 'updatedAt'],
+    // _status is injected by versions.drafts; an editor needs to see it.
+    defaultColumns: ['title', 'slug', '_status', 'updatedAt'],
     group: 'Content',
     description: "De pagina's van de website.",
+    /*
+     * The button that opens an unpublished page on the real site. It goes via
+     * /preview, which checks the secret and that the caller is signed in
+     * before turning Next's draft mode on.
+     */
+    preview: (doc) => {
+      const slug = typeof doc?.slug === 'string' ? doc.slug : ''
+
+      if (!slug) return null
+
+      const params = new URLSearchParams({
+        // The homepage is served at / rather than /home.
+        path: slug === 'home' ? '/' : `/${slug}`,
+        previewSecret: process.env.PREVIEW_SECRET || '',
+      })
+
+      return `/preview?${params.toString()}`
+    },
   },
   fields: [
     {

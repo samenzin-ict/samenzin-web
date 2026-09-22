@@ -53,6 +53,8 @@ the first account you create becomes an administrator automatically.
   layout failing, which is what an unreachable database causes
 - `Donations` collection and the Mollie one-off flow, behind the disabled state until the
   bank account exists
+- ROADMAP 2.1: drafts and publishing on `Pages`, with preview on the real site behind a
+  secret and a session, and a banner so an editor knows what they are looking at
 - Two more blocks, Kaartenrij and Agenda, so the homepage matches the approved mockup
 - `pnpm seed` fills an empty database with obviously fake demo content
 - The admin panel carries the brand colours; the palette now lives in one file that both
@@ -72,7 +74,7 @@ database stopped, which is the situation in GitHub Actions.
 1. **Write the privacy statement.** This is a launch blocker, see below.
 2. Fill in Instellingen and create the pages: `home`, `over-ons`, `contact`, `doneren`,
    `privacyverklaring`. The site is empty until someone does.
-3. Set the Vercel environment variables and connect a Blob store, then redeploy
+3. Set `PREVIEW_SECRET` in Vercel for Production and Preview, then redeploy
 4. Decide the backup arrangement for Neon, see below
 5. Lighthouse pass on mobile once there is real content to measure
 
@@ -84,10 +86,9 @@ database stopped, which is the situation in GitHub Actions.
 - [ ] **Four derived colour tints** are marked in `globals.css` as interpolated from the
       mockups (button hover fills, hairline borders). They are not part of the approved
       palette and need confirming.
-- [ ] **No draft or published state on pages.** Anything an editor saves is immediately
-      live. Editorial workflow is phase 2 in `ROADMAP.md`, so it was deliberately not
-      built, but a volunteer can currently publish a half-finished page. Worth deciding
-      whether a minimal published checkbox is wanted before launch.
+- [ ] **Drafts exist on `Pages` only.** Every collection added in phase 2 needs
+      `versions.drafts`, the published-only read rule and a `preview` entry, or it ships
+      with the problem drafts were added to solve.
 - [ ] **The Mollie flow has never talked to Mollie.** The collection, the start action,
       the webhook and the form are built and the disabled state still works, but no
       request has reached Mollie because there is no account. Before switching it on:
@@ -181,6 +182,9 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-22 | Donations are one-off only; monthly and five-year gifts wait for ROADMAP 3.3 | Recurring needs a mandate, and a signed mandate has legal weight. Phase 1 in ROADMAP.md is iDEAL one-off. |
 | 2026-09-22 | A donation record is created before the visitor leaves, and only the webhook may mark it paid | The return URL proves nothing; anyone can open it. ARCHITECTURE.md: webhook plus a server-side re-fetch is the only source of truth. |
 | 2026-09-22 | Anonymous donations store no name or e-mail at all | Same reasoning as the contact form: what is not collected cannot leak. The form hides the fields and the action refuses to store them. |
+| 2026-09-22 | Read helpers pass `overrideAccess: false` | The Payload local API skips access control by default, so without it every draft would have been served to the public. This is what makes the published-only rule actually apply. |
+| 2026-09-22 | The drafts migration publishes rows that already existed | Postgres backfills a new column with its default, so `_status` would have been `draft` everywhere and every live page would have vanished. Hand-added `UPDATE`, marked as such in the migration. |
+| 2026-09-22 | Preview needs a secret **and** a Payload session | The secret travels in a URL, and URLs reach browser history, chat messages and logs. On its own it is not a credential. |
 | 2026-09-22 | Two error boundaries, not one | `error.tsx` renders inside the layout, so it cannot catch the layout failing. An unreachable database takes down the layout, which is the failure most likely in production. |
 | 2026-09-12 | The ANBI page follows `docs/ANBI_guide.docx` exactly, including its order | The Belastingdienst prescribes what must appear. Publishing it is condition 12 of twelve; if the page is wrong the application can be refused on that ground. |
 | 2026-09-12 | No full beleidsplan PDF on the site | The guide decided only the hoofdlijnen are published, which is also all the legislation asks for. The `policyPlanDocument` upload field was removed. |

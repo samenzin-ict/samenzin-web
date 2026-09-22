@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
 
 import { RenderBlocks } from '@/components/blocks/RenderBlocks'
@@ -29,12 +30,13 @@ const resolveSlug = (segments: string[]): string | null =>
 const RESERVED_SLUGS = new Set(['home', 'admin', 'api', 'anbi'])
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { isEnabled: isDraft } = await draftMode()
   const { slug } = await params
   const resolved = resolveSlug(slug)
 
   if (!resolved) return {}
 
-  const [page, settings] = await Promise.all([getPageBySlug(resolved), getSiteSettings()])
+  const [page, settings] = await Promise.all([getPageBySlug(resolved, undefined, isDraft), getSiteSettings()])
 
   if (!page) return {}
 
@@ -42,12 +44,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function ContentPage({ params }: Params) {
+  const { isEnabled: isDraft } = await draftMode()
   const { slug } = await params
   const resolved = resolveSlug(slug)
 
   if (!resolved || RESERVED_SLUGS.has(resolved)) notFound()
 
-  const page = await getPageBySlug(resolved)
+  const page = await getPageBySlug(resolved, undefined, isDraft)
 
   if (!page) notFound()
 
