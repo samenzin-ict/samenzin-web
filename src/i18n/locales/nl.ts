@@ -95,6 +95,12 @@ export const nl = {
   anbiFooterLink: 'ANBI',
   anbiStatusNoticeTitle: 'Let op: de ANBI-status is aangevraagd en nog niet toegekend',
 
+  errorTitle: 'Er is iets misgegaan',
+  errorBody:
+    'Door een storing kon deze pagina niet geladen worden. Probeer het opnieuw. Blijft het misgaan, neem dan contact met ons op.',
+  errorRetry: 'Probeer opnieuw',
+  errorHome: 'Naar de homepagina',
+
   notFoundTitle: 'Deze pagina bestaat niet',
   notFoundBody:
     'De pagina die u zoekt is verplaatst of bestaat niet meer. Ga terug naar de homepagina om verder te zoeken.',
