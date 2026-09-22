@@ -55,6 +55,8 @@ the first account you create becomes an administrator automatically.
   bank account exists
 - ROADMAP 2.1: drafts and publishing on `Pages`, with preview on the real site behind a
   secret and a session, and a banner so an editor knows what they are looking at
+- ROADMAP 2.2: `Projects`, with `/projecten` and `/projecten/<slug>`, a fundraising bar,
+  the facts row and the closing call to action from the mockup
 - Two more blocks, Kaartenrij and Agenda, so the homepage matches the approved mockup
 - `pnpm seed` fills an empty database with obviously fake demo content
 - The admin panel carries the brand colours; the palette now lives in one file that both
@@ -86,9 +88,17 @@ database stopped, which is the situation in GitHub Actions.
 - [ ] **Four derived colour tints** are marked in `globals.css` as interpolated from the
       mockups (button hover fills, hairline borders). They are not part of the approved
       palette and need confirming.
-- [ ] **Drafts exist on `Pages` only.** Every collection added in phase 2 needs
-      `versions.drafts`, the published-only read rule and a `preview` entry, or it ships
-      with the problem drafts were added to solve.
+- [ ] **Every collection added from here needs the same three things** as `Pages` and
+      `Projects`: `versions.drafts`, the published-only read rule, and `overrideAccess:
+      false` in its read helper. The third is the one that is easy to forget and silently
+      serves drafts to the public.
+- [ ] **Project funding figures are typed in by hand.** They are not derived from
+      `Donations`, because a gift can be earmarked in ways the website never sees and a
+      bank transfer never passes through it at all. Someone has to keep them current.
+- [ ] **The donation page cannot yet be told which project to fund.** The mockup's
+      "Doneer aan dit project" links to `/doneren` without preselecting anything. Wiring
+      the fund dropdown to published projects is small and worth doing with the Mollie
+      work.
 - [ ] **The Mollie flow has never talked to Mollie.** The collection, the start action,
       the webhook and the form are built and the disabled state still works, but no
       request has reached Mollie because there is no account. Before switching it on:
@@ -182,6 +192,8 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-22 | Donations are one-off only; monthly and five-year gifts wait for ROADMAP 3.3 | Recurring needs a mandate, and a signed mandate has legal weight. Phase 1 in ROADMAP.md is iDEAL one-off. |
 | 2026-09-22 | A donation record is created before the visitor leaves, and only the webhook may mark it paid | The return URL proves nothing; anyone can open it. ARCHITECTURE.md: webhook plus a server-side re-fetch is the only source of truth. |
 | 2026-09-22 | Anonymous donations store no name or e-mail at all | Same reasoning as the contact form: what is not collected cannot leak. The form hides the fields and the action refuses to store them. |
+| 2026-09-23 | The project title sits below the banner, not over it as the mockup draws | The image is chosen by an editor, so contrast over it cannot be guaranteed, and WCAG 2.1 AA is a hard rule. Same reasoning as the gold button's text colour. |
+| 2026-09-23 | The fundraising bar is `aria-hidden`; the amounts beside it are the accessible text | "62 percent" tells a screen reader user less than "EUR 2.000 of EUR 5.000 raised", and announcing both says it twice. |
 | 2026-09-22 | Read helpers pass `overrideAccess: false` | The Payload local API skips access control by default, so without it every draft would have been served to the public. This is what makes the published-only rule actually apply. |
 | 2026-09-22 | The drafts migration publishes rows that already existed | Postgres backfills a new column with its default, so `_status` would have been `draft` everywhere and every live page would have vanished. Hand-added `UPDATE`, marked as such in the migration. |
 | 2026-09-22 | Preview needs a secret **and** a Payload session | The secret travels in a URL, and URLs reach browser history, chat messages and logs. On its own it is not a credential. |

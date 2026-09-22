@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-import { getAllPageSlugs } from '@/lib/payload'
+import { getAllPageSlugs, getProjects } from '@/lib/payload'
 import { getSiteUrl } from '@/lib/site-url'
 
 export const dynamic = 'force-dynamic'
@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic'
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl()
-  const pages = await getAllPageSlugs()
+  const [pages, projects] = await Promise.all([getAllPageSlugs(), getProjects()])
 
   const entries: MetadataRoute.Sitemap = pages.map((page) => ({
     url: page.slug === 'home' ? siteUrl : `${siteUrl}/${page.slug}`,
@@ -23,8 +23,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: page.slug === 'home' ? 1 : 0.7,
   }))
 
-  // The ANBI page is its own route and has no Pages entry to be found through.
+  // Routes that are not Pages documents and would otherwise be missed.
   entries.push({ url: `${siteUrl}/anbi`, priority: 0.8 })
+  entries.push({ url: `${siteUrl}/projecten`, priority: 0.7 })
+
+  for (const project of projects) {
+    entries.push({
+      url: `${siteUrl}/projecten/${project.slug}`,
+      lastModified: project.updatedAt ? new Date(project.updatedAt) : undefined,
+      priority: 0.6,
+    })
+  }
 
   return entries
 }

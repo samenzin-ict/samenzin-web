@@ -334,6 +334,65 @@ const pages = [
   },
 ]
 
+console.log('Writing projecten…')
+const projects = [
+  {
+    ...PUBLISHED,
+    title: 'Taalmaatje',
+    slug: 'taalmaatje',
+    category: 'Taal',
+    excerpt: 'Voorbeeldtekst. Vrijwilligers oefenen wekelijks Nederlands met deelnemers.',
+    image: taalmaatje,
+    body: richText(
+      'Voorbeeldtekst. Deze projectpagina wordt door het bestuur gevuld met de werkelijke tekst.',
+    ),
+    facts: [
+      { icon: 'people' as const, label: '10 koppels' },
+      { icon: 'duration' as const, label: '8 weken per traject' },
+      { icon: 'location' as const, label: '3 steden' },
+    ],
+    funding: { goal: 5000, raised: 2000 },
+    callToAction: { heading: 'Word taalmaatje', label: 'Aanmelden', url: '/contact' },
+  },
+  {
+    ...PUBLISHED,
+    title: 'Retraites',
+    slug: 'retraites',
+    category: 'Bezinning',
+    excerpt: 'Voorbeeldtekst. Meerdaagse programma’s over zingeving en samenleven.',
+    image: retraites,
+    body: richText('Voorbeeldtekst over de retraites.'),
+    facts: [{ icon: 'duration' as const, label: '3 dagen' }],
+  },
+  {
+    ...PUBLISHED,
+    title: 'Studentenhuisvesting',
+    slug: 'studentenhuisvesting',
+    category: 'Huisvesting',
+    excerpt: 'Voorbeeldtekst. Begeleiding bij wonen voor studenten.',
+    image: huisvesting,
+    body: richText('Voorbeeldtekst over studentenhuisvesting.'),
+    funding: { goal: 250000, raised: 12500 },
+  },
+]
+
+for (const data of projects) {
+  const existing = await payload.find({
+    collection: 'projects',
+    where: { slug: { equals: data.slug } },
+    limit: 1,
+    overrideAccess: true,
+  })
+
+  if (existing.docs[0]) {
+    await payload.update({ collection: 'projects', id: existing.docs[0].id, data, overrideAccess: true })
+    console.log(`  updated /projecten/${data.slug}`)
+  } else {
+    await payload.create({ collection: 'projects', data, overrideAccess: true })
+    console.log(`  created /projecten/${data.slug}`)
+  }
+}
+
 console.log("Writing pagina's…")
 for (const data of pages) {
   const existing = await payload.find({

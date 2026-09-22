@@ -118,6 +118,17 @@ export const nl = {
   anbiFooterLink: 'ANBI',
   anbiStatusNoticeTitle: 'Let op: de ANBI-status is aangevraagd en nog niet toegekend',
 
+  // Projecten (ROADMAP 2.2)
+  projectsTitle: 'Projecten',
+  projectsIntro: 'Onze initiatieven',
+  projectsEmpty: 'Er zijn nog geen projecten gepubliceerd.',
+  projectsReadMore: 'Lees meer',
+  projectFundingRaised: 'opgehaald',
+  projectFundingOf: 'van',
+  projectFundingLabel: 'Voortgang van het inzamelingsdoel',
+  projectDonate: 'Doneer aan dit project',
+  projectBackToOverview: 'Alle projecten',
+
   previewBannerTitle: 'U bekijkt een voorbeeld',
   previewBannerBody:
     'Deze pagina is nog niet gepubliceerd, of u ziet een versie die afwijkt van de gepubliceerde. Bezoekers zien dit niet.',

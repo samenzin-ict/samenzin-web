@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     pages: Page;
+    projects: Project;
     media: Media;
     'contact-submissions': ContactSubmission;
     donations: Donation;
@@ -80,6 +81,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     pages: PagesSelect<false> | PagesSelect<true>;
+    projects: ProjectsSelect<false> | ProjectsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     donations: DonationsSelect<false> | DonationsSelect<true>;
@@ -350,6 +352,75 @@ export interface Media {
   };
 }
 /**
+ * De projecten van de stichting.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects".
+ */
+export interface Project {
+  id: number;
+  title: string;
+  /**
+   * Het deel van het webadres na /projecten/. Wordt automatisch ingevuld vanuit de titel. Wijzig dit niet meer zodra het project online staat.
+   */
+  slug: string;
+  /**
+   * Het label op de kaart in het overzicht. Optioneel.
+   */
+  category?: string | null;
+  /**
+   * Een of twee zinnen. Wordt getoond op de kaart in het overzicht.
+   */
+  excerpt?: string | null;
+  /**
+   * Gebruikt op de kaart en als banner bovenaan de projectpagina.
+   */
+  image?: (number | null) | Media;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * De rij met feiten onder de tekst. Bijvoorbeeld: 8 weken per traject.
+   */
+  facts?:
+    | {
+        icon: 'people' | 'duration' | 'location';
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Laat het doelbedrag leeg om de voortgangsbalk te verbergen. De bedragen worden met de hand bijgehouden; zij komen niet automatisch uit de donaties.
+   */
+  funding?: {
+    goal?: number | null;
+    raised?: number | null;
+  };
+  /**
+   * De groene balk onderaan de pagina. Laat de kop leeg om hem te verbergen.
+   */
+  callToAction?: {
+    heading?: string | null;
+    label?: string | null;
+    url?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * Berichten die via het contactformulier zijn binnengekomen. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -463,6 +534,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'pages';
         value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'projects';
+        value: number | Project;
       } | null)
     | ({
         relationTo: 'media';
@@ -620,6 +695,41 @@ export interface PagesSelect<T extends boolean = true> {
         title?: T;
         description?: T;
         image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects_select".
+ */
+export interface ProjectsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  category?: T;
+  excerpt?: T;
+  image?: T;
+  body?: T;
+  facts?:
+    | T
+    | {
+        icon?: T;
+        label?: T;
+        id?: T;
+      };
+  funding?:
+    | T
+    | {
+        goal?: T;
+        raised?: T;
+      };
+  callToAction?:
+    | T
+    | {
+        heading?: T;
+        label?: T;
+        url?: T;
       };
   updatedAt?: T;
   createdAt?: T;

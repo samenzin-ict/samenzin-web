@@ -73,6 +73,47 @@ export const getPageBySlug = cache(
 )
 
 /**
+ * Published projects, newest first.
+ *
+ * `overrideAccess: false` for the same reason as pages: the local API skips
+ * access control unless told not to, and without it drafts would be listed.
+ */
+export const getProjects = cache(async (locale: Locale = defaultLocale, draft = false) => {
+  const payload = await getPayloadClient()
+
+  const { docs } = await payload.find({
+    collection: 'projects',
+    depth: 1,
+    limit: 100,
+    locale,
+    draft,
+    overrideAccess: draft,
+    sort: '-createdAt',
+  })
+
+  return docs
+})
+
+/** A single project by its slug, or null when there is none. */
+export const getProjectBySlug = cache(
+  async (slug: string, locale: Locale = defaultLocale, draft = false) => {
+    const payload = await getPayloadClient()
+
+    const { docs } = await payload.find({
+      collection: 'projects',
+      where: { slug: { equals: slug } },
+      depth: 2,
+      limit: 1,
+      locale,
+      draft,
+      overrideAccess: draft,
+    })
+
+    return docs[0] ?? null
+  },
+)
+
+/**
  * Every published page slug, for the sitemap.
  *
  * Never includes drafts, whatever the caller is doing: an unpublished page

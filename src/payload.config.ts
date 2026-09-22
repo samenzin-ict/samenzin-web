@@ -12,6 +12,7 @@ import { ContactSubmissions } from './collections/ContactSubmissions'
 import { Donations } from './collections/Donations'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
+import { Projects } from './collections/Projects'
 import { Users } from './collections/Users'
 import { AnbiGegevens, SiteSettings } from './globals'
 
@@ -116,7 +117,7 @@ export default buildConfig({
    * across upgrades for two groups; docs/design/README.md asks for the
    * information architecture, not a pixel-exact rebuild.
    */
-  collections: [Pages, Media, ContactSubmissions, Donations, Users],
+  collections: [Pages, Projects, Media, ContactSubmissions, Donations, Users],
   globals: [SiteSettings, AnbiGegevens],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
