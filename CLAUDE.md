@@ -19,10 +19,27 @@ over the developer writing code today.
 |---|---|
 | Framework | Next.js, App Router, TypeScript strict |
 | CMS + admin | Payload CMS 3, running inside the same Next.js app |
-| Database | PostgreSQL |
+| Database | PostgreSQL — Neon, branch `production` and branch `dev` |
+| Media | Cloudflare R2, bucket `samenzin-media`, served straight from the bucket |
 | Styling | Tailwind CSS + shadcn/ui |
 | Payments | Mollie (phase 1, donations) |
-| Runtime | Docker Compose + Caddy on an EU VPS |
+| Hosting | Vercel, deployed from GitHub, functions pinned to `fra1` |
+| Local | Docker Compose runs PostgreSQL; uploads go to `./media` |
+
+Hosting moved from the original Docker Compose and Caddy on an EU VPS to Vercel. The
+`Dockerfile` is kept for local parity and as a way back to self-hosting; it is not the
+production path. `docs/environments.md` is the reference for the three environments,
+every variable, and how content is copied between them. ADR-0003 in the `samenzin-ict`
+repository still describes the VPS and needs rewriting.
+
+Three consequences that are easy to forget and expensive to rediscover:
+
+- **Serverless has no disk.** Anything written to the filesystem at runtime is lost.
+  Uploads go to R2; nothing shared may live in process memory.
+- **`NEXT_PUBLIC_*` is inlined at build time**, not read when the server starts. A wrong
+  value has to be rebuilt out, not just corrected.
+- **Migrations run in the build**, from the `vercel-build` script. There is no separate
+  deploy step in which to run them.
 
 **Verify the current Payload and Next.js APIs against the official documentation before
 writing code.** Payload 3 changed significantly from version 2 and training data is

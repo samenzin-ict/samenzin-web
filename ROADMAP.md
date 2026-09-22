@@ -32,18 +32,56 @@ successfully edited a page without help, and the ANBI page contains every mandat
 
 ## Phase 2 — Content platform
 
-Projects, news and articles, events calendar, volunteer intake form, vacancies with CV
-upload, team page. Editorial workflow with drafts and preview. Per-commission permissions.
+Everything here is public-facing content a volunteer maintains. Each item is a collection
+with its own admin section, an overview route and a detail route, unless noted.
+
+Ordered by how much the foundation needs it and how much it depends on the item above.
+
+| # | Feature | Routes | Admin group | Notes |
+|---|---|---|---|---|
+| 2.1 | Editorial workflow: drafts, preview, published state | — | all content | Everything below is safer with it, so it comes first |
+| 2.2 | Projecten | `/projecten`, `/projecten/<slug>` | Content | Funding progress bar per `06-projecten-*.png` |
+| 2.3 | Nieuws & artikelen | `/nieuws`, `/nieuws/<slug>` | Content | Author, publication date, tags |
+| 2.4 | Agenda / evenementen | `/agenda`, `/agenda/<slug>` | Programma | Replaces the hand-typed homepage block; filters need a real collection |
+| 2.5 | Team | `/over-ons` section | Mensen | Board already exists in `AnbiGegevens`; reuse it, do not duplicate names |
+| 2.6 | Vrijwilligers: intake form | `/vrijwilligers`, `/vrijwilliger-worden` | Mensen | **Personal data.** Register entry and retention rule required first |
+| 2.7 | Vacatures, with CV upload | `/vacatures`, `/vacatures/<slug>` | Mensen | **Personal data**, and CVs are sensitive. Storage and deletion decided before building |
+| 2.8 | Per-commission permissions | — | Systeem | Editors scoped to their own commission's content |
 
 ## Phase 3 — Member portal
 
-Membership with recurring SEPA, member login, courses, hour registration, certificates.
-This is where the data model gets serious; expect a dedicated design round before coding.
+The data model gets serious here and several parts are regulated. `ROADMAP.md` previously
+noted a dedicated design round before coding; that still stands, per feature rather than
+for the phase as a whole.
+
+| # | Feature | Routes | Notes |
+|---|---|---|---|
+| 3.1 | Lid worden: application and approval | `/lid-worden` | **Personal data.** Approval is a human decision, not automatic |
+| 3.2 | Member login and member area | `/mijn` | Second auth surface; decide whether members are Payload users or a separate collection |
+| 3.3 | Recurring SEPA contributions | — | **Payments and mandates.** Mollie recurring; a signed mandate has legal weight |
+| 3.4 | Cursussen: catalogue and enrolment | `/cursussen`, `/cursussen/<slug>` | Public catalogue can ship before enrolment |
+| 3.5 | Hour registration for volunteers | `/mijn/uren` | Per `08-ledenportaal-mijn-taken.png` |
+| 3.6 | Certificates | `/mijn/certificaten` | Depends on 3.4 and 3.5 |
 
 ## Phase 4 — Reporting and automation
 
 Board dashboards, donation and volunteer reports, exports for the accountant,
-integrations with bookkeeping.
+integrations with bookkeeping. The admin dashboard in `09-admin-panel-dashboard.png`
+belongs here, not earlier: it reports on data that phases 2 and 3 create.
+
+## Rules that apply to every phase
+
+These are not negotiable per feature; they are how this repository works.
+
+- **Anything holding personal data needs a processing register entry in `samenzin-ict`
+  before it goes live**, including how long records are kept and who may read them. That
+  covers 2.6, 2.7, 3.1, 3.2, 3.3 and 3.5.
+- **Anything touching payments is discussed before it is built** (`CLAUDE.md`).
+- **A public form needs spam handling that is not a third-party tracker.** The honeypot
+  and the rate limiter on the contact form are the pattern to copy.
+- **Every new collection needs a migration**, committed with the code that needs it.
+- **Every new public route needs**: Dutch slug, CMS-driven content, sitemap entry,
+  metadata, 360/768/1280 layouts, and keyboard reachability.
 
 ## Sequencing constraints
 
