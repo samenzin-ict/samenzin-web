@@ -57,6 +57,8 @@ the first account you create becomes an administrator automatically.
   secret and a session, and a banner so an editor knows what they are looking at
 - ROADMAP 2.2: `Projects`, with `/projecten` and `/projecten/<slug>`, a fundraising bar,
   the facts row and the closing call to action from the mockup
+- ROADMAP 2.3: `Articles`, with `/nieuws` and `/nieuws/<slug>`, a featured lead card,
+  bylines, topics and a "meer lezen" row
 - Two more blocks, Kaartenrij and Agenda, so the homepage matches the approved mockup
 - `pnpm seed` fills an empty database with obviously fake demo content
 - The admin panel carries the brand colours; the palette now lives in one file that both
@@ -192,6 +194,9 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-22 | Donations are one-off only; monthly and five-year gifts wait for ROADMAP 3.3 | Recurring needs a mandate, and a signed mandate has legal weight. Phase 1 in ROADMAP.md is iDEAL one-off. |
 | 2026-09-22 | A donation record is created before the visitor leaves, and only the webhook may mark it paid | The return URL proves nothing; anyone can open it. ARCHITECTURE.md: webhook plus a server-side re-fetch is the only source of truth. |
 | 2026-09-22 | Anonymous donations store no name or e-mail at all | Same reasoning as the contact form: what is not collected cannot leak. The form hides the fields and the action refuses to store them. |
+| 2026-09-23 | Article topics are plain labels, not a Tags collection | Tag pages are not in ROADMAP, and a collection would add an admin section for something nobody has asked to browse by. It can become one when that changes. |
+| 2026-09-23 | "Meer lezen" picks the newest other articles, not ones matching on topic | Matching on subject looks cleverer and regularly returns nothing, which is worse than showing something recent. |
+| 2026-09-23 | `publishedAt` is separate from `_status` | One is the date a reader sees and the list sorts by; the other is whether it is visible at all. Keeping them apart lets an editor date something properly and publish when ready. |
 | 2026-09-23 | The project title sits below the banner, not over it as the mockup draws | The image is chosen by an editor, so contrast over it cannot be guaranteed, and WCAG 2.1 AA is a hard rule. Same reasoning as the gold button's text colour. |
 | 2026-09-23 | The fundraising bar is `aria-hidden`; the amounts beside it are the accessible text | "62 percent" tells a screen reader user less than "EUR 2.000 of EUR 5.000 raised", and announcing both says it twice. |
 | 2026-09-22 | Read helpers pass `overrideAccess: false` | The Payload local API skips access control by default, so without it every draft would have been served to the public. This is what makes the published-only rule actually apply. |

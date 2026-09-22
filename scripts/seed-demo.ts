@@ -393,6 +393,76 @@ for (const data of projects) {
   }
 }
 
+console.log('Writing nieuws & artikelen…')
+
+/** Dates in the recent past, so the overview never looks abandoned. */
+const daysAgo = (days: number) => {
+  const date = new Date()
+  date.setDate(date.getDate() - days)
+  date.setHours(9, 0, 0, 0)
+  return date.toISOString()
+}
+
+const articles = [
+  {
+    ...PUBLISHED,
+    title: 'Samen bouwen aan een sterkere gemeenschap',
+    slug: 'samen-bouwen-aan-een-sterkere-gemeenschap',
+    category: 'artikel' as const,
+    featured: true,
+    author: 'A. Voorbeeld',
+    publishedAt: daysAgo(3),
+    excerpt: 'Voorbeeldtekst. Lees meer over onze recente projecten en hoe we samen verschil maken.',
+    image: taalmaatje,
+    body: richText(
+      'Voorbeeldtekst. Dit artikel wordt door de redactie gevuld met de werkelijke tekst.',
+      'Voorbeeldtekst. Een tweede alinea, zodat de opmaak te beoordelen is.',
+    ),
+    tags: [{ label: 'Vrijwilligerswerk' }, { label: 'Tilburg' }],
+  },
+  {
+    ...PUBLISHED,
+    title: 'In gesprek over vrijwilligerswerk',
+    slug: 'in-gesprek-over-vrijwilligerswerk',
+    category: 'interview' as const,
+    author: 'B. Voorbeeld',
+    publishedAt: daysAgo(12),
+    excerpt: 'Voorbeeldtekst. Een gesprek met een van onze vrijwilligers.',
+    image: retraites,
+    body: richText('Voorbeeldtekst voor het interview.'),
+    tags: [{ label: 'Vrijwilligerswerk' }],
+  },
+  {
+    ...PUBLISHED,
+    title: 'Verslag van de open dag',
+    slug: 'verslag-van-de-open-dag',
+    category: 'verslag' as const,
+    author: 'C. Voorbeeld',
+    publishedAt: daysAgo(30),
+    excerpt: 'Voorbeeldtekst. Een terugblik op de open dag in Schiedam.',
+    image: huisvesting,
+    body: richText('Voorbeeldtekst voor het verslag.'),
+    tags: [{ label: 'Schiedam' }],
+  },
+]
+
+for (const data of articles) {
+  const existing = await payload.find({
+    collection: 'articles',
+    where: { slug: { equals: data.slug } },
+    limit: 1,
+    overrideAccess: true,
+  })
+
+  if (existing.docs[0]) {
+    await payload.update({ collection: 'articles', id: existing.docs[0].id, data, overrideAccess: true })
+    console.log(`  updated /nieuws/${data.slug}`)
+  } else {
+    await payload.create({ collection: 'articles', data, overrideAccess: true })
+    console.log(`  created /nieuws/${data.slug}`)
+  }
+}
+
 console.log("Writing pagina's…")
 for (const data of pages) {
   const existing = await payload.find({

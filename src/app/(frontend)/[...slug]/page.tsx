@@ -27,7 +27,7 @@ const resolveSlug = (segments: string[]): string | null =>
  * them. Without this an editor could create a page called "anbi" and quietly
  * shadow the statutory ANBI page.
  */
-const RESERVED_SLUGS = new Set(['home', 'admin', 'api', 'anbi', 'projecten', 'preview'])
+const RESERVED_SLUGS = new Set(['home', 'admin', 'api', 'anbi', 'projecten', 'nieuws', 'preview'])
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { isEnabled: isDraft } = await draftMode()

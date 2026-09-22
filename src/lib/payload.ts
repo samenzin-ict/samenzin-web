@@ -113,6 +113,67 @@ export const getProjectBySlug = cache(
   },
 )
 
+/** Published articles, newest first by their own date. */
+export const getArticles = cache(async (locale: Locale = defaultLocale, draft = false) => {
+  const payload = await getPayloadClient()
+
+  const { docs } = await payload.find({
+    collection: 'articles',
+    depth: 1,
+    limit: 100,
+    locale,
+    draft,
+    overrideAccess: draft,
+    sort: '-publishedAt',
+  })
+
+  return docs
+})
+
+/** A single article by its slug, or null when there is none. */
+export const getArticleBySlug = cache(
+  async (slug: string, locale: Locale = defaultLocale, draft = false) => {
+    const payload = await getPayloadClient()
+
+    const { docs } = await payload.find({
+      collection: 'articles',
+      where: { slug: { equals: slug } },
+      depth: 2,
+      limit: 1,
+      locale,
+      draft,
+      overrideAccess: draft,
+    })
+
+    return docs[0] ?? null
+  },
+)
+
+/**
+ * The "meer lezen" row: the newest articles other than this one.
+ *
+ * Chosen by date rather than by subject. Matching on tags would look cleverer
+ * and would regularly return nothing, which is worse than showing something
+ * recent.
+ */
+export const getRelatedArticles = cache(
+  async (excludeId: number, locale: Locale = defaultLocale, limit = 3) => {
+    const payload = await getPayloadClient()
+
+    const { docs } = await payload.find({
+      collection: 'articles',
+      where: { id: { not_equals: excludeId } },
+      depth: 1,
+      limit,
+      locale,
+      overrideAccess: false,
+      sort: '-publishedAt',
+    })
+
+    return docs
+  },
+)
+
 /**
  * Every published page slug, for the sitemap.
  *

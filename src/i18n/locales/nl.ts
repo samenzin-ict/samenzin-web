@@ -129,6 +129,15 @@ export const nl = {
   projectDonate: 'Doneer aan dit project',
   projectBackToOverview: 'Alle projecten',
 
+  // Nieuws & artikelen (ROADMAP 2.3)
+  articlesTitle: 'Nieuws & artikelen',
+  articlesIntro: 'Verhalen en berichten over ons werk',
+  articlesEmpty: 'Er zijn nog geen artikelen gepubliceerd.',
+  articlesBy: 'Door',
+  articlesRelated: 'Meer lezen',
+  articlesTopics: 'Onderwerpen',
+  articlesBackToOverview: 'Alle artikelen',
+
   previewBannerTitle: 'U bekijkt een voorbeeld',
   previewBannerBody:
     'Deze pagina is nog niet gepubliceerd, of u ziet een versie die afwijkt van de gepubliceerde. Bezoekers zien dit niet.',

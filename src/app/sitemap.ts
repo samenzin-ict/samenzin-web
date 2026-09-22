@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-import { getAllPageSlugs, getProjects } from '@/lib/payload'
+import { getAllPageSlugs, getArticles, getProjects } from '@/lib/payload'
 import { getSiteUrl } from '@/lib/site-url'
 
 export const dynamic = 'force-dynamic'
@@ -15,7 +15,11 @@ export const dynamic = 'force-dynamic'
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl()
-  const [pages, projects] = await Promise.all([getAllPageSlugs(), getProjects()])
+  const [pages, projects, articles] = await Promise.all([
+    getAllPageSlugs(),
+    getProjects(),
+    getArticles(),
+  ])
 
   const entries: MetadataRoute.Sitemap = pages.map((page) => ({
     url: page.slug === 'home' ? siteUrl : `${siteUrl}/${page.slug}`,
@@ -26,12 +30,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Routes that are not Pages documents and would otherwise be missed.
   entries.push({ url: `${siteUrl}/anbi`, priority: 0.8 })
   entries.push({ url: `${siteUrl}/projecten`, priority: 0.7 })
+  entries.push({ url: `${siteUrl}/nieuws`, priority: 0.7 })
 
   for (const project of projects) {
     entries.push({
       url: `${siteUrl}/projecten/${project.slug}`,
       lastModified: project.updatedAt ? new Date(project.updatedAt) : undefined,
       priority: 0.6,
+    })
+  }
+
+  for (const article of articles) {
+    entries.push({
+      url: `${siteUrl}/nieuws/${article.slug}`,
+      lastModified: article.updatedAt ? new Date(article.updatedAt) : undefined,
+      priority: 0.5,
     })
   }
 

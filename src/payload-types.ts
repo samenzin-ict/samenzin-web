@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     pages: Page;
     projects: Project;
+    articles: Article;
     media: Media;
     'contact-submissions': ContactSubmission;
     donations: Donation;
@@ -82,6 +83,7 @@ export interface Config {
   collectionsSelect: {
     pages: PagesSelect<false> | PagesSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    articles: ArticlesSelect<false> | ArticlesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     donations: DonationsSelect<false> | DonationsSelect<true>;
@@ -421,6 +423,62 @@ export interface Project {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Nieuwsberichten, artikelen, interviews en verslagen.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "articles".
+ */
+export interface Article {
+  id: number;
+  title: string;
+  /**
+   * Het deel van het webadres na /nieuws/. Wordt automatisch ingevuld vanuit de titel. Wijzig dit niet meer zodra het artikel online staat.
+   */
+  slug: string;
+  /**
+   * De datum die bij het artikel staat en waarop het overzicht sorteert. Dit is iets anders dan gepubliceerd zijn.
+   */
+  publishedAt: string;
+  category: 'nieuws' | 'artikel' | 'interview' | 'verslag';
+  /**
+   * Zet dit artikel bovenaan het overzicht, groot. Is er meer dan één, dan wint het nieuwste.
+   */
+  featured?: boolean | null;
+  /**
+   * Wordt getoond als "Door ...". Optioneel.
+   */
+  author?: string | null;
+  /**
+   * Een of twee zinnen. Wordt getoond op de kaart in het overzicht.
+   */
+  excerpt?: string | null;
+  image?: (number | null) | Media;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  tags?:
+    | {
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * Berichten die via het contactformulier zijn binnengekomen. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -538,6 +596,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'projects';
         value: number | Project;
+      } | null)
+    | ({
+        relationTo: 'articles';
+        value: number | Article;
       } | null)
     | ({
         relationTo: 'media';
@@ -730,6 +792,30 @@ export interface ProjectsSelect<T extends boolean = true> {
         heading?: T;
         label?: T;
         url?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "articles_select".
+ */
+export interface ArticlesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  publishedAt?: T;
+  category?: T;
+  featured?: T;
+  author?: T;
+  excerpt?: T;
+  image?: T;
+  body?: T;
+  tags?:
+    | T
+    | {
+        label?: T;
+        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;
