@@ -1,7 +1,7 @@
 import { cache } from 'react'
 
 import config from '@payload-config'
-import { getPayload } from 'payload'
+import { getPayload, type Where } from 'payload'
 
 import { defaultLocale, type Locale } from '@/i18n'
 
@@ -173,6 +173,100 @@ export const getRelatedArticles = cache(
     return docs
   },
 )
+
+export type EventFilters = {
+  /** Anything starting from now counts as upcoming. */
+  period?: 'upcoming' | 'past'
+  city?: string
+  theme?: string
+  audience?: string
+}
+
+/**
+ * Published events, filtered and ordered.
+ *
+ * Upcoming events read forwards, so the next thing to happen is first. Past
+ * events read backwards, so the most recent is first; a visitor looking at
+ * what has been is not looking for the oldest item on the list.
+ */
+export const getEvents = cache(
+  async (filters: EventFilters = {}, locale: Locale = defaultLocale, draft = false) => {
+    const payload = await getPayloadClient()
+    const now = new Date().toISOString()
+    const isPast = filters.period === 'past'
+
+    const where: Where[] = [
+      isPast ? { startsAt: { less_than: now } } : { startsAt: { greater_than_equal: now } },
+    ]
+
+    if (filters.city) where.push({ city: { equals: filters.city } })
+    if (filters.theme) where.push({ theme: { equals: filters.theme } })
+    if (filters.audience) where.push({ audience: { equals: filters.audience } })
+
+    const { docs } = await payload.find({
+      collection: 'events',
+      where: { and: where },
+      depth: 1,
+      limit: 200,
+      locale,
+      draft,
+      overrideAccess: draft,
+      sort: isPast ? '-startsAt' : 'startsAt',
+    })
+
+    return docs
+  },
+)
+
+/** A single event by its slug, or null when there is none. */
+export const getEventBySlug = cache(
+  async (slug: string, locale: Locale = defaultLocale, draft = false) => {
+    const payload = await getPayloadClient()
+
+    const { docs } = await payload.find({
+      collection: 'events',
+      where: { slug: { equals: slug } },
+      depth: 2,
+      limit: 1,
+      locale,
+      draft,
+      overrideAccess: draft,
+    })
+
+    return docs[0] ?? null
+  },
+)
+
+/**
+ * The values to offer in the filter dropdowns.
+ *
+ * Taken from the published events themselves, so a dropdown can never offer a
+ * choice that returns nothing. That is worth one extra query: a filter that
+ * leads to an empty page reads as a broken site.
+ */
+export const getEventFilterOptions = cache(async (locale: Locale = defaultLocale) => {
+  const payload = await getPayloadClient()
+
+  const { docs } = await payload.find({
+    collection: 'events',
+    depth: 0,
+    limit: 500,
+    locale,
+    overrideAccess: false,
+    select: { city: true, theme: true, audience: true },
+  })
+
+  const unique = (values: (string | null | undefined)[]) =>
+    [...new Set(values.filter((value): value is string => Boolean(value?.trim())))].sort((a, b) =>
+      a.localeCompare(b, locale),
+    )
+
+  return {
+    cities: unique(docs.map((doc) => doc.city)),
+    themes: unique(docs.map((doc) => doc.theme)),
+    audiences: unique(docs.map((doc) => doc.audience)),
+  }
+})
 
 /**
  * Every published page slug, for the sitemap.

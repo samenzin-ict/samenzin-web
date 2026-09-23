@@ -11,6 +11,7 @@ import sharp from 'sharp'
 import { Articles } from './collections/Articles'
 import { ContactSubmissions } from './collections/ContactSubmissions'
 import { Donations } from './collections/Donations'
+import { Events } from './collections/Events'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Projects } from './collections/Projects'
@@ -118,7 +119,7 @@ export default buildConfig({
    * across upgrades for two groups; docs/design/README.md asks for the
    * information architecture, not a pixel-exact rebuild.
    */
-  collections: [Pages, Projects, Articles, Media, ContactSubmissions, Donations, Users],
+  collections: [Pages, Projects, Articles, Events, Media, ContactSubmissions, Donations, Users],
   globals: [SiteSettings, AnbiGegevens],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

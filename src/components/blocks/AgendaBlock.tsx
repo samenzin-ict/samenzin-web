@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import { Container } from '@/components/layout/Container'
 import { defaultLocale } from '@/i18n'
+import { getEvents } from '@/lib/payload'
 
 type Item = {
   date: string
@@ -27,15 +28,42 @@ const monthFormatter = new Intl.DateTimeFormat(defaultLocale, { month: 'short' }
  * Each row is a date block, a title and a location, with an optional label on
  * the right for a price or "Gratis".
  */
-export function AgendaBlock({ heading, items }: { heading: string; items?: Item[] | null }) {
-  if (!items || items.length === 0) return null
+export async function AgendaBlock({
+  heading,
+  items,
+  source,
+  limit,
+}: {
+  heading: string
+  items?: Item[] | null
+  source?: 'events' | 'manual' | null
+  limit?: number | null
+}) {
+  /*
+   * Only 'events' reads the collection. An empty source means a block saved
+   * before the Events collection existed, and those keep their hand-typed
+   * list; see src/blocks/Agenda.ts.
+   */
+  const rows: Item[] =
+    source === 'events'
+      ? (await getEvents({ period: 'upcoming' })).slice(0, limit ?? 4).map((event) => ({
+          id: String(event.id),
+          date: event.startsAt,
+          title: event.title,
+          location: [event.locationName, event.city].filter(Boolean).join(', ') || null,
+          badge: event.price?.isFree ? 'Gratis' : null,
+          url: `/agenda/${event.slug}`,
+        }))
+      : (items ?? [])
+
+  if (rows.length === 0) return null
 
   return (
     <Container className="py-10 md:py-14">
       <h2 className="font-heading text-2xl text-primary md:text-3xl">{heading}</h2>
 
       <ul className="mt-6 grid gap-4 md:grid-cols-2">
-        {items.map((item) => {
+        {rows.map((item) => {
           const date = new Date(item.date)
 
           return (

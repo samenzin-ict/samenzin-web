@@ -3,14 +3,13 @@ import type { Block } from 'payload'
 /**
  * The list of dated items from the homepage mockup, "Agenda".
  *
- * Entered by hand rather than read from an Events collection, which is phase 2
- * (ROADMAP.md). A short list of what is coming up is useful on the homepage
- * long before the events module exists, and this block is replaced rather than
- * extended when it arrives.
+ * Since ROADMAP 2.4 this normally reads the next events from the Events
+ * collection. The hand-typed list is kept for blocks that already use it, and
+ * for the occasional item that is not a real event.
  *
- * The mockup also draws "Aankomend" and "Afgelopen" filter pills. Those need a
- * real collection to filter, so they are deliberately not drawn here: controls
- * that do nothing are worse than no controls.
+ * A block saved before 2.4 has no `source`, and an empty `source` means
+ * manual. That is deliberate: defaulting old blocks to automatic would have
+ * silently emptied every homepage that was already filled in by hand.
  */
 export const Agenda: Block = {
   slug: 'agenda',
@@ -27,9 +26,37 @@ export const Agenda: Block = {
       label: 'Kop',
     },
     {
+      name: 'source',
+      type: 'select',
+      defaultValue: 'events',
+      label: 'Waar komen de activiteiten vandaan?',
+      options: [
+        { label: 'Automatisch: de eerstvolgende evenementen', value: 'events' },
+        { label: 'Handmatig: de lijst hieronder', value: 'manual' },
+      ],
+      admin: {
+        description:
+          'Automatisch toont de eerstvolgende evenementen uit de Agenda. Zo hoeft de homepagina niet apart bijgewerkt te worden.',
+      },
+    },
+    {
+      name: 'limit',
+      type: 'number',
+      defaultValue: 4,
+      min: 1,
+      max: 8,
+      label: 'Aantal activiteiten',
+      admin: {
+        condition: (_, siblingData) => siblingData?.source === 'events',
+      },
+    },
+    {
       name: 'items',
       type: 'array',
       label: 'Activiteiten',
+      admin: {
+        condition: (_, siblingData) => siblingData?.source !== 'events',
+      },
       labels: {
         singular: 'Activiteit',
         plural: 'Activiteiten',

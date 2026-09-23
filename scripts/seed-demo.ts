@@ -267,6 +267,8 @@ const pages = [
       {
         blockType: 'agenda' as const,
         heading: 'Agenda',
+        source: 'events' as const,
+        limit: 4,
         items: [
           { date: soon(9), title: 'Taalmaatje bijeenkomst', location: 'Tilburg', badge: 'Gratis' },
           { date: soon(9), title: 'Inloopbijeenkomst dialoog', location: 'Schiedam', badge: 'Gratis' },
@@ -390,6 +392,97 @@ for (const data of projects) {
   } else {
     await payload.create({ collection: 'projects', data, overrideAccess: true })
     console.log(`  created /projecten/${data.slug}`)
+  }
+}
+
+console.log('Writing agenda…')
+
+/** Dates around today, so both Aankomend and Afgelopen have something in them. */
+const at = (days: number, hour: number) => {
+  const date = new Date()
+  date.setDate(date.getDate() + days)
+  date.setHours(hour, 0, 0, 0)
+  return date.toISOString()
+}
+
+const events = [
+  {
+    ...PUBLISHED,
+    title: 'Meet & Greet dag',
+    slug: 'meet-and-greet-dag',
+    startsAt: at(9, 10),
+    endsAt: at(9, 16),
+    locationName: 'De Hal',
+    city: 'Schiedam',
+    theme: 'Ontmoeting',
+    audience: 'Iedereen',
+    price: { isFree: true },
+    capacity: 100,
+    spotsAvailable: 12,
+    registrationUrl: '/contact',
+    excerpt: 'Voorbeeldtekst. Een dag voor ontmoeting en gesprek.',
+    body: richText('Voorbeeldtekst over deze dag.'),
+  },
+  {
+    ...PUBLISHED,
+    title: 'Iftar-diner',
+    slug: 'iftar-diner',
+    startsAt: at(23, 19),
+    endsAt: at(23, 22),
+    locationName: 'Buurthuis',
+    city: 'Rotterdam',
+    theme: 'Ontmoeting',
+    audience: 'Iedereen',
+    price: { isFree: false, amount: 15 },
+    registrationUrl: '/contact',
+    excerpt: 'Voorbeeldtekst. Samen eten en elkaar leren kennen.',
+    body: richText('Voorbeeldtekst over het iftar-diner.'),
+  },
+  {
+    ...PUBLISHED,
+    title: 'Bezinningsretraite',
+    slug: 'bezinningsretraite',
+    startsAt: at(45, 10),
+    endsAt: at(47, 16),
+    locationName: 'Retraitehuis',
+    city: 'Tilburg',
+    theme: 'Bezinning',
+    audience: 'Studenten',
+    price: { isFree: false, amount: 50 },
+    registrationUrl: '/contact',
+    excerpt: 'Voorbeeldtekst. Drie dagen rust en bezinning.',
+    body: richText('Voorbeeldtekst over de retraite.'),
+  },
+  {
+    ...PUBLISHED,
+    title: 'Taalcafé',
+    slug: 'taalcafe',
+    startsAt: at(-14, 19),
+    endsAt: at(-14, 21),
+    locationName: 'Bibliotheek',
+    city: 'Rotterdam',
+    theme: 'Taal',
+    audience: 'Iedereen',
+    price: { isFree: true },
+    excerpt: 'Voorbeeldtekst. Een avond Nederlands oefenen.',
+    body: richText('Voorbeeldtekst over het taalcafé.'),
+  },
+]
+
+for (const data of events) {
+  const existing = await payload.find({
+    collection: 'events',
+    where: { slug: { equals: data.slug } },
+    limit: 1,
+    overrideAccess: true,
+  })
+
+  if (existing.docs[0]) {
+    await payload.update({ collection: 'events', id: existing.docs[0].id, data, overrideAccess: true })
+    console.log(`  updated /agenda/${data.slug}`)
+  } else {
+    await payload.create({ collection: 'events', data, overrideAccess: true })
+    console.log(`  created /agenda/${data.slug}`)
   }
 }
 

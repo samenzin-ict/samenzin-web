@@ -70,6 +70,7 @@ export interface Config {
     pages: Page;
     projects: Project;
     articles: Article;
+    events: Event;
     media: Media;
     'contact-submissions': ContactSubmission;
     donations: Donation;
@@ -84,6 +85,7 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
+    events: EventsSelect<false> | EventsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     donations: DonationsSelect<false> | DonationsSelect<true>;
@@ -236,6 +238,11 @@ export interface Page {
           }
         | {
             heading: string;
+            /**
+             * Automatisch toont de eerstvolgende evenementen uit de Agenda. Zo hoeft de homepagina niet apart bijgewerkt te worden.
+             */
+            source?: ('events' | 'manual') | null;
+            limit?: number | null;
             items?:
               | {
                   date: string;
@@ -479,6 +486,80 @@ export interface Article {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Activiteiten en evenementen van de stichting.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events".
+ */
+export interface Event {
+  id: number;
+  title: string;
+  /**
+   * Het deel van het webadres na /agenda/. Wordt automatisch ingevuld vanuit de titel.
+   */
+  slug: string;
+  /**
+   * Bepaalt of het evenement onder Aankomend of Afgelopen valt.
+   */
+  startsAt: string;
+  /**
+   * Optioneel. Zonder eindtijd wordt alleen het begin getoond.
+   */
+  endsAt?: string | null;
+  /**
+   * Bijvoorbeeld: De Hal.
+   */
+  locationName?: string | null;
+  /**
+   * Wordt gebruikt om op te filteren. Houd de schrijfwijze gelijk.
+   */
+  city?: string | null;
+  /**
+   * Wordt gebruikt om op te filteren. Houd de schrijfwijze gelijk.
+   */
+  theme?: string | null;
+  /**
+   * Wordt gebruikt om op te filteren. Houd de schrijfwijze gelijk.
+   */
+  audience?: string | null;
+  price?: {
+    isFree?: boolean | null;
+    amount?: number | null;
+  };
+  /**
+   * Aantal personen. Optioneel.
+   */
+  capacity?: number | null;
+  /**
+   * Wordt met de hand bijgehouden; de website neemt geen aanmeldingen aan. Laat leeg om dit niet te tonen.
+   */
+  spotsAvailable?: number | null;
+  /**
+   * Waar de knop Aanmelden naartoe gaat. Laat leeg om de knop te verbergen.
+   */
+  registrationUrl?: string | null;
+  excerpt?: string | null;
+  image?: (number | null) | Media;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * Berichten die via het contactformulier zijn binnengekomen. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -602,6 +683,10 @@ export interface PayloadLockedDocument {
         value: number | Article;
       } | null)
     | ({
+        relationTo: 'events';
+        value: number | Event;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -721,6 +806,8 @@ export interface PagesSelect<T extends boolean = true> {
           | T
           | {
               heading?: T;
+              source?: T;
+              limit?: T;
               items?:
                 | T
                 | {
@@ -817,6 +904,35 @@ export interface ArticlesSelect<T extends boolean = true> {
         label?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events_select".
+ */
+export interface EventsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  startsAt?: T;
+  endsAt?: T;
+  locationName?: T;
+  city?: T;
+  theme?: T;
+  audience?: T;
+  price?:
+    | T
+    | {
+        isFree?: T;
+        amount?: T;
+      };
+  capacity?: T;
+  spotsAvailable?: T;
+  registrationUrl?: T;
+  excerpt?: T;
+  image?: T;
+  body?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

@@ -59,6 +59,8 @@ the first account you create becomes an administrator automatically.
   the facts row and the closing call to action from the mockup
 - ROADMAP 2.3: `Articles`, with `/nieuws` and `/nieuws/<slug>`, a featured lead card,
   bylines, topics and a "meer lezen" row
+- ROADMAP 2.4: `Events`, with `/agenda`, `/agenda/<slug>` and working filters. The
+  homepage agenda block now reads the next events instead of a hand-typed list
 - Two more blocks, Kaartenrij and Agenda, so the homepage matches the approved mockup
 - `pnpm seed` fills an empty database with obviously fake demo content
 - The admin panel carries the brand colours; the palette now lives in one file that both
@@ -94,6 +96,9 @@ database stopped, which is the situation in GitHub Actions.
       `Projects`: `versions.drafts`, the published-only read rule, and `overrideAccess:
       false` in its read helper. The third is the one that is easy to forget and silently
       serves drafts to the public.
+- [ ] **Event capacity and remaining places are typed in by hand**, like the project
+      funding figures, because the site takes no registrations. Whoever runs an event has
+      to keep them current or leave them empty.
 - [ ] **Project funding figures are typed in by hand.** They are not derived from
       `Donations`, because a gift can be earmarked in ways the website never sees and a
       bank transfer never passes through it at all. Someone has to keep them current.
@@ -194,6 +199,10 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-22 | Donations are one-off only; monthly and five-year gifts wait for ROADMAP 3.3 | Recurring needs a mandate, and a signed mandate has legal weight. Phase 1 in ROADMAP.md is iDEAL one-off. |
 | 2026-09-22 | A donation record is created before the visitor leaves, and only the webhook may mark it paid | The return URL proves nothing; anyone can open it. ARCHITECTURE.md: webhook plus a server-side re-fetch is the only source of truth. |
 | 2026-09-22 | Anonymous donations store no name or e-mail at all | Same reasoning as the contact form: what is not collected cannot leak. The form hides the fields and the action refuses to store them. |
+| 2026-09-23 | Agenda filters are links and a GET form, with no JavaScript | The agenda stays filterable on a slow connection and before hydration, and every filtered view gets its own address that can be bookmarked and shared. Filtering on change would be slicker and would lose both. |
+| 2026-09-23 | Filter dropdowns are built from the events that exist, not a fixed taxonomy | A dropdown can then never offer a choice that returns nothing, and nobody had to invent categories for a programme that is still taking shape. |
+| 2026-09-23 | An agenda block with no `source` keeps its hand-typed list | Defaulting old blocks to automatic would have silently emptied any homepage already filled in by hand. New blocks default to automatic. |
+| 2026-09-23 | The website takes no event registrations | Sign-ups are personal data and need a processing register entry first. "Aanmelden" is a link the organiser points wherever they like. |
 | 2026-09-23 | Article topics are plain labels, not a Tags collection | Tag pages are not in ROADMAP, and a collection would add an admin section for something nobody has asked to browse by. It can become one when that changes. |
 | 2026-09-23 | "Meer lezen" picks the newest other articles, not ones matching on topic | Matching on subject looks cleverer and regularly returns nothing, which is worse than showing something recent. |
 | 2026-09-23 | `publishedAt` is separate from `_status` | One is the date a reader sees and the list sorts by; the other is whether it is visible at all. Keeping them apart lets an editor date something properly and publish when ready. |

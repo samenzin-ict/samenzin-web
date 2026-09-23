@@ -35,7 +35,14 @@ function RenderBlock({ block }: { block: Block }) {
       return <FeaturedItemsBlock heading={block.heading} items={block.items} />
 
     case 'agenda':
-      return <AgendaBlock heading={block.heading} items={block.items} />
+      return (
+        <AgendaBlock
+          heading={block.heading}
+          items={block.items}
+          source={block.source}
+          limit={block.limit}
+        />
+      )
 
     case 'callToAction':
       return <CallToActionBlock heading={block.heading} text={block.text} links={block.links} />
