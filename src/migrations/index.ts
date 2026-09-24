@@ -4,6 +4,7 @@ import * as migration_20260922_213029_page_drafts from './20260922_213029_page_d
 import * as migration_20260922_223834_projects from './20260922_223834_projects';
 import * as migration_20260922_225624_articles from './20260922_225624_articles';
 import * as migration_20260923_051853_events from './20260923_051853_events';
+import * as migration_20260924_143107_commissions from './20260924_143107_commissions';
 
 export const migrations = [
   {
@@ -34,6 +35,11 @@ export const migrations = [
   {
     up: migration_20260923_051853_events.up,
     down: migration_20260923_051853_events.down,
-    name: '20260923_051853_events'
+    name: '20260923_051853_events',
+  },
+  {
+    up: migration_20260924_143107_commissions.up,
+    down: migration_20260924_143107_commissions.down,
+    name: '20260924_143107_commissions'
   },
 ];

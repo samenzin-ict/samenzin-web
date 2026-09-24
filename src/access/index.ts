@@ -1,5 +1,6 @@
 export { isAdmin, isAdminFieldLevel } from './isAdmin'
 export { isAdminOrEditor } from './isAdminOrEditor'
 export { isAdminOrSelf } from './isAdminOrSelf'
+export { isEditorOfCommission } from './isEditorOfCommission'
 export { isPublic } from './isPublic'
 export { isPublishedOrAuthenticated } from './isPublishedOrAuthenticated'

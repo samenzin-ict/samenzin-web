@@ -294,6 +294,21 @@ export interface Page {
     description?: string | null;
     image?: (number | null) | Media;
   };
+  /**
+   * Welke commissie dit beheert. Laat leeg als iedere redacteur eraan mag werken.
+   */
+  commission?:
+    | (
+        | 'onderwijs'
+        | 'vrijwilligers'
+        | 'evenementen'
+        | 'media'
+        | 'ict'
+        | 'fondsenwerving'
+        | 'vrouwenwerking'
+        | 'huisvesting'
+      )
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -425,6 +440,21 @@ export interface Project {
     label?: string | null;
     url?: string | null;
   };
+  /**
+   * Welke commissie dit beheert. Laat leeg als iedere redacteur eraan mag werken.
+   */
+  commission?:
+    | (
+        | 'onderwijs'
+        | 'vrijwilligers'
+        | 'evenementen'
+        | 'media'
+        | 'ict'
+        | 'fondsenwerving'
+        | 'vrouwenwerking'
+        | 'huisvesting'
+      )
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -480,6 +510,21 @@ export interface Article {
         label: string;
         id?: string | null;
       }[]
+    | null;
+  /**
+   * Welke commissie dit beheert. Laat leeg als iedere redacteur eraan mag werken.
+   */
+  commission?:
+    | (
+        | 'onderwijs'
+        | 'vrijwilligers'
+        | 'evenementen'
+        | 'media'
+        | 'ict'
+        | 'fondsenwerving'
+        | 'vrouwenwerking'
+        | 'huisvesting'
+      )
     | null;
   updatedAt: string;
   createdAt: string;
@@ -555,6 +600,21 @@ export interface Event {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Welke commissie dit beheert. Laat leeg als iedere redacteur eraan mag werken.
+   */
+  commission?:
+    | (
+        | 'onderwijs'
+        | 'vrijwilligers'
+        | 'evenementen'
+        | 'media'
+        | 'ict'
+        | 'fondsenwerving'
+        | 'vrouwenwerking'
+        | 'huisvesting'
+      )
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -627,6 +687,21 @@ export interface User {
    * Beheerder: volledige toegang, inclusief gebruikers en instellingen. Redacteur: alleen inhoud bewerken.
    */
   role: 'admin' | 'editor';
+  /**
+   * Waar deze redacteur aan mag werken. Zonder commissie kan iemand alleen inhoud bewerken die aan geen enkele commissie is toegewezen.
+   */
+  commissions?:
+    | (
+        | 'onderwijs'
+        | 'vrijwilligers'
+        | 'evenementen'
+        | 'media'
+        | 'ict'
+        | 'fondsenwerving'
+        | 'vrouwenwerking'
+        | 'huisvesting'
+      )[]
+    | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -845,6 +920,7 @@ export interface PagesSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  commission?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -880,6 +956,7 @@ export interface ProjectsSelect<T extends boolean = true> {
         label?: T;
         url?: T;
       };
+  commission?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -904,6 +981,7 @@ export interface ArticlesSelect<T extends boolean = true> {
         label?: T;
         id?: T;
       };
+  commission?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -933,6 +1011,7 @@ export interface EventsSelect<T extends boolean = true> {
   excerpt?: T;
   image?: T;
   body?: T;
+  commission?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1035,6 +1114,7 @@ export interface DonationsSelect<T extends boolean = true> {
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
   role?: T;
+  commissions?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;

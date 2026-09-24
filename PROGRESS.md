@@ -61,6 +61,8 @@ the first account you create becomes an administrator automatically.
   bylines, topics and a "meer lezen" row
 - ROADMAP 2.4: `Events`, with `/agenda`, `/agenda/<slug>` and working filters. The
   homepage agenda block now reads the next events instead of a hand-typed list
+- ROADMAP 2.8: per-commission permissions. An editor changes what their commission owns
+  and what no commission owns; an administrator changes anything
 - Two more blocks, Kaartenrij and Agenda, so the homepage matches the approved mockup
 - `pnpm seed` fills an empty database with obviously fake demo content
 - The admin panel carries the brand colours; the palette now lives in one file that both
@@ -92,6 +94,10 @@ database stopped, which is the situation in GitHub Actions.
 - [ ] **Four derived colour tints** are marked in `globals.css` as interpolated from the
       mockups (button hover fills, hairline borders). They are not part of the approved
       palette and need confirming.
+- [ ] **Commissions scope changing content, not reading it.** Every editor can still see
+      every document in the admin panel; they cannot alter one another's. Hiding them from
+      the list as well is a change to `read`, which also governs the public site, so it
+      needs care rather than a quick edit.
 - [ ] **Every collection added from here needs the same three things** as `Pages` and
       `Projects`: `versions.drafts`, the published-only read rule, and `overrideAccess:
       false` in its read helper. The third is the one that is easy to forget and silently
@@ -199,6 +205,9 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-22 | Donations are one-off only; monthly and five-year gifts wait for ROADMAP 3.3 | Recurring needs a mandate, and a signed mandate has legal weight. Phase 1 in ROADMAP.md is iDEAL one-off. |
 | 2026-09-22 | A donation record is created before the visitor leaves, and only the webhook may mark it paid | The return URL proves nothing; anyone can open it. ARCHITECTURE.md: webhook plus a server-side re-fetch is the only source of truth. |
 | 2026-09-22 | Anonymous donations store no name or e-mail at all | Same reasoning as the contact form: what is not collected cannot leak. The form hides the fields and the action refuses to store them. |
+| 2026-09-24 | Content with no commission stays editable by every editor | Everything written before commissions existed has no commission. Locking it to administrators would have turned a permissions feature into an outage. |
+| 2026-09-24 | The commission rule returns a query constraint, not a boolean | Payload folds it into the query, so content owned by another commission is never fetched. A boolean would have to load the document first and be repeated in every list, count and bulk operation. |
+| 2026-09-24 | An editor may only assign content to a commission they belong to | Without it the scoping would be advisory: anyone could reassign a document to themselves and then edit it. |
 | 2026-09-23 | Agenda filters are links and a GET form, with no JavaScript | The agenda stays filterable on a slow connection and before hydration, and every filtered view gets its own address that can be bookmarked and shared. Filtering on change would be slicker and would lose both. |
 | 2026-09-23 | Filter dropdowns are built from the events that exist, not a fixed taxonomy | A dropdown can then never offer a choice that returns nothing, and nobody had to invent categories for a programme that is still taking shape. |
 | 2026-09-23 | An agenda block with no `source` keeps its hand-typed list | Defaulting old blocks to automatic would have silently emptied any homepage already filled in by hand. New blocks default to automatic. |

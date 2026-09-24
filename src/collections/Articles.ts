@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
-import { isAdminOrEditor, isPublishedOrAuthenticated } from '@/access'
+import { isAdminOrEditor, isEditorOfCommission, isPublishedOrAuthenticated } from '@/access'
+import { commissionField } from '@/fields/commissions'
 import { formatSlug } from '@/fields/slug'
 
 /**
@@ -24,8 +25,10 @@ export const Articles: CollectionConfig = {
   access: {
     read: isPublishedOrAuthenticated,
     create: isAdminOrEditor,
-    update: isAdminOrEditor,
-    delete: isAdminOrEditor,
+    // ROADMAP 2.8: an editor may change what their commission owns, and what
+    // no commission owns.
+    update: isEditorOfCommission,
+    delete: isEditorOfCommission,
   },
   versions: {
     drafts: { validate: false },
@@ -158,5 +161,6 @@ export const Articles: CollectionConfig = {
       maxRows: 6,
       fields: [{ name: 'label', type: 'text', required: true, label: 'Onderwerp' }],
     },
+    commissionField,
   ],
 }

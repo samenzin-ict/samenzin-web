@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { isAdmin, isAdminFieldLevel, isAdminOrEditor, isAdminOrSelf } from '@/access'
+import { COMMISSION_OPTIONS } from '@/fields/commissions'
 
 /**
  * Admin panel accounts.
@@ -96,6 +97,28 @@ export const Users: CollectionConfig = {
       admin: {
         description:
           'Beheerder: volledige toegang, inclusief gebruikers en instellingen. Redacteur: alleen inhoud bewerken.',
+      },
+    },
+    {
+      name: 'commissions',
+      type: 'select',
+      hasMany: true,
+      /*
+       * Saved to the JWT alongside the role, so scoping a query costs no extra
+       * database read. Changing someone's commissions takes effect when their
+       * session is renewed.
+       */
+      saveToJWT: true,
+      label: 'Commissies',
+      options: [...COMMISSION_OPTIONS],
+      access: {
+        // Only an administrator may widen someone's reach.
+        update: isAdminFieldLevel,
+      },
+      admin: {
+        condition: (data) => data?.role === 'editor',
+        description:
+          'Waar deze redacteur aan mag werken. Zonder commissie kan iemand alleen inhoud bewerken die aan geen enkele commissie is toegewezen.',
       },
     },
   ],
