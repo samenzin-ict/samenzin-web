@@ -1,5 +1,7 @@
 import type { PayloadRequest } from 'payload'
 
+import { isAdminPanelUser } from './userCollections'
+
 /**
  * An administrator or an editor. This is the rule for editable content:
  * pages, media and the site texts a volunteer maintains.
@@ -10,4 +12,4 @@ import type { PayloadRequest } from 'payload'
  * still assignable to Access, so this works in both places.
  */
 export const isAdminOrEditor = ({ req: { user } }: { req: PayloadRequest }): boolean =>
-  user?.role === 'admin' || user?.role === 'editor'
+  isAdminPanelUser(user) && (user?.role === 'admin' || user?.role === 'editor')

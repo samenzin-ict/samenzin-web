@@ -1,5 +1,7 @@
 import type { Access, Where } from 'payload'
 
+import { isAdminPanelUser } from './userCollections'
+
 /**
  * Who may change a piece of content (ROADMAP 2.8).
  *
@@ -17,7 +19,7 @@ import type { Access, Where } from 'payload'
  * administrators would have turned a permissions feature into an outage.
  */
 export const isEditorOfCommission: Access = ({ req: { user } }) => {
-  if (!user) return false
+  if (!isAdminPanelUser(user)) return false
   if (user.role === 'admin') return true
   if (user.role !== 'editor') return false
 

@@ -223,6 +223,58 @@ export const nl = {
   coursesRegister: 'Aanmelden',
   coursesBackToOverview: 'Alle cursussen',
 
+  // Mijn omgeving (ROADMAP 3.2)
+  portalTitle: 'Mijn omgeving',
+  portalGreeting: 'Hoi',
+  portalNavOverview: 'Overzicht',
+  portalNavDetails: 'Mijn gegevens',
+  portalLogout: 'Uitloggen',
+  portalMemberSince: 'Lid sinds',
+  portalLoginTitle: 'Inloggen',
+  portalLoginIntro:
+    'Log in op Mijn omgeving. Heeft u nog geen inloggegevens? Neem dan contact met ons op.',
+  portalLoginEmailLabel: 'E-mailadres',
+  portalLoginPasswordLabel: 'Wachtwoord',
+  portalLoginSubmit: 'Inloggen',
+  portalLoginSubmitting: 'Bezig met inloggen\u2026',
+  portalLoginFailed: 'Het e-mailadres of wachtwoord klopt niet.',
+  portalLoginLocked:
+    'Dit account is tijdelijk geblokkeerd na te veel mislukte pogingen. Probeer het over een kwartier opnieuw.',
+  portalLoginTooMany:
+    'U heeft kort achter elkaar te vaak geprobeerd in te loggen. Wacht een paar minuten en probeer het opnieuw.',
+  portalLoginNoAccount:
+    'Wachtwoord vergeten? Neem contact met ons op; wij kunnen een nieuw wachtwoord voor u instellen.',
+  portalOverviewIntro:
+    'Hier vindt u uw lidmaatschap en uw gegevens. In een volgende fase komen hier ook uw taken, cursussen en evenementen bij.',
+  portalDetailsTitle: 'Mijn gegevens',
+  portalDetailsIntro: 'Controleer uw contactgegevens en pas ze aan als er iets verandert.',
+  portalDetailsNameLabel: 'Naam',
+  portalDetailsEmailLabel: 'E-mailadres',
+  portalDetailsEmailFixed: 'Neem contact met ons op als uw e-mailadres moet wijzigen.',
+  portalDetailsPhoneLabel: 'Telefoonnummer',
+  portalDetailsStreetLabel: 'Straat en huisnummer',
+  portalDetailsPostalCodeLabel: 'Postcode',
+  portalDetailsCityLabel: 'Plaats',
+  portalDetailsSave: 'Gegevens opslaan',
+  portalDetailsSaving: 'Bezig met opslaan\u2026',
+  portalDetailsSaved: 'Uw gegevens zijn opgeslagen.',
+  portalDetailsError: 'Uw gegevens konden niet worden opgeslagen. Probeer het later opnieuw.',
+  portalPasswordTitle: 'Wachtwoord wijzigen',
+  portalPasswordCurrentLabel: 'Huidig wachtwoord',
+  portalPasswordNewLabel: 'Nieuw wachtwoord',
+  portalPasswordRepeatLabel: 'Herhaal het nieuwe wachtwoord',
+  portalPasswordHint: 'Gebruik minimaal 12 tekens.',
+  portalPasswordSubmit: 'Wachtwoord wijzigen',
+  portalPasswordSubmitting: 'Bezig met wijzigen\u2026',
+  portalPasswordSaved: 'Uw wachtwoord is gewijzigd.',
+  portalPasswordWrongCurrent: 'Uw huidige wachtwoord klopt niet.',
+  portalPasswordTooShort: 'Gebruik minimaal 12 tekens.',
+  portalPasswordMismatch: 'De twee nieuwe wachtwoorden zijn niet gelijk.',
+  portalPasswordError: 'Uw wachtwoord kon niet worden gewijzigd. Probeer het later opnieuw.',
+  portalStatusEnded:
+    'Uw lidmaatschap is beëindigd. Neem contact met ons op als dat niet klopt.',
+  portalRequired: 'verplicht',
+
   previewBannerTitle: 'U bekijkt een voorbeeld',
   previewBannerBody:
     'Deze pagina is nog niet gepubliceerd, of u ziet een versie die afwijkt van de gepubliceerde. Bezoekers zien dit niet.',

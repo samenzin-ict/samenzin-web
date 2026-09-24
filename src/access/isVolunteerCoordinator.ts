@@ -1,5 +1,7 @@
 import type { Access } from 'payload'
 
+import { isAdminPanelUser } from './userCollections'
+
 /**
  * Who may read and handle volunteer applications.
  *
@@ -12,7 +14,7 @@ import type { Access } from 'payload'
  * than a reuse of isEditorOfCommission.
  */
 export const isVolunteerCoordinator: Access = ({ req: { user } }) => {
-  if (!user) return false
+  if (!isAdminPanelUser(user)) return false
   if (user.role === 'admin') return true
 
   return (user.commissions ?? []).includes('vrijwilligers')

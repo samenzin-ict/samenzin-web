@@ -28,7 +28,7 @@ const MAX_REQUESTS_PER_WINDOW = 5
  * in the contact form five times could no longer volunteer, which is a
  * connection nobody would guess from the error message.
  */
-export type RateLimitScope = 'contact' | 'volunteer' | 'membership'
+export type RateLimitScope = 'contact' | 'volunteer' | 'membership' | 'member-login'
 
 const keyPrefix = (scope: RateLimitScope) => `${scope}-rate-limit:`
 

@@ -1,7 +1,10 @@
 import type { Access } from 'payload'
 
+import { isAdminPanelUser } from './userCollections'
+
 /**
- * Visitors see published documents; anyone signed in sees everything.
+ * Visitors see published documents; a signed-in admin panel user sees
+ * everything.
  *
  * This is the rule that makes drafts safe. It returns a query constraint
  * rather than a boolean, so Payload folds it into the database query and an
@@ -19,7 +22,9 @@ import type { Access } from 'payload'
  * purpose so this rule actually applies.
  */
 export const isPublishedOrAuthenticated: Access = ({ req: { user } }) => {
-  if (user) return true
+  // Deliberately not `if (user)`. From ROADMAP 3.2 a member also holds a token,
+  // and a member has no business reading unpublished work. See isAdminPanelUser.
+  if (isAdminPanelUser(user)) return true
 
   return {
     or: [{ _status: { equals: 'published' } }, { _status: { exists: false } }],

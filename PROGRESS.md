@@ -9,7 +9,7 @@ Keep it short. This is a status board, not a diary.
 
 ## Current state
 
-**Phase:** 3 — Member portal. 3.1 and the 3.4 catalogue are done. Phases 1 and 2 are
+**Phase:** 3 — Member portal. 3.1, 3.2 and the 3.4 catalogue are done. Phases 1 and 2 are
 built apart from 2.5 and 2.7, which the maintainer chose to skip.
 **Deployment:** Vercel, Neon PostgreSQL (branches `production` and `dev`) and Cloudflare
 R2 for media, replacing the EU VPS plan. See `docs/environments.md`.
@@ -76,6 +76,13 @@ the first account you create becomes an administrator automatically.
 - `MembershipApplications` and the form at `/lid-worden` (3.1). Administrators only,
   three fields, an explicit approval step, six-month retention that an approval clears.
   Nothing emails the applicant, because there is still no email adapter.
+- `Members` with their own login, and Mijn omgeving at `/mijn` (3.2): login, overview,
+  contact details the member maintains, and a password change. Approving an application
+  creates the member. Members cannot reach the admin panel: `admin.user` names `users` as
+  the only collection Payload lets in.
+- `src/access/userCollections.ts`, which every role rule now goes through. Adding a second
+  auth collection broke two rules that were correct while `users` was the only one; both
+  are described there and both are covered by the checks below.
 
 Verified on a rebuilt database: `pnpm dev` runs, `/admin` loads, the first user is created
 and becomes an administrator, the public routes render from the CMS, and `pnpm build`,
@@ -90,9 +97,8 @@ database stopped, which is the situation in GitHub Actions.
 
 1. **Write the privacy statement.** This is a launch blocker, see below. It now has to
    cover three forms: contact, volunteer applications and membership applications.
-2. **3.2 — the `Members` collection and `/mijn`.** The decision is made (see `ROADMAP.md`):
-   a separate collection with its own login. Approving a membership application is what
-   creates a member; that step does not exist yet, so approval currently only sets a status.
+2. **An email adapter.** This now blocks more than password resets: a new member cannot
+   receive their own login. See below.
 3. Fill in Instellingen and create the pages: `home`, `over-ons`, `contact`, `doneren`,
    `privacyverklaring`. The site is empty until someone does.
 4. Set `PREVIEW_SECRET` in Vercel for Production and Preview, then redeploy
@@ -135,6 +141,19 @@ database stopped, which is the situation in GitHub Actions.
       every donation stays `open` regardless of whether it was paid.
 - [ ] **Donations hold personal data** and need a processing register entry in
       `samenzin-ict`, including how long records are kept.
+- [ ] **No email adapter, and from 3.2 this blocks getting a member their login.**
+      Payload writes mail to the console, so there is no invitation, no password reset and
+      no "forgotten password". Today an administrator opens the member in the admin panel,
+      sets a password and passes it on themselves; the login form says so in as many
+      words. Configuring an adapter means adding a service to the deployment, which
+      CLAUDE.md says to ask about first, so it is a decision rather than a task.
+- [ ] **Members hold personal data** — name, e-mail, telephone and address — and need a
+      processing register entry in `samenzin-ict`, with a retention tied to the end of the
+      membership. Note that nothing deletes an ended member: `status` goes to `beeindigd`
+      and the record stays until somebody removes it.
+- [ ] **Nobody has logged into Mijn omgeving with a real account yet.** The flow is
+      verified end to end against a test member that was created and then deleted; the
+      first real member is still a manual step for an administrator.
 - [ ] **The ANBI page still needs three values before it can go live:** e-mailadres,
       telefoonnummer and IBAN. `pnpm check:anbi` reports them as aandachtspunten. The
       guide lists them as outstanding too.
@@ -245,6 +264,12 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-23 | The fundraising bar is `aria-hidden`; the amounts beside it are the accessible text | "62 percent" tells a screen reader user less than "EUR 2.000 of EUR 5.000 raised", and announcing both says it twice. |
 | 2026-09-22 | Read helpers pass `overrideAccess: false` | The Payload local API skips access control by default, so without it every draft would have been served to the public. This is what makes the published-only rule actually apply. |
 | 2026-09-24 | Members will be a separate collection with their own login, not Payload users | The maintainer's call. A member then has no path into the admin panel, so no access-rule mistake can promote one to editor. Costs a second auth surface in 3.2. |
+| 2026-09-24 | Mijn omgeving uses its own session cookie, not Payload's | Payload names the cookie `${cookiePrefix}-token` with no collection in it, so `users` and `members` would share one: logging in to the portal would log a board member out of the admin panel, and logging out of one would end both. The member token is held separately and handed back through the `Authorization: JWT` header. |
+| 2026-09-24 | Every role rule goes through `isAdminPanelUser` | With two auth collections, "anyone signed in" included members, and a rule comparing ids alone matched across tables. Both were verified to be real, not theoretical: before the fix a member could read draft pages, and `isAdminOrSelf` returned `{id:{equals:7}}` for member 7 on the `users` collection. |
+| 2026-09-24 | The session is checked in a layout, not in middleware | Verifying a Payload token means reaching the database, which middleware is the wrong place for. Every route inside `(beveiligd)` inherits the layout, so a page added later is protected by existing rather than by somebody remembering. |
+| 2026-09-24 | A member cannot change their own e-mail address | It is the login. Without the ability to send a confirmation, one typo would lock a member out of their own account for good. |
+| 2026-09-24 | Approval creates the member with a random password | An auth account needs a password, and there is no e-mail to send an invitation or a reset link. A random one nobody holds is safer than a predictable one or an account anybody could claim; an administrator sets a real one and passes it on. |
+| 2026-09-24 | The portal shows only the tabs that exist | The mockup has taken, cursussen and evenementen as well. Those are 3.4 and 3.5. A tab that leads nowhere is worse than one that is not there yet, and `PortalNav` takes a list so each is one entry when it arrives. |
 | 2026-09-24 | The membership form asks for name, e-mail and motivation only | Address, date of birth and bank details are needed to administer a membership, not to decide on one. Asking everybody means holding them for people who are turned down. |
 | 2026-09-24 | Membership applications are administrators only | Granting membership is a board decision and no commission owns it. Volunteer applications got their own rule because there is a commission for them; there is none for members. |
 | 2026-09-24 | Approving an application clears its delete-by date | An approved application is the evidence a membership was granted, so it must not be pruned. Clearing on approval rather than only setting on creation means one approved in month five does not vanish in month six. |

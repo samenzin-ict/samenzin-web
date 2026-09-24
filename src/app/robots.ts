@@ -7,7 +7,8 @@ import { getSiteUrl } from '@/lib/site-url'
  *
  * The public site is meant to be indexed: the ANBI application and Google for
  * Nonprofits both depend on it being findable. The admin panel and the API are
- * not public content and are kept out.
+ * not public content and are kept out, and so is Mijn omgeving: nothing
+ * behind the member login is public, and indexing the login page serves nobody.
  */
 export default function robots(): MetadataRoute.Robots {
   const siteUrl = getSiteUrl()
@@ -16,7 +17,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin', '/api'],
+      disallow: ['/admin', '/api', '/mijn'],
     },
     sitemap: `${siteUrl}/sitemap.xml`,
   }

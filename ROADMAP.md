@@ -57,7 +57,7 @@ for the phase as a whole.
 | # | Feature | Routes | Notes |
 |---|---|---|---|
 | 3.1 | Lid worden: application and approval | `/lid-worden` | **Done.** **Personal data.** Approval is a human decision, not automatic |
-| 3.2 | Member login and member area | `/mijn` | **Decided:** members are a separate `Members` collection with its own login, never Payload users |
+| 3.2 | Member login and member area | `/mijn` | **Done.** Separate `Members` collection with its own login, never Payload users |
 | 3.3 | Recurring SEPA contributions | — | **Payments and mandates.** Mollie recurring; a signed mandate has legal weight |
 | 3.4 | Cursussen: catalogue and enrolment | `/cursussen`, `/cursussen/<slug>` | Catalogue **done**; enrolment still open |
 | 3.5 | Hour registration for volunteers | `/mijn/uren` | Per `08-ledenportaal-mijn-taken.png` |
@@ -70,9 +70,19 @@ a `member` role. A member therefore has no route into the admin panel at all, an
 mistake in an access rule can turn one into an editor. It costs a second authentication
 surface in 3.2; that is the price of the guarantee.
 
-3.1 is built to fit this: an approved application is the input to creating a member record,
-and nothing more. Approving does not create a login, because there is nothing to log in to
-yet.
+Approving a membership application creates the member record, so nobody retypes a name and
+an address that are already on file.
+
+Two things fell out of building it that are worth knowing before touching auth again:
+
+- **Payload names its session cookie `${cookiePrefix}-token` with nothing in it to say
+  which collection it belongs to**, so two auth collections share one cookie. Mijn omgeving
+  therefore keeps the member token in its own cookie and hands it back through the
+  `Authorization: JWT` header, which Payload resolves to the right collection. Without
+  that, signing in as a member would sign a board member out of the admin panel.
+- **`req.user` is now one of two things**, and rules that said "anyone signed in" or that
+  compared ids alone were wrong the moment members existed. See
+  `src/access/userCollections.ts`; both failures are written down there.
 
 ## Phase 4 — Reporting and automation
 

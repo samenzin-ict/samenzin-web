@@ -8,6 +8,7 @@ import * as migration_20260924_143107_commissions from './20260924_143107_commis
 import * as migration_20260924_150346_volunteer_applications from './20260924_150346_volunteer_applications';
 import * as migration_20260924_151246_courses from './20260924_151246_courses';
 import * as migration_20260924_164954_membership_applications from './20260924_164954_membership_applications';
+import * as migration_20260924_215010_members from './20260924_215010_members';
 
 export const migrations = [
   {
@@ -58,6 +59,11 @@ export const migrations = [
   {
     up: migration_20260924_164954_membership_applications.up,
     down: migration_20260924_164954_membership_applications.down,
-    name: '20260924_164954_membership_applications'
+    name: '20260924_164954_membership_applications',
+  },
+  {
+    up: migration_20260924_215010_members.up,
+    down: migration_20260924_215010_members.down,
+    name: '20260924_215010_members'
   },
 ];

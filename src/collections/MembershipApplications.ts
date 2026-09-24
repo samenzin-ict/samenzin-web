@@ -1,3 +1,5 @@
+import { randomBytes } from 'crypto'
+
 import type { CollectionConfig } from 'payload'
 
 import { isAdmin, isAdminFieldLevel } from '@/access'
@@ -19,8 +21,8 @@ export const RETENTION_MONTHS = 6
  *
  * Approval is explicit and never automatic. `status` can only be changed by an
  * administrator, and the applicant is not told anything by this system: the
- * board writes to them. Turning an approved application into a member record
- * is ROADMAP 3.2, which does not exist yet.
+ * board writes to them. Approving does create the member record (ROADMAP 3.2),
+ * so nobody has to retype a name and an e-mail address that are already here.
  *
  * Retention: an application that is still pending or was declined is deleted
  * after six months, the same as a volunteer application. An approved one is
@@ -53,6 +55,59 @@ export const MembershipApplications: CollectionConfig = {
   defaultSort: '-createdAt',
   timestamps: true,
   hooks: {
+    afterChange: [
+      /**
+       * Approving an application creates the member. ROADMAP 3.1 into 3.2.
+       *
+       * Idempotent on the e-mail address, because "goedgekeurd" can be saved
+       * more than once and a second save must not create a second member or
+       * overwrite the first one's password.
+       *
+       * The password is random and is never shown to anyone. There is no email
+       * adapter yet, so there is no invitation to send and no reset link to
+       * follow; an administrator opens the new member and sets a password they
+       * pass on themselves. The alternative, leaving the account without a
+       * password, would be an account anybody could claim.
+       */
+      async ({ doc, previousDoc, operation, req }) => {
+        if (operation !== 'update') return
+        if (doc.status !== 'goedgekeurd' || previousDoc?.status === 'goedgekeurd') return
+
+        const existing = await req.payload.find({
+          collection: 'members',
+          where: { email: { equals: doc.email } },
+          limit: 1,
+          overrideAccess: true,
+          req,
+        })
+
+        if (existing.totalDocs > 0) return
+
+        try {
+          await req.payload.create({
+            collection: 'members',
+            overrideAccess: true,
+            req,
+            data: {
+              name: doc.name,
+              email: doc.email,
+              status: 'actief',
+              memberSince: new Date().toISOString(),
+              // 32 bytes of entropy nobody holds. See the note above.
+              password: randomBytes(32).toString('hex'),
+            },
+          })
+        } catch (error) {
+          // Never let this fail the approval itself: the board's decision is
+          // recorded either way, and an administrator can add the member by
+          // hand. Swallowing it silently would be worse than a log line.
+          req.payload.logger.error(
+            { err: error },
+            'Approved membership application but could not create the member',
+          )
+        }
+      },
+    ],
     beforeChange: [
       ({ data, operation, originalDoc }) => {
         const status = data?.status ?? originalDoc?.status ?? 'aangevraagd'
