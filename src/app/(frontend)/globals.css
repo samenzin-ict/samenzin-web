@@ -130,3 +130,89 @@
     @apply outline-ring outline-2 outline-offset-2;
   }
 }
+
+/*
+ * Rich text coming out of the CMS.
+ *
+ * Written as plain CSS rather than a wall of Tailwind [&_p]: variants: the
+ * pull-quote needs a ::before with a typographic quote mark, and an arbitrary
+ * content value with a non-ASCII character does not survive Tailwind's class
+ * scanner. Verified: the rule simply was not emitted.
+ */
+@layer components {
+  .rich-text {
+    max-width: 65ch;
+  }
+
+  .rich-text p {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+  }
+
+  .rich-text p:last-child {
+    margin-bottom: 0;
+  }
+
+  .rich-text a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .rich-text h2 {
+    margin-block: 2rem 0.75rem;
+    font-size: 1.5rem;
+  }
+
+  .rich-text h3 {
+    margin-block: 1.5rem 0.5rem;
+    font-size: 1.25rem;
+  }
+
+  .rich-text ul,
+  .rich-text ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+
+  .rich-text ul {
+    list-style: disc;
+  }
+
+  .rich-text ol {
+    list-style: decimal;
+  }
+
+  .rich-text li {
+    margin-bottom: 0.25rem;
+  }
+
+  /* The pull-quote of docs/design/10-nieuws-en-artikelen.png. */
+  .rich-text blockquote {
+    position: relative;
+    margin-block: 2rem;
+    padding-left: 2.5rem;
+    color: var(--primary);
+    font-family: var(--font-serif-heading), Georgia, serif;
+    font-size: 1.25rem;
+    font-style: italic;
+    line-height: 1.4;
+  }
+
+  .rich-text blockquote::before {
+    content: "\201C";
+    position: absolute;
+    top: -0.25rem;
+    left: 0;
+    color: var(--accent);
+    font-family: var(--font-serif-heading), Georgia, serif;
+    font-size: 3rem;
+    line-height: 1;
+  }
+
+  @media (min-width: 768px) {
+    .rich-text blockquote {
+      font-size: 1.5rem;
+    }
+  }
+}

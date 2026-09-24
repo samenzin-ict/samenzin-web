@@ -107,6 +107,9 @@ export const Articles: CollectionConfig = {
         { label: 'Artikel', value: 'artikel' },
         { label: 'Interview', value: 'interview' },
         { label: 'Verslag', value: 'verslag' },
+        // Both appear as pills in docs/design/10-nieuws-en-artikelen.png.
+        { label: 'Project', value: 'project' },
+        { label: 'Vrijwilliger', value: 'vrijwilliger' },
       ],
       admin: { position: 'sidebar' },
     },

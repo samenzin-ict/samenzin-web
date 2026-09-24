@@ -88,7 +88,12 @@ export const getProjects = cache(async (locale: Locale = defaultLocale, draft = 
     locale,
     draft,
     overrideAccess: draft,
-    sort: '-createdAt',
+    /*
+     * Oldest first, so the overview keeps the order the projects were added
+     * in, which is the order docs/design/06 shows. Newest-first would shuffle
+     * the grid every time somebody adds a project.
+     */
+    sort: 'createdAt',
   })
 
   return docs

@@ -10,6 +10,7 @@ import * as migration_20260924_151246_courses from './20260924_151246_courses';
 import * as migration_20260924_164954_membership_applications from './20260924_164954_membership_applications';
 import * as migration_20260924_215010_members from './20260924_215010_members';
 import * as migration_20260924_222526_volunteer_hours from './20260924_222526_volunteer_hours';
+import * as migration_20260924_230318_article_categories from './20260924_230318_article_categories';
 
 export const migrations = [
   {
@@ -70,6 +71,11 @@ export const migrations = [
   {
     up: migration_20260924_222526_volunteer_hours.up,
     down: migration_20260924_222526_volunteer_hours.down,
-    name: '20260924_222526_volunteer_hours'
+    name: '20260924_222526_volunteer_hours',
+  },
+  {
+    up: migration_20260924_230318_article_categories.up,
+    down: migration_20260924_230318_article_categories.down,
+    name: '20260924_230318_article_categories'
   },
 ];

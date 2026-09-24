@@ -505,7 +505,7 @@ export interface Article {
    * De datum die bij het artikel staat en waarop het overzicht sorteert. Dit is iets anders dan gepubliceerd zijn.
    */
   publishedAt: string;
-  category: 'nieuws' | 'artikel' | 'interview' | 'verslag';
+  category: 'nieuws' | 'artikel' | 'interview' | 'verslag' | 'project' | 'vrijwilliger';
   /**
    * Zet dit artikel bovenaan het overzicht, groot. Is er meer dan één, dan wint het nieuwste.
    */

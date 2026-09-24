@@ -11,6 +11,8 @@ const labels: Record<NonNullable<Article['category']>, string> = {
   artikel: 'Artikel',
   interview: 'Interview',
   verslag: 'Verslag',
+  project: 'Project',
+  vrijwilliger: 'Vrijwilliger',
 }
 
 /** The small label on an article card, as drawn in the mockup. */

@@ -53,6 +53,11 @@ console.log(`Seeding ${targetHost}${isLocalDatabase ? '' : '   <-- NOT LOCAL'}\n
 const payload = await getPayload({ config })
 
 /** A minimal Lexical document, so rich text fields are not left empty. */
+/**
+ * Paragraphs, and pull-quotes. A line starting with "> " becomes a quote, the
+ * way docs/design/10-nieuws-en-artikelen.png shows one in the middle of an
+ * article.
+ */
 const richText = (...paragraphs: string[]) =>
   ({
     root: {
@@ -61,16 +66,21 @@ const richText = (...paragraphs: string[]) =>
       indent: 0,
       version: 1,
       direction: 'ltr' as const,
-      children: paragraphs.map((text) => ({
-        type: 'paragraph',
-        format: '' as const,
-        indent: 0,
-        version: 1,
-        direction: 'ltr' as const,
-        children: [
-          { mode: 'normal', text, type: 'text', style: '', detail: 0, format: 0, version: 1 },
-        ],
-      })),
+      children: paragraphs.map((line) => {
+        const isQuote = line.startsWith('> ')
+        const text = isQuote ? line.slice(2) : line
+
+        return {
+          type: isQuote ? 'quote' : 'paragraph',
+          format: '' as const,
+          indent: 0,
+          version: 1,
+          direction: 'ltr' as const,
+          children: [
+            { mode: 'normal', text, type: 'text', style: '', detail: 0, format: 0, version: 1 },
+          ],
+        }
+      }),
     },
   })
 
@@ -100,6 +110,15 @@ const heroImage = await upload('hero-visual.png', 'Abstracte vorm in de kleuren 
 const taalmaatje = await upload('project-taalmaatje.png', 'Twee mensen oefenen samen de Nederlandse taal')
 const retraites = await upload('project-retraites.png', 'Een rustige ruimte ingericht voor bezinning')
 const huisvesting = await upload('project-studentenhuisvesting.png', 'Een studentenkamer met een bureau bij het raam')
+const socialeEvenementen = await upload('project-sociale-evenementen.png', 'Vlak in het diepe bosgroen van de stichting')
+const publicaties = await upload('project-publicaties.png', 'Vlak in het warme goud van de stichting')
+const mediaContent = await upload('project-media-content.png', 'Vlak in een zacht teal uit de huisstijl')
+const artGemeenschap = await upload('article-gemeenschap.png', 'Kleurverloop van bosgroen naar goud')
+const artVrijwilligerswerk = await upload('article-vrijwilligerswerk.png', 'Kleurverloop van teal naar goud')
+const artOpenDag = await upload('article-open-dag.png', 'Kleurverloop van bosgroen naar zacht goud')
+const artTaalmaatje = await upload('article-taalmaatje.png', 'Kleurverloop van groen naar goud')
+const artStudenten = await upload('article-studenten.png', 'Kleurverloop van teal naar licht goud')
+const artRamadan = await upload('article-ramadan.png', 'Kleurverloop van bosgroen naar goudgroen')
 
 console.log('Writing Instellingen…')
 await payload.updateGlobal({
@@ -116,10 +135,12 @@ await payload.updateGlobal({
       { label: 'Schiedam', street: 'Voorbeeldlaan 2', postalCode: '3100 BB', city: 'Schiedam' },
       { label: 'Rotterdam', street: 'Voorbeeldkade 3', postalCode: '3000 CC', city: 'Rotterdam' },
     ],
+    // The menu the mockups show: docs/design/05, 06 and 10.
     mainNavigation: [
       { label: 'Over ons', url: '/over-ons' },
-      { label: 'ANBI', url: '/anbi' },
-      { label: 'Doneren', url: '/doneren' },
+      { label: 'Projecten', url: '/projecten' },
+      { label: 'Agenda', url: '/agenda' },
+      { label: 'Nieuws', url: '/nieuws' },
       { label: 'Contact', url: '/contact' },
     ],
     headerCta: { label: 'Doneer', url: '/doneren' },
@@ -344,26 +365,27 @@ const projects = [
     ...PUBLISHED,
     title: 'Taalmaatje',
     slug: 'taalmaatje',
-    category: 'Taal',
+    category: 'Taalmaatje',
     excerpt: 'Voorbeeldtekst. Vrijwilligers oefenen wekelijks Nederlands met deelnemers.',
     image: taalmaatje,
     body: richText(
       'Voorbeeldtekst. Deze projectpagina wordt door het bestuur gevuld met de werkelijke tekst.',
+      'Voorbeeldtekst. Een tweede alinea, zodat de opmaak te beoordelen is.',
     ),
     facts: [
       { icon: 'people' as const, label: '10 koppels' },
-      { icon: 'duration' as const, label: '8 weken per traject' },
+      { icon: 'duration' as const, label: '8 weken' },
       { icon: 'location' as const, label: '3 steden' },
     ],
     funding: { goal: 5000, raised: 2000 },
-    callToAction: { heading: 'Word taalmaatje', label: 'Aanmelden', url: '/contact' },
+    callToAction: { heading: 'Word taalmaatje', label: 'Aanmelden', url: '/vrijwilligers' },
   },
   {
     ...PUBLISHED,
     title: 'Retraites',
     slug: 'retraites',
-    category: 'Bezinning',
-    excerpt: 'Voorbeeldtekst. Meerdaagse programma’s over zingeving en samenleven.',
+    category: 'Retraites',
+    excerpt: 'Voorbeeldtekst. Meerdaagse programma\u2019s over zingeving en samenleven.',
     image: retraites,
     body: richText('Voorbeeldtekst over de retraites.'),
     facts: [{ icon: 'duration' as const, label: '3 dagen' }],
@@ -372,11 +394,39 @@ const projects = [
     ...PUBLISHED,
     title: 'Studentenhuisvesting',
     slug: 'studentenhuisvesting',
-    category: 'Huisvesting',
+    category: 'Studentenhuisvesting',
     excerpt: 'Voorbeeldtekst. Begeleiding bij wonen voor studenten.',
     image: huisvesting,
     body: richText('Voorbeeldtekst over studentenhuisvesting.'),
     funding: { goal: 250000, raised: 12500 },
+  },
+  {
+    ...PUBLISHED,
+    title: 'Sociale evenementen',
+    slug: 'sociale-evenementen',
+    category: 'Sociale evenementen',
+    excerpt: 'Voorbeeldtekst. Ontmoetingen, diners en dagen voor de hele buurt.',
+    image: socialeEvenementen,
+    body: richText('Voorbeeldtekst over de sociale evenementen.'),
+    facts: [{ icon: 'people' as const, label: '400 bezoekers' }],
+  },
+  {
+    ...PUBLISHED,
+    title: 'Publicaties',
+    slug: 'publicaties',
+    category: 'Publicaties',
+    excerpt: 'Voorbeeldtekst. Teksten en uitgaven over zingeving en samenleven.',
+    image: publicaties,
+    body: richText('Voorbeeldtekst over de publicaties.'),
+  },
+  {
+    ...PUBLISHED,
+    title: 'Media & content',
+    slug: 'media-en-content',
+    category: 'Media & content',
+    excerpt: 'Voorbeeldtekst. Video, foto en verhalen over het werk van de stichting.',
+    image: mediaContent,
+    body: richText('Voorbeeldtekst over media en content.'),
   },
 ]
 
@@ -399,6 +449,31 @@ for (const data of projects) {
 
 console.log('Writing agenda…')
 
+/**
+ * A fixed month and day, in whichever year keeps it in the future. The agenda
+ * mockup lists 20 MRT, 05 APR, 18 MEI, 12 JUN and 25 SEP, and those have to
+ * stay upcoming however long from now the seed is run.
+ */
+const MIN_LEAD_DAYS = 14
+
+const onDay = (month: number, day: number, hour: number, minute = 0) => {
+  const now = new Date()
+  const candidate = new Date(now.getFullYear(), month, day, hour, minute, 0, 0)
+
+  /*
+   * Push to next year unless the date is comfortably ahead. Without the lead
+   * time, seeding on the day of one of these events would leave it hours away
+   * and reorder the whole agenda against what the mockup shows.
+   */
+  const leadMs = MIN_LEAD_DAYS * 24 * 60 * 60 * 1000
+
+  if (candidate.getTime() - now.getTime() < leadMs) {
+    candidate.setFullYear(now.getFullYear() + 1)
+  }
+
+  return candidate.toISOString()
+}
+
 /** Dates around today, so both Aankomend and Afgelopen have something in them. */
 const at = (days: number, hour: number) => {
   const date = new Date()
@@ -410,10 +485,10 @@ const at = (days: number, hour: number) => {
 const events = [
   {
     ...PUBLISHED,
-    title: 'Meet & Greet dag',
-    slug: 'meet-and-greet-dag',
-    startsAt: at(9, 10),
-    endsAt: at(9, 16),
+    title: 'Meet Islam Dag',
+    slug: 'meet-islam-dag',
+    startsAt: onDay(2, 20, 10),
+    endsAt: onDay(2, 20, 16),
     locationName: 'De Hal',
     city: 'Schiedam',
     theme: 'Ontmoeting',
@@ -422,42 +497,80 @@ const events = [
     capacity: 100,
     spotsAvailable: 12,
     registrationUrl: '/contact',
-    excerpt: 'Voorbeeldtekst. Een dag voor ontmoeting en gesprek.',
-    body: richText('Voorbeeldtekst over deze dag.'),
+    image: heroImage,
+    excerpt: 'Voorbeeldtekst. Een dag voor open gesprek, ontmoeting en wederzijds begrip.',
+    body: richText(
+      'Stichting Samenzin nodigt u van harte uit voor de Meet Islam Dag. Dit evenement biedt een unieke kans voor open dialoog, ontmoeting en wederzijds begrip tussen verschillende gemeenschappen. We verkennen de cultuur en waarden van de Islam in een ongedwongen sfeer, met als doel verbinding en harmonie te bevorderen in Schiedam en de regio.',
+      'De dag is gevuld met informatieve sessies, workshops, en persoonlijke verhalen. Of u nu op zoek bent naar antwoorden of gewoon wilt kennismaken, u bent welkom. Samen bouwen we aan een inclusieve samenleving waar iedereen zich thuis voelt.',
+    ),
   },
   {
     ...PUBLISHED,
     title: 'Iftar-diner',
     slug: 'iftar-diner',
-    startsAt: at(23, 19),
-    endsAt: at(23, 22),
+    startsAt: onDay(3, 5, 19, 30),
+    endsAt: onDay(3, 5, 22),
     locationName: 'Buurthuis',
     city: 'Rotterdam',
     theme: 'Ontmoeting',
     audience: 'Iedereen',
     price: { isFree: false, amount: 15 },
     registrationUrl: '/contact',
+    image: heroImage,
     excerpt: 'Voorbeeldtekst. Samen eten en elkaar leren kennen.',
     body: richText('Voorbeeldtekst over het iftar-diner.'),
   },
   {
     ...PUBLISHED,
-    title: 'Bezinningsretraite',
-    slug: 'bezinningsretraite',
-    startsAt: at(45, 10),
-    endsAt: at(47, 16),
+    title: 'Bezinningsretreat',
+    slug: 'bezinningsretreat',
+    startsAt: onDay(4, 18, 10),
+    endsAt: onDay(4, 18, 16),
     locationName: 'Retraitehuis',
-    city: 'Tilburg',
+    city: 'Rotterdam',
     theme: 'Bezinning',
-    audience: 'Studenten',
+    audience: 'Iedereen',
     price: { isFree: false, amount: 50 },
     registrationUrl: '/contact',
-    excerpt: 'Voorbeeldtekst. Drie dagen rust en bezinning.',
-    body: richText('Voorbeeldtekst over de retraite.'),
+    image: heroImage,
+    excerpt: 'Voorbeeldtekst. Een dag rust en bezinning.',
+    body: richText('Voorbeeldtekst over het bezinningsretreat.'),
   },
   {
     ...PUBLISHED,
-    title: 'Taalcafé',
+    title: 'Taalmaatje-training',
+    slug: 'taalmaatje-training',
+    startsAt: onDay(5, 12, 10),
+    endsAt: onDay(5, 12, 16),
+    locationName: 'Bibliotheek',
+    city: 'Rotterdam',
+    theme: 'Taal',
+    audience: 'Iedereen',
+    price: { isFree: false, amount: 30 },
+    registrationUrl: '/contact',
+    image: heroImage,
+    excerpt: 'Voorbeeldtekst. Training voor nieuwe taalmaatjes.',
+    body: richText('Voorbeeldtekst over de taalmaatje-training.'),
+  },
+  {
+    ...PUBLISHED,
+    title: 'Symposium: samen leven in de wijk',
+    slug: 'symposium-samen-leven-in-de-wijk',
+    startsAt: onDay(8, 25, 19),
+    endsAt: onDay(8, 25, 22),
+    locationName: 'Locatie A',
+    city: 'Rotterdam',
+    theme: 'Bezinning',
+    audience: 'Iedereen',
+    price: { isFree: false, amount: 50 },
+    registrationUrl: '/contact',
+    image: heroImage,
+    excerpt: 'Voorbeeldtekst. Een avond over samenleven in de wijk.',
+    body: richText('Voorbeeldtekst over het symposium.'),
+  },
+  {
+    ...PUBLISHED,
+    title: 'Taalcaf\u00e9',
     slug: 'taalcafe',
     startsAt: at(-14, 19),
     endsAt: at(-14, 21),
@@ -466,8 +579,9 @@ const events = [
     theme: 'Taal',
     audience: 'Iedereen',
     price: { isFree: true },
+    image: heroImage,
     excerpt: 'Voorbeeldtekst. Een avond Nederlands oefenen.',
-    body: richText('Voorbeeldtekst over het taalcafé.'),
+    body: richText('Voorbeeldtekst over het taalcaf\u00e9.'),
   },
 ]
 
@@ -558,43 +672,85 @@ const daysAgo = (days: number) => {
 const articles = [
   {
     ...PUBLISHED,
-    title: 'Samen bouwen aan een sterkere gemeenschap',
-    slug: 'samen-bouwen-aan-een-sterkere-gemeenschap',
+    title: 'Samen bouwen aan een sterkere gemeenschap in Rotterdam',
+    slug: 'samen-bouwen-aan-een-sterkere-gemeenschap-in-rotterdam',
     category: 'artikel' as const,
+    // The one that fills the wide card at the top of the overview.
     featured: true,
-    author: 'A. Voorbeeld',
+    author: 'Jan de Vries',
     publishedAt: daysAgo(3),
-    excerpt: 'Voorbeeldtekst. Lees meer over onze recente projecten en hoe we samen verschil maken.',
-    image: taalmaatje,
+    excerpt:
+      'Lees meer over onze recente projecten en hoe we samen impact maken in de wijken. Ontdek de verhalen achter onze initiatieven.',
+    image: artGemeenschap,
     body: richText(
       'Voorbeeldtekst. Dit artikel wordt door de redactie gevuld met de werkelijke tekst.',
       'Voorbeeldtekst. Een tweede alinea, zodat de opmaak te beoordelen is.',
     ),
-    tags: [{ label: 'Vrijwilligerswerk' }, { label: 'Tilburg' }],
+    tags: [{ label: 'Vrijwilligerswerk' }, { label: 'Rotterdam' }, { label: 'Samenwerking' }],
   },
   {
     ...PUBLISHED,
-    title: 'In gesprek over vrijwilligerswerk',
-    slug: 'in-gesprek-over-vrijwilligerswerk',
+    title: 'Samen voorwaarts: een gesprek over vrijwilligerswerk',
+    slug: 'samen-voorwaarts-een-gesprek-over-vrijwilligerswerk',
     category: 'interview' as const,
-    author: 'B. Voorbeeld',
-    publishedAt: daysAgo(12),
-    excerpt: 'Voorbeeldtekst. Een gesprek met een van onze vrijwilligers.',
-    image: retraites,
-    body: richText('Voorbeeldtekst voor het interview.'),
-    tags: [{ label: 'Vrijwilligerswerk' }],
+    author: 'Anouk Smits',
+    publishedAt: daysAgo(8),
+    excerpt: 'Voorbeeldtekst. Een gesprek met een van onze vrijwilligers over haar werk in de wijk.',
+    image: artVrijwilligerswerk,
+    body: richText(
+      'Voorbeeldtekst. Lees meer over onze projecten en de verhalen achter onze initiatieven.',
+      '> Het mooiste is de glimlach van de mensen die we helpen en de verbinding die ontstaat.',
+      'Voorbeeldtekst. Een derde alinea, zodat de opmaak van een langer artikel te beoordelen is.',
+    ),
+    tags: [{ label: 'Vrijwilligerswerk' }, { label: 'Rotterdam' }, { label: 'Samenwerking' }],
   },
   {
     ...PUBLISHED,
-    title: 'Verslag van de open dag',
-    slug: 'verslag-van-de-open-dag',
+    title: 'Verslag van de open dag in Schiedam',
+    slug: 'verslag-van-de-open-dag-in-schiedam',
     category: 'verslag' as const,
-    author: 'C. Voorbeeld',
-    publishedAt: daysAgo(30),
+    author: 'Jan de Vries',
+    publishedAt: daysAgo(16),
     excerpt: 'Voorbeeldtekst. Een terugblik op de open dag in Schiedam.',
-    image: huisvesting,
+    image: artOpenDag,
     body: richText('Voorbeeldtekst voor het verslag.'),
     tags: [{ label: 'Schiedam' }],
+  },
+  {
+    ...PUBLISHED,
+    title: 'Taalmaatje: wekelijks samen Nederlands oefenen',
+    slug: 'taalmaatje-wekelijks-samen-nederlands-oefenen',
+    category: 'artikel' as const,
+    author: 'Jan de Vries',
+    publishedAt: daysAgo(24),
+    excerpt: 'Voorbeeldtekst. Hoe een taalmaatje het verschil maakt in een gezin.',
+    image: artTaalmaatje,
+    body: richText('Voorbeeldtekst over het taalmaatjeproject.'),
+    tags: [{ label: 'Taal' }, { label: 'Tilburg' }],
+  },
+  {
+    ...PUBLISHED,
+    title: 'Studentenhuisvesting: een kamer en een thuis',
+    slug: 'studentenhuisvesting-een-kamer-en-een-thuis',
+    category: 'project' as const,
+    author: 'Anouk Smits',
+    publishedAt: daysAgo(35),
+    excerpt: 'Voorbeeldtekst. Begeleiding bij wonen voor studenten die net beginnen.',
+    image: artStudenten,
+    body: richText('Voorbeeldtekst over studentenhuisvesting.'),
+    tags: [{ label: 'Huisvesting' }, { label: 'Studenten' }],
+  },
+  {
+    ...PUBLISHED,
+    title: 'Terugblik op de ramadanactiviteiten',
+    slug: 'terugblik-op-de-ramadanactiviteiten',
+    category: 'verslag' as const,
+    author: 'Jan de Vries',
+    publishedAt: daysAgo(48),
+    excerpt: 'Voorbeeldtekst. Iftars, gesprekken en ontmoetingen in drie steden.',
+    image: artRamadan,
+    body: richText('Voorbeeldtekst over de ramadanactiviteiten.'),
+    tags: [{ label: 'Ontmoeting' }, { label: 'Rotterdam' }],
   },
 ]
 
