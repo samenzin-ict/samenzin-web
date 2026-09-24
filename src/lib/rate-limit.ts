@@ -22,7 +22,15 @@ import type { Payload } from 'payload'
  */
 const WINDOW_MS = 10 * 60 * 1000
 const MAX_REQUESTS_PER_WINDOW = 5
-const KEY_PREFIX = 'contact-rate-limit:'
+
+/*
+ * One namespace per form. Sharing a namespace would mean somebody who filled
+ * in the contact form five times could no longer volunteer, which is a
+ * connection nobody would guess from the error message.
+ */
+export type RateLimitScope = 'contact' | 'volunteer'
+
+const keyPrefix = (scope: RateLimitScope) => `${scope}-rate-limit:`
 
 const fingerprint = (identifier: string): string =>
   createHash('sha256')
@@ -34,10 +42,11 @@ export type RateLimitResult = { allowed: boolean; retryAfterSeconds: number }
 export async function checkRateLimit(
   payload: Payload,
   identifier: string,
+  scope: RateLimitScope = 'contact',
 ): Promise<RateLimitResult> {
   const now = Date.now()
   const windowStart = now - WINDOW_MS
-  const key = `${KEY_PREFIX}${fingerprint(identifier)}`
+  const key = `${keyPrefix(scope)}${fingerprint(identifier)}`
 
   let recent: number[] = []
 
@@ -78,10 +87,13 @@ export async function checkRateLimit(
  * every caller that ever submitted. Called after a successful submission,
  * which is rare enough to be a cheap place to do it.
  */
-export async function pruneRateLimits(payload: Payload): Promise<void> {
+export async function pruneRateLimits(
+  payload: Payload,
+  scope: RateLimitScope = 'contact',
+): Promise<void> {
   try {
     const cutoff = Date.now() - WINDOW_MS
-    const keys = (await payload.kv.keys()).filter((key) => key.startsWith(KEY_PREFIX))
+    const keys = (await payload.kv.keys()).filter((key) => key.startsWith(keyPrefix(scope)))
 
     for (const key of keys) {
       const stored = await payload.kv.get<{ hits: number[] }>(key)

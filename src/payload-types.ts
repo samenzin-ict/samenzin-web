@@ -72,6 +72,7 @@ export interface Config {
     articles: Article;
     events: Event;
     media: Media;
+    'volunteer-applications': VolunteerApplication;
     'contact-submissions': ContactSubmission;
     donations: Donation;
     users: User;
@@ -87,6 +88,7 @@ export interface Config {
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'volunteer-applications': VolunteerApplicationsSelect<false> | VolunteerApplicationsSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     donations: DonationsSelect<false> | DonationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -620,6 +622,32 @@ export interface Event {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Aanmeldingen van mensen die vrijwilliger willen worden. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld, en in elk geval voor de datum in de kolom "Opruimen na".
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "volunteer-applications".
+ */
+export interface VolunteerApplication {
+  id: number;
+  name: string;
+  email: string;
+  /**
+   * Leeg betekent: geen voorkeur opgegeven.
+   */
+  interest?: (number | null) | Project;
+  message?: string | null;
+  /**
+   * Vink aan zodra er contact is geweest.
+   */
+  handled?: boolean | null;
+  /**
+   * Automatisch ingevuld: 6 maanden na binnenkomst.
+   */
+  deleteAfter?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Berichten die via het contactformulier zijn binnengekomen. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -764,6 +792,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'volunteer-applications';
+        value: number | VolunteerApplication;
       } | null)
     | ({
         relationTo: 'contact-submissions';
@@ -1078,6 +1110,20 @@ export interface MediaSelect<T extends boolean = true> {
               filename?: T;
             };
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "volunteer-applications_select".
+ */
+export interface VolunteerApplicationsSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  interest?: T;
+  message?: T;
+  handled?: T;
+  deleteAfter?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

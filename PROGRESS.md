@@ -61,6 +61,8 @@ the first account you create becomes an administrator automatically.
   bylines, topics and a "meer lezen" row
 - ROADMAP 2.4: `Events`, with `/agenda`, `/agenda/<slug>` and working filters. The
   homepage agenda block now reads the next events instead of a hand-typed list
+- ROADMAP 2.6: `/vrijwilligers` with an intake form. Four fields, six-month retention,
+  readable by administrators and the vrijwilligers commission only
 - ROADMAP 2.8: per-commission permissions. An editor changes what their commission owns
   and what no commission owns; an administrator changes anything
 - Two more blocks, Kaartenrij and Agenda, so the homepage matches the approved mockup
@@ -140,6 +142,12 @@ database stopped, which is the situation in GitHub Actions.
       actually does with the data, so it cannot be written from the code.
 - [ ] **The contact form needs a processing register entry** in `samenzin-ict` before it
       goes live, including how long messages are kept. Nothing deletes them automatically.
+- [ ] **Volunteer applications need a processing register entry too**, before the form
+      faces the public. The retention period is decided (six months) and enforced by
+      `pnpm prune:applications`, but nothing runs it yet: point a scheduled job at it, or
+      it stays a manual chore somebody has to remember.
+- [ ] **Contact messages have no retention mechanism**, unlike volunteer applications.
+      Worth giving them the same `deleteAfter` treatment.
 - [ ] **Contact messages are visible to administrators only.** If a volunteer with the
       editor role is meant to answer them, that needs a deliberate decision, because the
       messages contain personal data.
@@ -205,6 +213,9 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-22 | Donations are one-off only; monthly and five-year gifts wait for ROADMAP 3.3 | Recurring needs a mandate, and a signed mandate has legal weight. Phase 1 in ROADMAP.md is iDEAL one-off. |
 | 2026-09-22 | A donation record is created before the visitor leaves, and only the webhook may mark it paid | The return URL proves nothing; anyone can open it. ARCHITECTURE.md: webhook plus a server-side re-fetch is the only source of truth. |
 | 2026-09-22 | Anonymous donations store no name or e-mail at all | Same reasoning as the contact form: what is not collected cannot leak. The form hides the fields and the action refuses to store them. |
+| 2026-09-24 | The volunteer form collects four fields and no more | Agreed with the maintainer. No telephone, date of birth or VOG status: the coordinator gathers what they need in conversation, and what is not collected cannot leak. |
+| 2026-09-24 | Volunteer applications are kept six months | Agreed with the maintainer. `deleteAfter` is written on arrival and shown in the list, and `pnpm prune:applications` acts on it, so the retention is a mechanism rather than a promise. |
+| 2026-09-24 | Volunteer applications are readable by the vrijwilligers commission, not every editor | A coordinator should not need an administrator account to do their job, and no other editor has business reading applicants' details. |
 | 2026-09-24 | Content with no commission stays editable by every editor | Everything written before commissions existed has no commission. Locking it to administrators would have turned a permissions feature into an outage. |
 | 2026-09-24 | The commission rule returns a query constraint, not a boolean | Payload folds it into the query, so content owned by another commission is never fetched. A boolean would have to load the document first and be repeated in every list, count and bulk operation. |
 | 2026-09-24 | An editor may only assign content to a commission they belong to | Without it the scoping would be advisory: anyone could reassign a document to themselves and then edit it. |

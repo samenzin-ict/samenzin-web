@@ -19,7 +19,8 @@
     "check:anbi": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/check-anbi.ts",
     "vercel-build": "pnpm payload migrate && pnpm build",
     "db:pull": "bash scripts/db-pull.sh",
-    "fill:remote": "bash scripts/fill-remote.sh"
+    "fill:remote": "bash scripts/fill-remote.sh",
+    "prune:applications": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/prune-applications.ts"
   },
   "dependencies": {
     "@mollie/api-client": "4.6.0",

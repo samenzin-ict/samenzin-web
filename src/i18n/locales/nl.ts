@@ -165,6 +165,29 @@ export const nl = {
   eventsSpotsLeft: 'plaatsen beschikbaar',
   eventsBackToOverview: 'Terug naar de agenda',
 
+  // Vrijwilligers (ROADMAP 2.6)
+  volunteerTitle: 'Vrijwilliger worden',
+  volunteerIntro:
+    'Wilt u meehelpen? Laat hieronder uw gegevens achter, dan nemen wij contact met u op.',
+  volunteerNameLabel: 'Naam',
+  volunteerEmailLabel: 'E-mailadres',
+  volunteerInterestLabel: 'Waar wilt u bij helpen?',
+  volunteerInterestAny: 'Geen voorkeur',
+  volunteerMessageLabel: 'Vertel kort iets over uzelf',
+  volunteerSubmit: 'Aanmelden',
+  volunteerSubmitting: 'Bezig met versturen…',
+  volunteerSuccess:
+    'Bedankt voor uw aanmelding. Wij nemen zo snel mogelijk contact met u op.',
+  volunteerErrorName: 'Vul uw naam in.',
+  volunteerErrorEmail: 'Vul een geldig e-mailadres in.',
+  volunteerErrorGeneric: 'Uw aanmelding kon niet worden verstuurd. Probeer het later opnieuw.',
+  volunteerErrorTooMany:
+    'U heeft kort achter elkaar meerdere aanmeldingen verstuurd. Wacht een paar minuten en probeer het opnieuw.',
+  volunteerPrivacyNotice:
+    'Wij gebruiken uw gegevens alleen om contact met u op te nemen over vrijwilligerswerk, en bewaren ze niet langer dan zes maanden. Lees hoe wij met uw gegevens omgaan in onze',
+  volunteerPrivacyLink: 'privacyverklaring',
+  volunteerRequired: 'verplicht',
+
   previewBannerTitle: 'U bekijkt een voorbeeld',
   previewBannerBody:
     'Deze pagina is nog niet gepubliceerd, of u ziet een versie die afwijkt van de gepubliceerde. Bezoekers zien dit niet.',

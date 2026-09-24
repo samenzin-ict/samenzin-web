@@ -16,6 +16,7 @@ import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Projects } from './collections/Projects'
 import { Users } from './collections/Users'
+import { VolunteerApplications } from './collections/VolunteerApplications'
 import { AnbiGegevens, SiteSettings } from './globals'
 
 const filename = fileURLToPath(import.meta.url)
@@ -119,7 +120,17 @@ export default buildConfig({
    * across upgrades for two groups; docs/design/README.md asks for the
    * information architecture, not a pixel-exact rebuild.
    */
-  collections: [Pages, Projects, Articles, Events, Media, ContactSubmissions, Donations, Users],
+  collections: [
+    Pages,
+    Projects,
+    Articles,
+    Events,
+    Media,
+    VolunteerApplications,
+    ContactSubmissions,
+    Donations,
+    Users,
+  ],
   globals: [SiteSettings, AnbiGegevens],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
