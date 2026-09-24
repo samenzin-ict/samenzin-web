@@ -18,6 +18,7 @@ export function PortalNav({ messages }: { messages: Messages }) {
 
   const items = [
     { href: '/mijn', label: messages.portalNavOverview },
+    { href: '/mijn/uren', label: messages.portalNavHours },
     { href: '/mijn/gegevens', label: messages.portalNavDetails },
   ]
 

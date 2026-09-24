@@ -75,6 +75,7 @@ export interface Config {
     courses: Course;
     media: Media;
     'volunteer-applications': VolunteerApplication;
+    'volunteer-hours': VolunteerHour;
     'membership-applications': MembershipApplication;
     members: Member;
     'contact-submissions': ContactSubmission;
@@ -94,6 +95,7 @@ export interface Config {
     courses: CoursesSelect<false> | CoursesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'volunteer-applications': VolunteerApplicationsSelect<false> | VolunteerApplicationsSelect<true>;
+    'volunteer-hours': VolunteerHoursSelect<false> | VolunteerHoursSelect<true>;
     'membership-applications': MembershipApplicationsSelect<false> | MembershipApplicationsSelect<true>;
     members: MembersSelect<false> | MembersSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
@@ -739,36 +741,37 @@ export interface VolunteerApplication {
   createdAt: string;
 }
 /**
- * Aanvragen om lid te worden. Bevatten persoonsgegevens. Een afgewezen of nog openstaande aanvraag wordt na zes maanden opgeruimd; een goedgekeurde blijft bewaard.
+ * Uren die vrijwilligers zelf hebben ingevoerd in Mijn omgeving. Bevat persoonsgegevens.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "membership-applications".
+ * via the `definition` "volunteer-hours".
  */
-export interface MembershipApplication {
+export interface VolunteerHour {
   id: number;
-  name: string;
-  email: string;
+  member: number | Member;
+  date: string;
+  hours: number;
+  activity: string;
   /**
-   * Wat de aanvrager zelf heeft geschreven.
+   * Laat leeg als het niet voor een specifieke commissie was.
    */
-  motivation?: string | null;
-  /**
-   * De aanvrager krijgt hiervan geen automatisch bericht. Neem zelf contact op.
-   */
-  status: 'aangevraagd' | 'goedgekeurd' | 'afgewezen';
-  /**
-   * Niet zichtbaar voor de aanvrager. Houd het zakelijk en ter zake.
-   */
-  notes?: string | null;
-  /**
-   * Automatisch ingevuld: 6 maanden. Vervalt zodra de aanvraag is goedgekeurd.
-   */
-  deleteAfter?: string | null;
+  commission?:
+    | (
+        | 'onderwijs'
+        | 'vrijwilligers'
+        | 'evenementen'
+        | 'media'
+        | 'ict'
+        | 'fondsenwerving'
+        | 'vrouwenwerking'
+        | 'huisvesting'
+      )
+    | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
- * Leden met een eigen inlog voor Mijn omgeving. Leden kunnen niet in dit beheerpaneel. Zolang er geen e-mail is ingesteld, stelt een beheerder hier het wachtwoord in en geeft dat zelf door.
+ * Leden met een eigen inlog voor Mijn omgeving. Leden kunnen niet in dit beheerpaneel. Zolang er geen e-mail is ingesteld, stelt een beheerder hier het wachtwoord in en geeft dat zelf door. Let op: een lid verwijderen wist ook de uren die dit lid heeft ingevoerd. Wilt u het lidmaatschap alleen beëindigen, zet de status dan op Beëindigd.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "members".
@@ -803,6 +806,35 @@ export interface Member {
     | null;
   password?: string | null;
   collection: 'members';
+}
+/**
+ * Aanvragen om lid te worden. Bevatten persoonsgegevens. Een afgewezen of nog openstaande aanvraag wordt na zes maanden opgeruimd; een goedgekeurde blijft bewaard.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "membership-applications".
+ */
+export interface MembershipApplication {
+  id: number;
+  name: string;
+  email: string;
+  /**
+   * Wat de aanvrager zelf heeft geschreven.
+   */
+  motivation?: string | null;
+  /**
+   * De aanvrager krijgt hiervan geen automatisch bericht. Neem zelf contact op.
+   */
+  status: 'aangevraagd' | 'goedgekeurd' | 'afgewezen';
+  /**
+   * Niet zichtbaar voor de aanvrager. Houd het zakelijk en ter zake.
+   */
+  notes?: string | null;
+  /**
+   * Automatisch ingevuld: 6 maanden. Vervalt zodra de aanvraag is goedgekeurd.
+   */
+  deleteAfter?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Berichten die via het contactformulier zijn binnengekomen. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld.
@@ -957,6 +989,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'volunteer-applications';
         value: number | VolunteerApplication;
+      } | null)
+    | ({
+        relationTo: 'volunteer-hours';
+        value: number | VolunteerHour;
       } | null)
     | ({
         relationTo: 'membership-applications';
@@ -1326,6 +1362,19 @@ export interface VolunteerApplicationsSelect<T extends boolean = true> {
   message?: T;
   handled?: T;
   deleteAfter?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "volunteer-hours_select".
+ */
+export interface VolunteerHoursSelect<T extends boolean = true> {
+  member?: T;
+  date?: T;
+  hours?: T;
+  activity?: T;
+  commission?: T;
   updatedAt?: T;
   createdAt?: T;
 }

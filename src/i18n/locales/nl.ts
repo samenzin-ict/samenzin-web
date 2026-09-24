@@ -245,7 +245,7 @@ export const nl = {
   portalLoginNoAccount:
     'Wachtwoord vergeten? Neem contact met ons op; wij kunnen een nieuw wachtwoord voor u instellen.',
   portalOverviewIntro:
-    'Hier vindt u uw lidmaatschap en uw gegevens. In een volgende fase komen hier ook uw taken, cursussen en evenementen bij.',
+    'Hier vindt u uw uren, uw lidmaatschap en uw gegevens. In een volgende fase komen hier ook uw taken, cursussen en evenementen bij.',
   portalDetailsTitle: 'Mijn gegevens',
   portalDetailsIntro: 'Controleer uw contactgegevens en pas ze aan als er iets verandert.',
   portalDetailsNameLabel: 'Naam',
@@ -274,6 +274,37 @@ export const nl = {
   portalStatusEnded:
     'Uw lidmaatschap is beëindigd. Neem contact met ons op als dat niet klopt.',
   portalRequired: 'verplicht',
+  portalNavHours: 'Mijn uren',
+  portalHoursTitle: 'Mijn uren',
+  portalHoursIntro:
+    'Houd hier bij hoeveel tijd u als vrijwilliger heeft besteed. U kunt uw eigen invoer altijd aanpassen of verwijderen.',
+  portalHoursAddTitle: 'Uren toevoegen',
+  portalHoursDateLabel: 'Datum',
+  portalHoursHoursLabel: 'Aantal uren',
+  portalHoursActivityLabel: 'Wat heeft u gedaan?',
+  portalHoursCommissionLabel: 'Voor welke commissie?',
+  portalHoursCommissionNone: 'Geen specifieke commissie',
+  portalHoursSubmit: 'Uren opslaan',
+  portalHoursSubmitting: 'Bezig met opslaan\u2026',
+  portalHoursSaved: 'Uw uren zijn opgeslagen.',
+  portalHoursDeleted: 'De invoer is verwijderd.',
+  portalHoursDelete: 'Verwijderen',
+  portalHoursDeleteLabel: 'Verwijder de uren van',
+  portalHoursEmpty: 'U heeft nog geen uren ingevoerd.',
+  portalHoursTotalThisYear: 'Totaal dit jaar',
+  portalHoursTotalAll: 'Totaal sinds het begin',
+  portalHoursUnit: 'uur',
+  portalHoursErrorDate: 'Vul een datum in die niet in de toekomst ligt.',
+  portalHoursErrorHours: 'Vul een aantal uren in tussen 0,25 en 24.',
+  portalHoursErrorActivity: 'Vul kort in wat u heeft gedaan.',
+  portalHoursErrorGeneric: 'Uw uren konden niet worden opgeslagen. Probeer het later opnieuw.',
+  portalHoursErrorDelete: 'De invoer kon niet worden verwijderd. Probeer het later opnieuw.',
+  portalHoursTableDate: 'Datum',
+  portalHoursTableHours: 'Uren',
+  portalHoursTableActivity: 'Activiteit',
+  portalHoursTableCommission: 'Commissie',
+  portalHoursTableActions: 'Acties',
+
 
   previewBannerTitle: 'U bekijkt een voorbeeld',
   previewBannerBody:

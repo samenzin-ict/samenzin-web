@@ -9,8 +9,8 @@ Keep it short. This is a status board, not a diary.
 
 ## Current state
 
-**Phase:** 3 — Member portal. 3.1, 3.2 and the 3.4 catalogue are done. Phases 1 and 2 are
-built apart from 2.5 and 2.7, which the maintainer chose to skip.
+**Phase:** 3 — Member portal. 3.1, 3.2, 3.5 and the 3.4 catalogue are done. Phases 1 and 2
+are built apart from 2.5 and 2.7, which the maintainer chose to skip.
 **Deployment:** Vercel, Neon PostgreSQL (branches `production` and `dev`) and Cloudflare
 R2 for media, replacing the EU VPS plan. See `docs/environments.md`.
 **Status:** All six phase 1 routes are built, the initial migration exists and the
@@ -83,6 +83,9 @@ the first account you create becomes an administrator automatically.
 - `src/access/userCollections.ts`, which every role rule now goes through. Adding a second
   auth collection broke two rules that were correct while `users` was the only one; both
   are described there and both are covered by the checks below.
+- `VolunteerHours` and `/mijn/uren` (3.5): a member registers, corrects and deletes their
+  own hours, with totals for this year and since the beginning. Administrators and editors
+  in the vrijwilligers commission see everyone's; no other editor sees any.
 
 Verified on a rebuilt database: `pnpm dev` runs, `/admin` loads, the first user is created
 and becomes an administrator, the public routes render from the CMS, and `pnpm build`,
@@ -147,6 +150,14 @@ database stopped, which is the situation in GitHub Actions.
       sets a password and passes it on themselves; the login form says so in as many
       words. Configuring an adapter means adding a service to the deployment, which
       CLAUDE.md says to ask about first, so it is a decision rather than a task.
+- [ ] **Only members can register hours, and not every volunteer is a member.** A
+      volunteer who never became a member has no login and therefore nowhere to enter
+      hours. Either they are given a membership record, or 3.5 needs a second way in.
+      This is a gap in the model, not a bug in the code, and it needs a decision.
+- [ ] **Registered hours are personal data** and belong in the processing register in
+      `samenzin-ict` together with the rest of 3.5, including who may read them
+      (administrators and the vrijwilligers commission) and how long they are kept.
+      Nothing prunes them today.
 - [ ] **Members hold personal data** — name, e-mail, telephone and address — and need a
       processing register entry in `samenzin-ict`, with a retention tied to the end of the
       membership. Note that nothing deletes an ended member: `status` goes to `beeindigd`
@@ -263,6 +274,11 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-23 | The project title sits below the banner, not over it as the mockup draws | The image is chosen by an editor, so contrast over it cannot be guaranteed, and WCAG 2.1 AA is a hard rule. Same reasoning as the gold button's text colour. |
 | 2026-09-23 | The fundraising bar is `aria-hidden`; the amounts beside it are the accessible text | "62 percent" tells a screen reader user less than "EUR 2.000 of EUR 5.000 raised", and announcing both says it twice. |
 | 2026-09-22 | Read helpers pass `overrideAccess: false` | The Payload local API skips access control by default, so without it every draft would have been served to the public. This is what makes the published-only rule actually apply. |
+| 2026-09-25 | Registered hours have no approval step | The board asked for a register, not a timesheet to sign off. A queue of unapproved hours that nobody empties is worse than no queue. If it is ever needed it is a status field and a rule, not a change to how hours are entered. |
+| 2026-09-25 | A member may correct and delete their own entries | A register that cannot be corrected gets worked around on paper. Nothing is paid from these figures; phase 4 only reports on them. |
+| 2026-09-25 | Deleting a member deletes their registered hours | `volunteer_hours.member_id` is NOT NULL with ON DELETE SET NULL, so without a cascade Postgres refuses the delete and the admin panel shows a raw "Failed query". Deleting a member is for an erasure request anyway, and hours tied to a named person are that person's data. The alternative, keeping the rows and blanking the member, preserves the board's totals; worth revisiting if those totals matter more than simplicity. |
+| 2026-09-25 | Hours are tagged with a commission, not a project | One axis, matching how the organisation and the mockup describe volunteering, and how phase 4 will report. Two optional taxonomies would both end up half filled in. |
+| 2026-09-25 | The hours form accepts a comma as the decimal separator | Dutch keyboards and Dutch habits produce "1,5". Rejecting it would be a papercut on every single entry. |
 | 2026-09-24 | Members will be a separate collection with their own login, not Payload users | The maintainer's call. A member then has no path into the admin panel, so no access-rule mistake can promote one to editor. Costs a second auth surface in 3.2. |
 | 2026-09-24 | Mijn omgeving uses its own session cookie, not Payload's | Payload names the cookie `${cookiePrefix}-token` with no collection in it, so `users` and `members` would share one: logging in to the portal would log a board member out of the admin panel, and logging out of one would end both. The member token is held separately and handed back through the `Authorization: JWT` header. |
 | 2026-09-24 | Every role rule goes through `isAdminPanelUser` | With two auth collections, "anyone signed in" included members, and a rule comparing ids alone matched across tables. Both were verified to be real, not theoretical: before the fix a member could read draft pages, and `isAdminOrSelf` returned `{id:{equals:7}}` for member 7 on the `users` collection. |

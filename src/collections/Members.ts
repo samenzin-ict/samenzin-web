@@ -52,12 +52,59 @@ export const Members: CollectionConfig = {
     update: isAdminOrSelfMember,
     delete: isAdmin,
   },
+  hooks: {
+    beforeDelete: [
+      /**
+       * Deleting a member takes their registered hours with them.
+       *
+       * Not a nicety. `volunteer_hours.member_id` is NOT NULL with an
+       * ON DELETE SET NULL constraint, so without this Postgres refuses the
+       * delete and the admin panel shows a raw "Failed query" with nothing an
+       * administrator could act on.
+       *
+       * Removing the hours is also the honest reading of what deleting a
+       * member means. Ending a membership is `status: beeindigd`; deleting the
+       * record is for an erasure request, and hours tied to a named person are
+       * that person's data too.
+       *
+       * The cost is that the board loses those hours from its totals. If that
+       * turns out to matter more than simplicity, the alternative is to keep
+       * the rows and blank the member, which preserves the aggregate without
+       * naming anyone. Recorded in PROGRESS.md.
+       */
+      async ({ id, req }) => {
+        const { docs } = await req.payload.find({
+          collection: 'volunteer-hours',
+          where: { member: { equals: id } },
+          limit: 1000,
+          depth: 0,
+          overrideAccess: true,
+          req,
+        })
+
+        for (const entry of docs) {
+          await req.payload.delete({
+            collection: 'volunteer-hours',
+            id: entry.id,
+            overrideAccess: true,
+            req,
+          })
+        }
+
+        if (docs.length > 0) {
+          req.payload.logger.info(
+            `Deleted ${docs.length} hour entr${docs.length === 1 ? 'y' : 'ies'} belonging to member ${id}`,
+          )
+        }
+      },
+    ],
+  },
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'email', 'status', 'memberSince'],
     group: 'Mensen',
     description:
-      'Leden met een eigen inlog voor Mijn omgeving. Leden kunnen niet in dit beheerpaneel. Zolang er geen e-mail is ingesteld, stelt een beheerder hier het wachtwoord in en geeft dat zelf door.',
+      'Leden met een eigen inlog voor Mijn omgeving. Leden kunnen niet in dit beheerpaneel. Zolang er geen e-mail is ingesteld, stelt een beheerder hier het wachtwoord in en geeft dat zelf door. Let op: een lid verwijderen wist ook de uren die dit lid heeft ingevoerd. Wilt u het lidmaatschap alleen beëindigen, zet de status dan op Beëindigd.',
   },
   fields: [
     { name: 'name', type: 'text', required: true, label: 'Naam', maxLength: 200 },

@@ -60,8 +60,8 @@ for the phase as a whole.
 | 3.2 | Member login and member area | `/mijn` | **Done.** Separate `Members` collection with its own login, never Payload users |
 | 3.3 | Recurring SEPA contributions | — | **Payments and mandates.** Mollie recurring; a signed mandate has legal weight |
 | 3.4 | Cursussen: catalogue and enrolment | `/cursussen`, `/cursussen/<slug>` | Catalogue **done**; enrolment still open |
-| 3.5 | Hour registration for volunteers | `/mijn/uren` | Per `08-ledenportaal-mijn-taken.png` |
-| 3.6 | Certificates | `/mijn/certificaten` | Depends on 3.4 and 3.5 |
+| 3.5 | Hour registration for volunteers | `/mijn/uren` | **Done.** No approval step; only members can register, see PROGRESS.md |
+| 3.6 | Certificates | `/mijn/certificaten` | Depends on 3.4 enrolment, which is not built |
 
 ### What a member is (decided, 24 September 2026)
 

@@ -15,6 +15,7 @@ import { Courses } from './collections/Courses'
 import { Events } from './collections/Events'
 import { Media } from './collections/Media'
 import { Members } from './collections/Members'
+import { VolunteerHours } from './collections/VolunteerHours'
 import { MembershipApplications } from './collections/MembershipApplications'
 import { Pages } from './collections/Pages'
 import { Projects } from './collections/Projects'
@@ -131,6 +132,7 @@ export default buildConfig({
     Courses,
     Media,
     VolunteerApplications,
+    VolunteerHours,
     MembershipApplications,
     Members,
     ContactSubmissions,
