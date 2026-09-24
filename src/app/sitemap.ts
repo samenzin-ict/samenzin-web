@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-import { getAllPageSlugs, getArticles, getEvents, getProjects } from '@/lib/payload'
+import { getAllPageSlugs, getArticles, getCourses, getEvents, getProjects } from '@/lib/payload'
 import { getSiteUrl } from '@/lib/site-url'
 
 export const dynamic = 'force-dynamic'
@@ -15,13 +15,14 @@ export const dynamic = 'force-dynamic'
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl()
-  const [pages, projects, articles, upcoming, past] = await Promise.all([
+  const [pages, projects, articles, upcoming, past, courses] = await Promise.all([
     getAllPageSlugs(),
     getProjects(),
     getArticles(),
     getEvents({ period: 'upcoming' }),
     // Past events keep their pages; a report or photo set stays worth finding.
     getEvents({ period: 'past' }),
+    getCourses(),
   ])
 
   const entries: MetadataRoute.Sitemap = pages.map((page) => ({
@@ -35,6 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   entries.push({ url: `${siteUrl}/projecten`, priority: 0.7 })
   entries.push({ url: `${siteUrl}/nieuws`, priority: 0.7 })
   entries.push({ url: `${siteUrl}/agenda`, priority: 0.7 })
+  entries.push({ url: `${siteUrl}/cursussen`, priority: 0.7 })
 
   for (const project of projects) {
     entries.push({
@@ -56,6 +58,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entries.push({
       url: `${siteUrl}/agenda/${event.slug}`,
       lastModified: event.updatedAt ? new Date(event.updatedAt) : undefined,
+      priority: 0.5,
+    })
+  }
+
+  for (const course of courses) {
+    entries.push({
+      url: `${siteUrl}/cursussen/${course.slug}`,
+      lastModified: course.updatedAt ? new Date(course.updatedAt) : undefined,
       priority: 0.5,
     })
   }

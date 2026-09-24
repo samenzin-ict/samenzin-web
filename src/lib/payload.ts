@@ -268,6 +268,42 @@ export const getEventFilterOptions = cache(async (locale: Locale = defaultLocale
   }
 })
 
+/** Published courses. Ones with a start date come first, soonest first. */
+export const getCourses = cache(async (locale: Locale = defaultLocale, draft = false) => {
+  const payload = await getPayloadClient()
+
+  const { docs } = await payload.find({
+    collection: 'courses',
+    depth: 1,
+    limit: 100,
+    locale,
+    draft,
+    overrideAccess: draft,
+    sort: 'startsAt',
+  })
+
+  return docs
+})
+
+/** A single course by its slug, or null when there is none. */
+export const getCourseBySlug = cache(
+  async (slug: string, locale: Locale = defaultLocale, draft = false) => {
+    const payload = await getPayloadClient()
+
+    const { docs } = await payload.find({
+      collection: 'courses',
+      where: { slug: { equals: slug } },
+      depth: 2,
+      limit: 1,
+      locale,
+      draft,
+      overrideAccess: draft,
+    })
+
+    return docs[0] ?? null
+  },
+)
+
 /**
  * Every published page slug, for the sitemap.
  *

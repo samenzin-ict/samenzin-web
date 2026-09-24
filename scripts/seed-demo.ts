@@ -486,6 +486,63 @@ for (const data of events) {
   }
 }
 
+console.log('Writing cursussen…')
+const courses = [
+  {
+    ...PUBLISHED,
+    title: 'Nederlands voor beginners',
+    slug: 'nederlands-voor-beginners',
+    level: 'beginner' as const,
+    duration: '8 weken, wekelijks een avond',
+    startsAt: at(30, 19),
+    price: { isFree: true },
+    registrationUrl: '/contact',
+    excerpt: 'Voorbeeldtekst. Een cursus voor wie net begint met Nederlands.',
+    image: taalmaatje,
+    body: richText('Voorbeeldtekst over deze cursus.'),
+  },
+  {
+    ...PUBLISHED,
+    title: 'Vrijwilligerswerk in de praktijk',
+    slug: 'vrijwilligerswerk-in-de-praktijk',
+    level: 'iedereen' as const,
+    duration: '4 bijeenkomsten',
+    price: { isFree: false, amount: 25 },
+    registrationUrl: '/contact',
+    excerpt: 'Voorbeeldtekst. Wat komt er kijken bij vrijwilligerswerk?',
+    image: retraites,
+    body: richText('Voorbeeldtekst over deze cursus.'),
+  },
+  {
+    ...PUBLISHED,
+    title: 'Verdieping in zingeving',
+    slug: 'verdieping-in-zingeving',
+    level: 'gevorderd' as const,
+    duration: '6 weken',
+    price: { isFree: false, amount: 60 },
+    excerpt: 'Voorbeeldtekst. Voor wie zich verder wil verdiepen.',
+    image: huisvesting,
+    body: richText('Voorbeeldtekst over deze cursus.'),
+  },
+]
+
+for (const data of courses) {
+  const existing = await payload.find({
+    collection: 'courses',
+    where: { slug: { equals: data.slug } },
+    limit: 1,
+    overrideAccess: true,
+  })
+
+  if (existing.docs[0]) {
+    await payload.update({ collection: 'courses', id: existing.docs[0].id, data, overrideAccess: true })
+    console.log(`  updated /cursussen/${data.slug}`)
+  } else {
+    await payload.create({ collection: 'courses', data, overrideAccess: true })
+    console.log(`  created /cursussen/${data.slug}`)
+  }
+}
+
 console.log('Writing nieuws & artikelen…')
 
 /** Dates in the recent past, so the overview never looks abandoned. */

@@ -1,5 +1,10 @@
 import { defaultLocale, getMessages } from '@/i18n'
-import type { Event } from '@/payload-types'
+
+/*
+ * Structural rather than tied to Event, so courses use the same badge. Two
+ * components that both render a price would drift apart.
+ */
+export type Priced = { isFree?: boolean | null; amount?: number | null } | null
 
 const euro = new Intl.NumberFormat(defaultLocale, {
   style: 'currency',
@@ -8,7 +13,7 @@ const euro = new Intl.NumberFormat(defaultLocale, {
 })
 
 /** "Gratis", or the price. Nothing when neither is known. */
-export function PriceBadge({ price }: { price?: Event['price'] }) {
+export function PriceBadge({ price }: { price?: Priced }) {
   const messages = getMessages()
 
   if (price?.isFree) {

@@ -188,6 +188,18 @@ export const nl = {
   volunteerPrivacyLink: 'privacyverklaring',
   volunteerRequired: 'verplicht',
 
+  // Cursussen (ROADMAP 3.4, de openbare catalogus)
+  coursesTitle: 'Cursussen',
+  coursesIntro: 'Ons aanbod van cursussen en trainingen',
+  coursesEmpty: 'Er zijn op dit moment geen cursussen gepubliceerd.',
+  coursesLevel: 'Niveau',
+  coursesDuration: 'Duur',
+  coursesStarts: 'Start',
+  coursesStartsRolling: 'Doorlopend',
+  coursesPrice: 'Deelname',
+  coursesRegister: 'Aanmelden',
+  coursesBackToOverview: 'Alle cursussen',
+
   previewBannerTitle: 'U bekijkt een voorbeeld',
   previewBannerBody:
     'Deze pagina is nog niet gepubliceerd, of u ziet een versie die afwijkt van de gepubliceerde. Bezoekers zien dit niet.',

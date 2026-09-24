@@ -9,7 +9,8 @@ Keep it short. This is a status board, not a diary.
 
 ## Current state
 
-**Phase:** 1 — Live site
+**Phase:** 3 — Member portal (started). Phases 1 and 2 are built apart from 2.5 and 2.7,
+which the maintainer chose to skip.
 **Deployment:** Vercel, Neon PostgreSQL (branches `production` and `dev`) and Cloudflare
 R2 for media, replacing the EU VPS plan. See `docs/environments.md`.
 **Status:** All six phase 1 routes are built, the initial migration exists and the
@@ -61,6 +62,8 @@ the first account you create becomes an administrator automatically.
   bylines, topics and a "meer lezen" row
 - ROADMAP 2.4: `Events`, with `/agenda`, `/agenda/<slug>` and working filters. The
   homepage agenda block now reads the next events instead of a hand-typed list
+- ROADMAP 3.4 (first half): the public course catalogue at `/cursussen` and
+  `/cursussen/<slug>`. Enrolment waits on 3.2
 - ROADMAP 2.6: `/vrijwilligers` with an intake form. Four fields, six-month retention,
   readable by administrators and the vrijwilligers commission only
 - ROADMAP 2.8: per-commission permissions. An editor changes what their commission owns
@@ -213,6 +216,7 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-22 | Donations are one-off only; monthly and five-year gifts wait for ROADMAP 3.3 | Recurring needs a mandate, and a signed mandate has legal weight. Phase 1 in ROADMAP.md is iDEAL one-off. |
 | 2026-09-22 | A donation record is created before the visitor leaves, and only the webhook may mark it paid | The return URL proves nothing; anyone can open it. ARCHITECTURE.md: webhook plus a server-side re-fetch is the only source of truth. |
 | 2026-09-22 | Anonymous donations store no name or e-mail at all | Same reasoning as the contact form: what is not collected cannot leak. The form hides the fields and the action refuses to store them. |
+| 2026-09-24 | The course catalogue shipped without enrolment | ROADMAP always allowed this, and enrolment needs a member identity, which is 3.2 and still undecided. "Aanmelden" is a link, as it is for events. |
 | 2026-09-24 | The volunteer form collects four fields and no more | Agreed with the maintainer. No telephone, date of birth or VOG status: the coordinator gathers what they need in conversation, and what is not collected cannot leak. |
 | 2026-09-24 | Volunteer applications are kept six months | Agreed with the maintainer. `deleteAfter` is written on arrival and shown in the list, and `pnpm prune:applications` acts on it, so the retention is a mechanism rather than a promise. |
 | 2026-09-24 | Volunteer applications are readable by the vrijwilligers commission, not every editor | A coordinator should not need an administrator account to do their job, and no other editor has business reading applicants' details. |

@@ -71,6 +71,7 @@ export interface Config {
     projects: Project;
     articles: Article;
     events: Event;
+    courses: Course;
     media: Media;
     'volunteer-applications': VolunteerApplication;
     'contact-submissions': ContactSubmission;
@@ -87,6 +88,7 @@ export interface Config {
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
+    courses: CoursesSelect<false> | CoursesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'volunteer-applications': VolunteerApplicationsSelect<false> | VolunteerApplicationsSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
@@ -622,6 +624,72 @@ export interface Event {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Het cursusaanbod van de stichting.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "courses".
+ */
+export interface Course {
+  id: number;
+  title: string;
+  /**
+   * Het deel van het webadres na /cursussen/.
+   */
+  slug: string;
+  level?: ('iedereen' | 'beginner' | 'gevorderd') | null;
+  /**
+   * Optioneel. Laat leeg als de cursus doorlopend start.
+   */
+  startsAt?: string | null;
+  /**
+   * Bijvoorbeeld: 8 weken, wekelijks een avond.
+   */
+  duration?: string | null;
+  price?: {
+    isFree?: boolean | null;
+    amount?: number | null;
+  };
+  /**
+   * Waar de knop Aanmelden naartoe gaat. De website neemt zelf nog geen inschrijvingen aan.
+   */
+  registrationUrl?: string | null;
+  excerpt?: string | null;
+  image?: (number | null) | Media;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Welke commissie dit beheert. Laat leeg als iedere redacteur eraan mag werken.
+   */
+  commission?:
+    | (
+        | 'onderwijs'
+        | 'vrijwilligers'
+        | 'evenementen'
+        | 'media'
+        | 'ict'
+        | 'fondsenwerving'
+        | 'vrouwenwerking'
+        | 'huisvesting'
+      )
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * Aanmeldingen van mensen die vrijwilliger willen worden. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld, en in elk geval voor de datum in de kolom "Opruimen na".
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -788,6 +856,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'events';
         value: number | Event;
+      } | null)
+    | ({
+        relationTo: 'courses';
+        value: number | Course;
       } | null)
     | ({
         relationTo: 'media';
@@ -1039,6 +1111,31 @@ export interface EventsSelect<T extends boolean = true> {
       };
   capacity?: T;
   spotsAvailable?: T;
+  registrationUrl?: T;
+  excerpt?: T;
+  image?: T;
+  body?: T;
+  commission?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "courses_select".
+ */
+export interface CoursesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  level?: T;
+  startsAt?: T;
+  duration?: T;
+  price?:
+    | T
+    | {
+        isFree?: T;
+        amount?: T;
+      };
   registrationUrl?: T;
   excerpt?: T;
   image?: T;

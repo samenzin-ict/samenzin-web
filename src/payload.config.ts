@@ -11,6 +11,7 @@ import sharp from 'sharp'
 import { Articles } from './collections/Articles'
 import { ContactSubmissions } from './collections/ContactSubmissions'
 import { Donations } from './collections/Donations'
+import { Courses } from './collections/Courses'
 import { Events } from './collections/Events'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
@@ -125,6 +126,7 @@ export default buildConfig({
     Projects,
     Articles,
     Events,
+    Courses,
     Media,
     VolunteerApplications,
     ContactSubmissions,
