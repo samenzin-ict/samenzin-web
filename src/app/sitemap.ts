@@ -37,6 +37,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   entries.push({ url: `${siteUrl}/nieuws`, priority: 0.7 })
   entries.push({ url: `${siteUrl}/agenda`, priority: 0.7 })
   entries.push({ url: `${siteUrl}/cursussen`, priority: 0.7 })
+  // Both were missing: they are real public routes, not Pages documents.
+  entries.push({ url: `${siteUrl}/vrijwilligers`, priority: 0.6 })
+  entries.push({ url: `${siteUrl}/lid-worden`, priority: 0.6 })
 
   for (const project of projects) {
     entries.push({

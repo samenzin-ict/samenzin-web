@@ -74,6 +74,7 @@ export interface Config {
     courses: Course;
     media: Media;
     'volunteer-applications': VolunteerApplication;
+    'membership-applications': MembershipApplication;
     'contact-submissions': ContactSubmission;
     donations: Donation;
     users: User;
@@ -91,6 +92,7 @@ export interface Config {
     courses: CoursesSelect<false> | CoursesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'volunteer-applications': VolunteerApplicationsSelect<false> | VolunteerApplicationsSelect<true>;
+    'membership-applications': MembershipApplicationsSelect<false> | MembershipApplicationsSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     donations: DonationsSelect<false> | DonationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -716,6 +718,35 @@ export interface VolunteerApplication {
   createdAt: string;
 }
 /**
+ * Aanvragen om lid te worden. Bevatten persoonsgegevens. Een afgewezen of nog openstaande aanvraag wordt na zes maanden opgeruimd; een goedgekeurde blijft bewaard.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "membership-applications".
+ */
+export interface MembershipApplication {
+  id: number;
+  name: string;
+  email: string;
+  /**
+   * Wat de aanvrager zelf heeft geschreven.
+   */
+  motivation?: string | null;
+  /**
+   * De aanvrager krijgt hiervan geen automatisch bericht. Neem zelf contact op.
+   */
+  status: 'aangevraagd' | 'goedgekeurd' | 'afgewezen';
+  /**
+   * Niet zichtbaar voor de aanvrager. Houd het zakelijk en ter zake.
+   */
+  notes?: string | null;
+  /**
+   * Automatisch ingevuld: 6 maanden. Vervalt zodra de aanvraag is goedgekeurd.
+   */
+  deleteAfter?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Berichten die via het contactformulier zijn binnengekomen. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -868,6 +899,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'volunteer-applications';
         value: number | VolunteerApplication;
+      } | null)
+    | ({
+        relationTo: 'membership-applications';
+        value: number | MembershipApplication;
       } | null)
     | ({
         relationTo: 'contact-submissions';
@@ -1218,6 +1253,20 @@ export interface VolunteerApplicationsSelect<T extends boolean = true> {
   interest?: T;
   message?: T;
   handled?: T;
+  deleteAfter?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "membership-applications_select".
+ */
+export interface MembershipApplicationsSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  motivation?: T;
+  status?: T;
+  notes?: T;
   deleteAfter?: T;
   updatedAt?: T;
   createdAt?: T;

@@ -14,6 +14,7 @@ import { Donations } from './collections/Donations'
 import { Courses } from './collections/Courses'
 import { Events } from './collections/Events'
 import { Media } from './collections/Media'
+import { MembershipApplications } from './collections/MembershipApplications'
 import { Pages } from './collections/Pages'
 import { Projects } from './collections/Projects'
 import { Users } from './collections/Users'
@@ -129,6 +130,7 @@ export default buildConfig({
     Courses,
     Media,
     VolunteerApplications,
+    MembershipApplications,
     ContactSubmissions,
     Donations,
     Users,

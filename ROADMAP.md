@@ -56,12 +56,23 @@ for the phase as a whole.
 
 | # | Feature | Routes | Notes |
 |---|---|---|---|
-| 3.1 | Lid worden: application and approval | `/lid-worden` | **Personal data.** Approval is a human decision, not automatic |
-| 3.2 | Member login and member area | `/mijn` | Second auth surface; decide whether members are Payload users or a separate collection |
+| 3.1 | Lid worden: application and approval | `/lid-worden` | **Done.** **Personal data.** Approval is a human decision, not automatic |
+| 3.2 | Member login and member area | `/mijn` | **Decided:** members are a separate `Members` collection with its own login, never Payload users |
 | 3.3 | Recurring SEPA contributions | — | **Payments and mandates.** Mollie recurring; a signed mandate has legal weight |
-| 3.4 | Cursussen: catalogue and enrolment | `/cursussen`, `/cursussen/<slug>` | Public catalogue can ship before enrolment |
+| 3.4 | Cursussen: catalogue and enrolment | `/cursussen`, `/cursussen/<slug>` | Catalogue **done**; enrolment still open |
 | 3.5 | Hour registration for volunteers | `/mijn/uren` | Per `08-ledenportaal-mijn-taken.png` |
 | 3.6 | Certificates | `/mijn/certificaten` | Depends on 3.4 and 3.5 |
+
+### What a member is (decided, 24 September 2026)
+
+Members are a **separate `Members` collection with its own login**, not Payload users with
+a `member` role. A member therefore has no route into the admin panel at all, and no
+mistake in an access rule can turn one into an editor. It costs a second authentication
+surface in 3.2; that is the price of the guarantee.
+
+3.1 is built to fit this: an approved application is the input to creating a member record,
+and nothing more. Approving does not create a login, because there is nothing to log in to
+yet.
 
 ## Phase 4 — Reporting and automation
 

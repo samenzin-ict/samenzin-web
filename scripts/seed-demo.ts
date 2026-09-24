@@ -141,6 +141,8 @@ await payload.updateGlobal({
         title: 'Meedoen',
         links: [
           { label: 'Doneren', url: '/doneren' },
+          { label: 'Vrijwilliger worden', url: '/vrijwilligers' },
+          { label: 'Lid worden', url: '/lid-worden' },
           { label: 'Contact', url: '/contact' },
         ],
       },

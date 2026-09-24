@@ -9,8 +9,8 @@ Keep it short. This is a status board, not a diary.
 
 ## Current state
 
-**Phase:** 3 — Member portal (started). Phases 1 and 2 are built apart from 2.5 and 2.7,
-which the maintainer chose to skip.
+**Phase:** 3 — Member portal. 3.1 and the 3.4 catalogue are done. Phases 1 and 2 are
+built apart from 2.5 and 2.7, which the maintainer chose to skip.
 **Deployment:** Vercel, Neon PostgreSQL (branches `production` and `dev`) and Cloudflare
 R2 for media, replacing the EU VPS plan. See `docs/environments.md`.
 **Status:** All six phase 1 routes are built, the initial migration exists and the
@@ -72,6 +72,10 @@ the first account you create becomes an administrator automatically.
 - `pnpm seed` fills an empty database with obviously fake demo content
 - The admin panel carries the brand colours; the palette now lives in one file that both
   the public site and the admin read
+- `Courses` and the public catalogue at `/cursussen` (3.4). Enrolment is not built.
+- `MembershipApplications` and the form at `/lid-worden` (3.1). Administrators only,
+  three fields, an explicit approval step, six-month retention that an approval clears.
+  Nothing emails the applicant, because there is still no email adapter.
 
 Verified on a rebuilt database: `pnpm dev` runs, `/admin` loads, the first user is created
 and becomes an administrator, the public routes render from the CMS, and `pnpm build`,
@@ -84,12 +88,16 @@ database stopped, which is the situation in GitHub Actions.
 
 ## Next up
 
-1. **Write the privacy statement.** This is a launch blocker, see below.
-2. Fill in Instellingen and create the pages: `home`, `over-ons`, `contact`, `doneren`,
+1. **Write the privacy statement.** This is a launch blocker, see below. It now has to
+   cover three forms: contact, volunteer applications and membership applications.
+2. **3.2 — the `Members` collection and `/mijn`.** The decision is made (see `ROADMAP.md`):
+   a separate collection with its own login. Approving a membership application is what
+   creates a member; that step does not exist yet, so approval currently only sets a status.
+3. Fill in Instellingen and create the pages: `home`, `over-ons`, `contact`, `doneren`,
    `privacyverklaring`. The site is empty until someone does.
-3. Set `PREVIEW_SECRET` in Vercel for Production and Preview, then redeploy
-4. Decide the backup arrangement for Neon, see below
-5. Lighthouse pass on mobile once there is real content to measure
+4. Set `PREVIEW_SECRET` in Vercel for Production and Preview, then redeploy
+5. Decide the backup arrangement for Neon, see below
+6. Lighthouse pass on mobile once there is real content to measure
 
 ## Needs a decision before it can be finished
 
@@ -145,10 +153,13 @@ database stopped, which is the situation in GitHub Actions.
       actually does with the data, so it cannot be written from the code.
 - [ ] **The contact form needs a processing register entry** in `samenzin-ict` before it
       goes live, including how long messages are kept. Nothing deletes them automatically.
-- [ ] **Volunteer applications need a processing register entry too**, before the form
-      faces the public. The retention period is decided (six months) and enforced by
+- [ ] **Volunteer and membership applications need processing register entries too**,
+      before either form faces the public. Both keep records six months, enforced by
       `pnpm prune:applications`, but nothing runs it yet: point a scheduled job at it, or
-      it stays a manual chore somebody has to remember.
+      it stays a manual chore somebody has to remember. Note the difference to write down:
+      an approved membership application is kept indefinitely, because it is the record
+      that a membership was granted. That needs its own line in the register, with a
+      retention tied to the membership rather than to a date.
 - [ ] **Contact messages have no retention mechanism**, unlike volunteer applications.
       Worth giving them the same `deleteAfter` treatment.
 - [ ] **Contact messages are visible to administrators only.** If a volunteer with the
@@ -233,6 +244,11 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-23 | The project title sits below the banner, not over it as the mockup draws | The image is chosen by an editor, so contrast over it cannot be guaranteed, and WCAG 2.1 AA is a hard rule. Same reasoning as the gold button's text colour. |
 | 2026-09-23 | The fundraising bar is `aria-hidden`; the amounts beside it are the accessible text | "62 percent" tells a screen reader user less than "EUR 2.000 of EUR 5.000 raised", and announcing both says it twice. |
 | 2026-09-22 | Read helpers pass `overrideAccess: false` | The Payload local API skips access control by default, so without it every draft would have been served to the public. This is what makes the published-only rule actually apply. |
+| 2026-09-24 | Members will be a separate collection with their own login, not Payload users | The maintainer's call. A member then has no path into the admin panel, so no access-rule mistake can promote one to editor. Costs a second auth surface in 3.2. |
+| 2026-09-24 | The membership form asks for name, e-mail and motivation only | Address, date of birth and bank details are needed to administer a membership, not to decide on one. Asking everybody means holding them for people who are turned down. |
+| 2026-09-24 | Membership applications are administrators only | Granting membership is a board decision and no commission owns it. Volunteer applications got their own rule because there is a commission for them; there is none for members. |
+| 2026-09-24 | Approving an application clears its delete-by date | An approved application is the evidence a membership was granted, so it must not be pruned. Clearing on approval rather than only setting on creation means one approved in month five does not vanish in month six. |
+| 2026-09-24 | `prune:applications` skips records with no `deleteAfter` | It queries `exists: true` as well as the date, so "keep this" is expressed by the absence of a date rather than by a special case in the script. |
 | 2026-09-22 | The drafts migration publishes rows that already existed | Postgres backfills a new column with its default, so `_status` would have been `draft` everywhere and every live page would have vanished. Hand-added `UPDATE`, marked as such in the migration. |
 | 2026-09-22 | Preview needs a secret **and** a Payload session | The secret travels in a URL, and URLs reach browser history, chat messages and logs. On its own it is not a credential. |
 | 2026-09-22 | Two error boundaries, not one | `error.tsx` renders inside the layout, so it cannot catch the layout failing. An unreachable database takes down the layout, which is the failure most likely in production. |

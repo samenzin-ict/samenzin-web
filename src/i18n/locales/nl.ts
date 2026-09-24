@@ -188,6 +188,29 @@ export const nl = {
   volunteerPrivacyLink: 'privacyverklaring',
   volunteerRequired: 'verplicht',
 
+  // Lid worden (ROADMAP 3.1)
+  membershipTitle: 'Lid worden',
+  membershipIntro:
+    'Wilt u lid worden van onze stichting? Laat hieronder uw gegevens achter. Het bestuur bekijkt elke aanvraag en neemt daarna contact met u op.',
+  membershipNameLabel: 'Naam',
+  membershipEmailLabel: 'E-mailadres',
+  membershipMotivationLabel: 'Waarom wilt u lid worden?',
+  membershipSubmit: 'Aanvraag versturen',
+  membershipSubmitting: 'Bezig met versturen…',
+  membershipSuccess:
+    'Bedankt voor uw aanvraag. Het bestuur bekijkt uw aanvraag en neemt daarna contact met u op. U bent nog geen lid.',
+  membershipErrorName: 'Vul uw naam in.',
+  membershipErrorEmail: 'Vul een geldig e-mailadres in.',
+  membershipErrorGeneric: 'Uw aanvraag kon niet worden verstuurd. Probeer het later opnieuw.',
+  membershipErrorTooMany:
+    'U heeft kort achter elkaar meerdere aanvragen verstuurd. Wacht een paar minuten en probeer het opnieuw.',
+  membershipPrivacyNotice:
+    'Wij gebruiken uw gegevens alleen om uw aanvraag te beoordelen en contact met u op te nemen. Wordt u geen lid, dan verwijderen wij ze binnen zes maanden. Lees hoe wij met uw gegevens omgaan in onze',
+  membershipPrivacyLink: 'privacyverklaring',
+  membershipRequired: 'verplicht',
+  membershipNoPaymentNotice:
+    'Wij vragen in dit formulier niet om uw adres, geboortedatum of bankgegevens. Die zijn pas nodig als uw aanvraag is goedgekeurd.',
+
   // Cursussen (ROADMAP 3.4, de openbare catalogus)
   coursesTitle: 'Cursussen',
   coursesIntro: 'Ons aanbod van cursussen en trainingen',
