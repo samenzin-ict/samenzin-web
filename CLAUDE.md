@@ -94,6 +94,14 @@ Two standing cautions:
 ## Working agreement
 
 - **Small, reviewable commits.** Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`).
+- **Two branches.** Work on `dev`, which deploys to the Vercel Preview and the Neon `dev`
+  database. Merge to `main` only when it is right: `main` deploys to production. GitHub
+  Actions does the deploying; Vercel's own Git integration is off. See
+  `docs/environments.md`.
+- **Migrations run in the deploy, against the database of that environment.** Never point
+  a local command at a hosted database without `NODE_ENV=production`, or Payload pushes
+  your local schema into it instead of migrating. Use `pnpm migrate:dev` and
+  `pnpm migrate:prod`, which set it for you.
 - **Update `PROGRESS.md` at the end of every session.** The next session starts by reading
   it. Write what was finished, what is half-done, and what the next person should pick up.
 - **Ask before**: adding a dependency that overlaps with something already present,

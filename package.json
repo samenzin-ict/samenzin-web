@@ -17,7 +17,7 @@
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/seed-demo.ts",
     "check:anbi": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/check-anbi.ts",
-    "vercel-build": "pnpm payload migrate && pnpm build",
+    "vercel-build": "cross-env NODE_ENV=production pnpm payload migrate && pnpm build",
     "db:pull": "bash scripts/db-pull.sh",
     "fill:remote": "bash scripts/fill-remote.sh",
     "prune:applications": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/prune-applications.ts",

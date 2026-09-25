@@ -105,27 +105,76 @@ so. That has happened to this project once, to the production database.
 Migrate before deploying, not after. A new deployment expects its tables to be
 there already.
 
-## Deploying, without automatic builds
+## Branches and deploying
 
-The Vercel Hobby plan does not build automatically from GitHub for a repository
-owned by an organisation, which is why **Ignored Build Step** is set in the
-Vercel project. Pushing to `main` therefore deploys nothing, by design, and
-Vercel reports the skipped build as a green "success" on the commit. That is
-expected; it is not a failure.
+Two long-lived branches, each bound to one environment:
 
-Deployments are made from your laptop instead:
+| Branch | Deploys to | Database |
+|---|---|---|
+| `dev` | Vercel Preview | Neon branch `dev` |
+| `main` | Vercel Production | Neon branch `production` |
+
+Work on `dev`, or on a short branch that you merge into `dev`. When it is right,
+merge `dev` into `main`.
+
+### It is GitHub Actions that deploys, not Vercel
+
+Vercel's own Git integration is switched off. The Hobby plan does not build
+automatically for a repository owned by an organisation, so the project has an
+**Ignored Build Step** that cancels those builds. Vercel reports a cancelled
+build as a green "success" on the commit, which looks like a deploy that did
+nothing — it is expected, not a failure.
+
+`.github/workflows/ci.yml` does the deploying instead. On a push to `dev` or
+`main` it runs lint, types and the build first, and only then:
+
+1. `vercel pull` fetches that environment's variables, including the
+   `DATABASE_URI` that decides which Neon branch the deployment talks to.
+2. `vercel build` compiles on the GitHub runner. This runs the `vercel-build`
+   script, which applies pending migrations to that environment's database
+   before compiling, so a deployment never goes out ahead of its own schema.
+   A failing migration fails the build and nothing is promoted.
+3. `vercel deploy --prebuilt` uploads the result, with `--prod` on `main`.
+
+Nothing deploys from a pull request, only from a push to those two branches.
+
+### What has to be set up once
+
+**Three repository secrets**, under Settings -> Secrets and variables -> Actions:
+
+| Secret | Where it comes from |
+|---|---|
+| `VERCEL_TOKEN` | Vercel account settings -> Tokens |
+| `VERCEL_ORG_ID` | `.vercel/project.json` after `vercel link` |
+| `VERCEL_PROJECT_ID` | `.vercel/project.json` after `vercel link` |
+
+The workflow checks all three before doing anything and says which are missing.
+
+**Vercel environment variables**, set in the Vercel dashboard for each
+environment separately. The important one is `DATABASE_URI`: the Preview
+environment must hold the Neon `dev` connection string and the Production
+environment the Neon `production` one. Get that wrong and a preview deployment
+migrates and writes to the live database.
+
+**Production must be baselined first**, once. Its schema was pushed rather than
+migrated, so `payload migrate` would refuse and ask a question no one can answer
+inside a CI job. Run `pnpm baseline:prod` before the first deploy of `main`.
+
+### Requiring a review before production
+
+The deploy job runs in a GitHub Environment named `production` or `preview`.
+Adding a required reviewer to the `production` environment in
+Settings -> Environments makes every deploy of `main` wait for approval. Nothing
+in the repository needs to change for that.
+
+### Deploying by hand
+
+Still possible, and useful when Actions is not the problem you want to debug:
 
 ```bash
-npm i -g vercel        # once
-vercel login           # once
-vercel link            # once, in this repository
-
-vercel deploy          # a preview, using the Preview variables and Neon dev
-vercel deploy --prod   # production, using the Production variables and Neon production
+vercel deploy          # preview,    Neon dev
+vercel deploy --prod   # production, Neon production
 ```
-
-`vercel deploy` builds on Vercel from your working tree, so commit first and
-deploy the same commit you pushed, or the live site and `main` drift apart.
 
 ## If a database was pushed instead of migrated
 

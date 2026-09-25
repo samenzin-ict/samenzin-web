@@ -1,4 +1,13 @@
-# Checks every push and pull request.
+# Checks every push and pull request, and deploys the two long-lived branches.
+#
+#   dev   -> Vercel Preview     -> Neon branch `dev`
+#   main  -> Vercel Production  -> Neon branch `production`
+#
+# Vercel's own Git integration is switched off: the Hobby plan does not build
+# automatically for a repository owned by an organisation, so an Ignored Build
+# Step cancels those builds. This workflow does the deploying instead, which
+# also means nothing reaches either environment unless lint, types and the build
+# have passed first.
 #
 # Deliberately no database service. Every public route is force-dynamic and the
 # schema is applied by `payload migrate` at deploy time, so the build must
@@ -8,7 +17,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
 
 concurrency:
@@ -70,3 +79,105 @@ jobs:
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy
+    # Nothing is deployed unless the checks pass. The container image is not a
+    # gate: it exists for self-hosting parity and is not what Vercel runs.
+    needs: check
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    # Named so that branch protection or a required reviewer can be added in
+    # GitHub later without touching this file.
+    environment: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
+
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      # Fails here with something actionable, rather than fifty lines down
+      # inside the Vercel CLI with "Error: No existing credentials found".
+      - name: Check the deployment secrets are set
+        run: |
+          missing=
+          [ -n "${{ secrets.VERCEL_TOKEN }}" ] || missing="$missing VERCEL_TOKEN"
+          [ -n "${{ secrets.VERCEL_ORG_ID }}" ] || missing="$missing VERCEL_ORG_ID"
+          [ -n "${{ secrets.VERCEL_PROJECT_ID }}" ] || missing="$missing VERCEL_PROJECT_ID"
+          if [ -n "$missing" ]; then
+            {
+              echo "### Deployment is not configured yet"
+              echo
+              echo "Missing repository secrets:$missing"
+              echo
+              echo "Add them under Settings -> Secrets and variables -> Actions."
+              echo "VERCEL_ORG_ID and VERCEL_PROJECT_ID come from .vercel/project.json"
+              echo "after running \`vercel link\`; the token comes from your Vercel"
+              echo "account settings. See docs/environments.md."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "Missing repository secrets:$missing" >&2
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install the Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      # Which Vercel environment this branch belongs to. Everything below reads
+      # these two, so the mapping is stated once.
+      - name: Choose the target
+        id: target
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "environment=production" >> "$GITHUB_OUTPUT"
+            echo "flag=--prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "environment=preview" >> "$GITHUB_OUTPUT"
+            echo "flag=" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Fetches that environment's variables, including the DATABASE_URI that
+      # decides which Neon branch this deployment talks to. They are set in the
+      # Vercel dashboard, per environment, and are never read from the repo.
+      - name: Pull the environment
+        run: vercel pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Builds on this runner rather than on Vercel. The build runs the
+      # `vercel-build` script, which applies pending migrations to that
+      # environment's database before compiling, so the deployment never goes
+      # out ahead of its own schema. A failing migration fails the build and
+      # nothing is promoted.
+      - name: Build
+        run: vercel build ${{ steps.target.outputs.flag }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy
+        id: deploy
+        run: |
+          # The CLI prints progress as well as the URL; the URL is the last line.
+          url=$(vercel deploy --prebuilt ${{ steps.target.outputs.flag }} --token=${{ secrets.VERCEL_TOKEN }} | tail -n 1)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed ${{ github.ref_name }} to ${{ steps.target.outputs.environment }}: $url"
+
+      - name: Summary
+        run: |
+          {
+            echo "### Deployed"
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Branch | \`${{ github.ref_name }}\` |"
+            echo "| Target | ${{ steps.target.outputs.environment }} |"
+            echo "| URL | ${{ steps.deploy.outputs.url }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
