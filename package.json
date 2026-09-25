@@ -20,7 +20,13 @@
     "vercel-build": "pnpm payload migrate && pnpm build",
     "db:pull": "bash scripts/db-pull.sh",
     "fill:remote": "bash scripts/fill-remote.sh",
-    "prune:applications": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/prune-applications.ts"
+    "prune:applications": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/prune-applications.ts",
+    "neon": "bash scripts/neon.sh",
+    "migrate:dev": "bash scripts/neon.sh dev migrate",
+    "migrate:prod": "bash scripts/neon.sh production migrate",
+    "status:dev": "bash scripts/neon.sh dev status",
+    "status:prod": "bash scripts/neon.sh production status",
+    "baseline:prod": "bash scripts/neon.sh production baseline"
   },
   "dependencies": {
     "@mollie/api-client": "4.6.0",

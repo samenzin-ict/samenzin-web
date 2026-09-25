@@ -119,19 +119,21 @@ database stopped, which is the situation in GitHub Actions.
 
 ## Blocked, needs the maintainer
 
-- [ ] **Vercel is skipping every build.** The push of 25 September reports
-      "Canceled by Ignored Build Step" and reports it as success, so nothing deployed and
-      no migration ran. The setting is in the Vercel dashboard, under Settings → Git →
-      Ignored Build Step; it is not in `vercel.json` and cannot be seen or changed from
-      this repository. Until it is cleared, pushing to `main` does nothing.
-- [ ] **Neon production was pushed, not migrated, and the bookkeeping is unreconciled.**
+- [x] **Vercel does not build from GitHub, on purpose.** The Hobby plan does not build
+      automatically for a repository owned by an organisation, so the maintainer set
+      Ignored Build Step. Pushing to `main` deploys nothing and Vercel reports the skipped
+      build as a green success; that is expected, not a failure. Deployments are made with
+      `vercel deploy` and `vercel deploy --prod` from a laptop. See `docs/environments.md`.
+- [ ] **Run `pnpm baseline:prod`.** Neon production was pushed, not migrated, and the
+      bookkeeping is unreconciled.
       `payload_migrations` holds `20260912_134641_initial` plus a `dev` marker
       (`batch = -1`); the schema itself is complete and was verified column for column
       against a database built from the migrations alone — 744 columns, identical — and no
       content was lost (5 pages, 4 media, 1 user, the real ANBI record all intact).
-      What remains is to record the 15 migrations as applied and delete the `dev` row.
-      Without that, the next successful Vercel build runs `payload migrate`, tries to
-      create tables that already exist, and fails.
+      `pnpm baseline:prod` records the 15 migrations as applied and deletes the `dev`
+      row. Without it, the next `payload migrate` against production tries to create
+      tables that already exist and fails. The Neon `dev` branch is already fully
+      migrated, by `pnpm migrate:dev`, and was empty before that.
 - [ ] **Production content is still the old set.** The menu is the pre-September one
       (Over ons | ANBI | Doneren | Contact) and there are no projects, articles, events or
       courses. Content lives in the database, not the repository, so deploying code does

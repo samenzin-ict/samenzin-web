@@ -1,19 +1,158 @@
 # Environments
 
-Three places this application runs, and how they relate.
+## How this fits together
 
-| | Local | Preview | Production |
+There are three places the site runs, and each has its own database. Nothing is
+shared between them.
+
+| Where | Database | Media | Address |
 |---|---|---|---|
-| Where | Your machine | Vercel, per pull request | Vercel, `main` |
-| Database | PostgreSQL in Docker | Neon branch `dev` | Neon branch `production` |
-| Media | `./media` on disk | Cloudflare R2 | Cloudflare R2 |
-| Address | `localhost:3000` | Vercel preview URL | `samenzin.org` |
+| Your laptop | PostgreSQL in Docker | `./media` on disk | `localhost:3000` |
+| Vercel Preview | Neon branch `dev` | R2 | the URL Vercel prints |
+| Vercel Production | Neon branch `production` | R2 | `samenzin.org` |
 
-Two rules worth stating once:
+**Code** travels by git. **Content** does not: pages, the menu, projects and
+images live in whichever database that environment points at, so deploying code
+never carries content with it. Copying content is a separate, deliberate step.
 
-- **Schema changes travel upward as migrations**, never as a database copy.
-- **Content travels downward as a dump**, never upward. There is no push script,
-  on purpose.
+### Why there is a Neon `dev` branch and a Vercel Preview but no `dev` branch on GitHub
+
+Because the split is by **deployment target**, not by git branch. Vercel keeps two
+sets of environment variables, Preview and Production, and each set has its own
+`DATABASE_URI`. A preview deployment reads the Neon `dev` branch; a production
+deployment reads the Neon `production` branch. The same commit can be deployed to
+either. You do not need a second git branch for that, and adding one would not
+change anything on its own.
+
+A `dev` git branch is worth adding only when more than one person is working, so
+unfinished work has somewhere to live that is not `main`.
+
+### The three DATABASE_URI variables
+
+This is the part that causes the most confusion. They are not three settings for
+one thing; one is read by the application and two are only labels for scripts.
+
+| Variable | Who reads it | What it means |
+|---|---|---|
+| `DATABASE_URI` | **the application** | the database *this particular process* talks to — different in every environment |
+| `NEON_DEV_DATABASE_URI` | scripts only | a reference to the Neon `dev` branch |
+| `NEON_PRODUCTION_DATABASE_URI` | scripts only | a reference to the Neon `production` branch |
+
+The application never reads the `NEON_*` variables. They exist so that a script
+can say *which* branch it means by name, instead of relying on whatever
+`DATABASE_URI` happens to hold.
+
+### The two env files
+
+| File | Used when | `DATABASE_URI` should be |
+|---|---|---|
+| `.env` | you run `pnpm dev` on your laptop | your local Docker database, always |
+| `.env.remote` | a script needs credentials for a hosted environment | nothing — prefer the `NEON_*` variables, which say which branch they mean |
+
+Both are gitignored. Vercel does not read either of them: its variables are set
+in the Vercel dashboard, per environment.
+
+> **Do not put a Neon URI in `.env`.** `pnpm dev` would then run against a hosted
+> database, and because local development enables schema push, it would rewrite
+> that database's schema to match whatever you have locally.
+
+## Talking to a Neon branch
+
+Always by name, never by editing a `DATABASE_URI` somewhere:
+
+```bash
+pnpm status:dev        # which migrations have run on dev; changes nothing
+pnpm status:prod       # the same for production
+pnpm migrate:dev       # apply pending migrations to dev
+pnpm migrate:prod      # the same for production; asks you to type "production"
+```
+
+These go through `scripts/neon.sh`, which sets `NODE_ENV=production` for you.
+That matters: `src/payload.config.ts` has `push: NODE_ENV !== 'production'`, so
+without it Payload connects with schema push enabled and **pushes your local
+schema into the target instead of migrating it**, printing nothing while it does
+so. That has happened to this project once, to the production database.
+
+## The everyday flow
+
+1. **Change the schema locally.** Edit a collection, run `pnpm dev`. Locally,
+   Payload pushes the change straight into your Docker database; no migration is
+   needed to keep working.
+2. **Write the migration** once the shape has settled:
+   ```bash
+   pnpm payload migrate:create <a_short_name>
+   ```
+   Check the generated `up()` for anything destructive before committing it.
+3. **Prove it applies to an empty database**, which is what a fresh environment
+   does:
+   ```bash
+   docker exec samenzin-postgres psql -U samenzin -d samenzin -c 'CREATE DATABASE samenzin_check'
+   NODE_ENV=production DATABASE_URI="postgres://samenzin:<pw>@localhost:5432/samenzin_check" pnpm payload migrate
+   ```
+4. **Commit and push.** `pnpm build`, `pnpm lint` and `pnpm typecheck` must pass.
+5. **Migrate dev, then deploy a preview**, and look at it:
+   ```bash
+   pnpm migrate:dev
+   vercel deploy
+   ```
+6. **When the preview is right, migrate production and promote:**
+   ```bash
+   pnpm status:prod     # see what is about to run
+   pnpm migrate:prod
+   vercel deploy --prod
+   ```
+
+Migrate before deploying, not after. A new deployment expects its tables to be
+there already.
+
+## Deploying, without automatic builds
+
+The Vercel Hobby plan does not build automatically from GitHub for a repository
+owned by an organisation, which is why **Ignored Build Step** is set in the
+Vercel project. Pushing to `main` therefore deploys nothing, by design, and
+Vercel reports the skipped build as a green "success" on the commit. That is
+expected; it is not a failure.
+
+Deployments are made from your laptop instead:
+
+```bash
+npm i -g vercel        # once
+vercel login           # once
+vercel link            # once, in this repository
+
+vercel deploy          # a preview, using the Preview variables and Neon dev
+vercel deploy --prod   # production, using the Production variables and Neon production
+```
+
+`vercel deploy` builds on Vercel from your working tree, so commit first and
+deploy the same commit you pushed, or the live site and `main` drift apart.
+
+## If a database was pushed instead of migrated
+
+Payload records a push as a row in `payload_migrations` named `dev` with
+`batch = -1`, and that row is what makes `payload migrate` warn about data loss.
+The schema is real and usable, but no migration is recorded, so the next
+`payload migrate` tries to create tables that already exist and fails.
+
+First prove the schema matches what the migrations produce. Build a database from
+the migrations alone and compare, sorted, column for column:
+
+```sql
+select table_name || '.' || column_name || ':' || data_type
+from information_schema.columns
+where table_schema = 'public' and table_name <> 'payload_migrations'
+order by 1;
+```
+
+The two lists must be identical. If they are, record the migrations as applied
+without running them:
+
+```bash
+pnpm baseline:prod
+```
+
+If they are not identical, do not baseline. Find out which migration the pushed
+schema diverges from first.
 
 ## Local
 
@@ -257,47 +396,3 @@ production admin panel.
 
 Reset the `dev` branch from `production` in the Neon dashboard whenever dev data
 gets messy. That is what branches are for, and it is cheaper than a dump.
-
-
-## Running migrations against Neon by hand
-
-Two things bite here, both discovered the hard way on 25 September 2026.
-
-**Always set `NODE_ENV=production`.**
-
-```bash
-NODE_ENV=production DATABASE_URI="<neon uri>" PAYLOAD_SECRET="<secret>" pnpm payload migrate
-```
-
-`src/payload.config.ts` sets `push: process.env.NODE_ENV !== 'production'`. Without the
-variable, Payload connects with schema push enabled and **pushes the local schema straight
-into the target database** instead of migrating it. It produces no output while doing so,
-so it looks like a hang. On Vercel this cannot happen, because the build sets
-`NODE_ENV=production` itself.
-
-**The command is interactive.** If the target has ever been pushed to, Payload asks:
-
-> It looks like you've run Payload in dev mode... data loss will occur. Would you like to
-> proceed? › (y/N)
-
-Piping the output through `sed` or `grep` hides that prompt, and the command sits there
-apparently doing nothing. Write to a file and read the file, or run it on a terminal.
-
-### If a database was pushed instead of migrated
-
-Payload records the push as a row in `payload_migrations` with `name = 'dev'` and
-`batch = -1`, and that row is what triggers the warning above. The schema is real and
-usable, but no migration is recorded, so the next `payload migrate` tries to create tables
-that already exist and fails.
-
-Reconciling it means recording the migrations as applied without running them, and
-deleting the `dev` row. Before doing that, prove the schema actually matches:
-
-```bash
-# build a reference database from the migrations alone
-NODE_ENV=production DATABASE_URI="<local scratch uri>" pnpm payload migrate
-# then compare information_schema.columns between the two, sorted
-```
-
-They must be identical, column for column. If they are not, do not baseline; work out
-which migration the pushed schema diverges from first.
