@@ -15,7 +15,19 @@
 # is broken with nothing to indicate why. This refuses to start in that case.
 set -euo pipefail
 
-ENV_FILE="${1:-.env.remote}"
+BRANCH="${1:-}"
+ENV_FILE=".env.remote"
+
+if [[ "$BRANCH" != "dev" && "$BRANCH" != "production" ]]; then
+  cat >&2 <<MSG
+Usage: scripts/fill-remote.sh <dev|production>
+
+Names the Neon branch to fill. It is never taken from DATABASE_URI, which
+means a different database in every context and is the easy way to write
+demo content over the live site by accident.
+MSG
+  exit 1
+fi
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
@@ -57,7 +69,12 @@ read_env_value() {
   printf '%s' "$value"
 }
 
-DATABASE_URI="$(read_env_value DATABASE_URI)"
+# By name, never from DATABASE_URI. See scripts/neon.sh for the same reasoning.
+if [[ "$BRANCH" == "dev" ]]; then
+  DATABASE_URI="$(read_env_value NEON_DEV_DATABASE_URI)"
+else
+  DATABASE_URI="$(read_env_value NEON_PRODUCTION_DATABASE_URI)"
+fi
 R2_BUCKET="$(read_env_value R2_BUCKET)"
 R2_ENDPOINT="$(read_env_value R2_ENDPOINT)"
 R2_ACCESS_KEY_ID="$(read_env_value R2_ACCESS_KEY_ID)"
@@ -96,23 +113,27 @@ read -r -p "  Continue? [y/N] " reply
 
 echo
 echo "==> 1/3 Applying the schema"
-pnpm payload migrate
+# NODE_ENV=production keeps `push` off. Without it Payload connects with schema
+# push enabled and rewrites the target's schema to match this machine.
+NODE_ENV=production pnpm payload migrate
 
 echo
 echo "==> 2/3 Writing content and uploading images"
-SEED_ALLOW_REMOTE=true pnpm seed
+SEED_ALLOW_REMOTE=true NODE_ENV=production pnpm seed
 
 # The seed writes placeholder ANBI values, so the real ones go in afterwards.
 # The loader is not in this repository: it carries the board members' names.
+# The seed does not touch anbi-gegevens on a hosted database, so there is
+# nothing to put back. This only runs if a real record has to be loaded into an
+# environment that has none.
 if [[ -f .devseed/load-anbi.ts ]]; then
   echo
   echo "==> 3/3 Loading the real ANBI content"
-  pnpm payload run .devseed/load-anbi.ts
+  NODE_ENV=production pnpm payload run .devseed/load-anbi.ts
 else
   echo
-  echo "==> 3/3 Skipped: .devseed/load-anbi.ts not found."
-  echo "    The ANBI page will show placeholder values until it is loaded."
-  echo "    See PROGRESS.md; it can be rebuilt from docs/ANBI_guide.docx."
+  echo "==> 3/3 No .devseed/load-anbi.ts, so nothing to load."
+  echo "    Whatever ANBI record that environment already had is unchanged."
 fi
 
 echo
