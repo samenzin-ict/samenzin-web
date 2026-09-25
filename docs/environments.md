@@ -257,3 +257,47 @@ production admin panel.
 
 Reset the `dev` branch from `production` in the Neon dashboard whenever dev data
 gets messy. That is what branches are for, and it is cheaper than a dump.
+
+
+## Running migrations against Neon by hand
+
+Two things bite here, both discovered the hard way on 25 September 2026.
+
+**Always set `NODE_ENV=production`.**
+
+```bash
+NODE_ENV=production DATABASE_URI="<neon uri>" PAYLOAD_SECRET="<secret>" pnpm payload migrate
+```
+
+`src/payload.config.ts` sets `push: process.env.NODE_ENV !== 'production'`. Without the
+variable, Payload connects with schema push enabled and **pushes the local schema straight
+into the target database** instead of migrating it. It produces no output while doing so,
+so it looks like a hang. On Vercel this cannot happen, because the build sets
+`NODE_ENV=production` itself.
+
+**The command is interactive.** If the target has ever been pushed to, Payload asks:
+
+> It looks like you've run Payload in dev mode... data loss will occur. Would you like to
+> proceed? › (y/N)
+
+Piping the output through `sed` or `grep` hides that prompt, and the command sits there
+apparently doing nothing. Write to a file and read the file, or run it on a terminal.
+
+### If a database was pushed instead of migrated
+
+Payload records the push as a row in `payload_migrations` with `name = 'dev'` and
+`batch = -1`, and that row is what triggers the warning above. The schema is real and
+usable, but no migration is recorded, so the next `payload migrate` tries to create tables
+that already exist and fails.
+
+Reconciling it means recording the migrations as applied without running them, and
+deleting the `dev` row. Before doing that, prove the schema actually matches:
+
+```bash
+# build a reference database from the migrations alone
+NODE_ENV=production DATABASE_URI="<local scratch uri>" pnpm payload migrate
+# then compare information_schema.columns between the two, sorted
+```
+
+They must be identical, column for column. If they are not, do not baseline; work out
+which migration the pushed schema diverges from first.

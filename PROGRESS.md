@@ -117,6 +117,26 @@ database stopped, which is the situation in GitHub Actions.
 5. Decide the backup arrangement for Neon, see below
 6. Lighthouse pass on mobile once there is real content to measure
 
+## Blocked, needs the maintainer
+
+- [ ] **Vercel is skipping every build.** The push of 25 September reports
+      "Canceled by Ignored Build Step" and reports it as success, so nothing deployed and
+      no migration ran. The setting is in the Vercel dashboard, under Settings → Git →
+      Ignored Build Step; it is not in `vercel.json` and cannot be seen or changed from
+      this repository. Until it is cleared, pushing to `main` does nothing.
+- [ ] **Neon production was pushed, not migrated, and the bookkeeping is unreconciled.**
+      `payload_migrations` holds `20260912_134641_initial` plus a `dev` marker
+      (`batch = -1`); the schema itself is complete and was verified column for column
+      against a database built from the migrations alone — 744 columns, identical — and no
+      content was lost (5 pages, 4 media, 1 user, the real ANBI record all intact).
+      What remains is to record the 15 migrations as applied and delete the `dev` row.
+      Without that, the next successful Vercel build runs `payload migrate`, tries to
+      create tables that already exist, and fails.
+- [ ] **Production content is still the old set.** The menu is the pre-September one
+      (Over ons | ANBI | Doneren | Contact) and there are no projects, articles, events or
+      courses. Content lives in the database, not the repository, so deploying code does
+      not carry it. `pnpm fill:remote` with a filled `.env.remote` is the route.
+
 ## Needs a decision before it can be finished
 
 - [ ] **Media commission must confirm the fonts.** Source Serif 4 and Source Sans 3 are
