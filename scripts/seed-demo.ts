@@ -911,6 +911,68 @@ if (!demoPassword) {
   console.log('  18 uur geregistreerd')
 }
 
+console.log('Writing demodonaties…')
+
+/*
+ * Donations spread over the past eight months, so the dashboard chart in
+ * docs/design/09 has something to draw. Obviously fake names and addresses
+ * (CLAUDE.md, rule 2), and no Mollie ids: these never went near a payment
+ * provider.
+ */
+const donationPlan = [
+  { monthsAgo: 0, amounts: [50, 25, 100, 250], fund: 'Taalmaatje' },
+  { monthsAgo: 1, amounts: [75, 40, 120], fund: 'Studentenhuisvesting' },
+  { monthsAgo: 2, amounts: [200, 60, 35, 90], fund: 'Algemeen' },
+  { monthsAgo: 3, amounts: [30, 45], fund: 'Retraites' },
+  { monthsAgo: 4, amounts: [80, 20, 55], fund: 'Taalmaatje' },
+  { monthsAgo: 5, amounts: [150, 65], fund: 'Algemeen' },
+  { monthsAgo: 6, amounts: [40, 95, 25], fund: 'Sociale evenementen' },
+  { monthsAgo: 7, amounts: [110, 30], fund: 'Publicaties' },
+]
+
+const donorNames = ['M. Voorbeeld', 'A. Voorbeeld', 'R. Voorbeeld', 'S. Voorbeeld']
+
+const existingDonations = await payload.find({
+  collection: 'donations',
+  where: { molliePaymentId: { like: 'demo-' } },
+  limit: 200,
+  overrideAccess: true,
+})
+
+for (const doc of existingDonations.docs) {
+  await payload.delete({ collection: 'donations', id: doc.id, overrideAccess: true })
+}
+
+let donationCount = 0
+
+for (const plan of donationPlan) {
+  for (const [index, amount] of plan.amounts.entries()) {
+    const paidAt = new Date()
+    paidAt.setMonth(paidAt.getMonth() - plan.monthsAgo, 8 + index)
+    paidAt.setHours(12, 0, 0, 0)
+
+    const anonymous = index === plan.amounts.length - 1 && plan.monthsAgo % 3 === 0
+
+    await payload.create({
+      collection: 'donations',
+      overrideAccess: true,
+      data: {
+        molliePaymentId: `demo-${plan.monthsAgo}-${index}`,
+        amount,
+        status: 'paid',
+        fund: plan.fund,
+        anonymous,
+        donorName: anonymous ? null : donorNames[index % donorNames.length],
+        donorEmail: anonymous ? null : `donateur${index}@example.org`,
+        paidAt: paidAt.toISOString(),
+      },
+    })
+    donationCount += 1
+  }
+}
+
+console.log(`  ${donationCount} demodonaties`)
+
 console.log("Writing pagina's…")
 for (const data of pages) {
   const existing = await payload.find({

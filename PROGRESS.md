@@ -76,6 +76,9 @@ the first account you create becomes an administrator automatically.
 - `MembershipApplications` and the form at `/lid-worden` (3.1). Administrators only,
   three fields, an explicit approval step, six-month retention that an approval clears.
   Nothing emails the applicant, because there is still no email adapter.
+- The admin dashboard of docs/design/09: four figures, an eight-month donations chart,
+  the new-volunteers table with VOG status and the latest donations with a working CSV
+  export. `Vacatures` added so the sidebar carries what the mockup lists.
 - Mijn omgeving as docs/design/08 draws it: the greeting line, four figures, the task
   list with its deadline badges, and the course row with progress. Tabs for taken,
   cursussen, evenementen and gegevens; uren is reached from the Uren card.
@@ -280,6 +283,11 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-23 | The project title sits below the banner, not over it as the mockup draws | The image is chosen by an editor, so contrast over it cannot be guaranteed, and WCAG 2.1 AA is a hard rule. Same reasoning as the gold button's text colour. |
 | 2026-09-23 | The fundraising bar is `aria-hidden`; the amounts beside it are the accessible text | "62 percent" tells a screen reader user less than "EUR 2.000 of EUR 5.000 raised", and announcing both says it twice. |
 | 2026-09-22 | Read helpers pass `overrideAccess: false` | The Payload local API skips access control by default, so without it every draft would have been served to the public. This is what makes the published-only rule actually apply. |
+| 2026-09-25 | The admin dashboard replaces Payload's, and counts everything live | docs/design/09. Nothing on it is a placeholder: an empty foundation sees zeroes rather than invented figures. Queries run with `overrideAccess: false` and the signed-in user, so an editor never sees numbers their own permissions would not allow. |
+| 2026-09-25 | Two dashboard labels differ from the mockup on purpose | The mockup says "Maandelijkse donateurs", which means recurring givers; recurring SEPA is 3.3 and is not built, so the card reads "Donateurs deze maand" and counts distinct givers this month. It will be wrong to relabel it until 3.3 exists. |
+| 2026-09-25 | "Export naar boekhouding" is a working CSV download, not a decorative link | A link that does nothing is worse than no link. It returns the paid donations of one month as semicolon-separated UTF-8 with a BOM, which is what Dutch Excel opens without an import dialogue, and it refuses anyone who is not an administrator. Cells starting with = + - or @ are prefixed so a spreadsheet cannot treat them as formulas. |
+| 2026-09-25 | VOG is tracked as an outcome, never as an upload | The dashboard shows it per applicant. The certificate itself is shown to a coordinator in person; storing a scan would mean holding a government document the foundation has no reason to keep. |
+| 2026-09-25 | No separate Donateurs collection | The mockup's sidebar lists one, but donations already carry the giver's name and e-mail. A second collection would be the same personal data in two places, which is two places to delete it from on request. |
 | 2026-09-25 | Tasks are handed out, not self-created | docs/design/08 shows "Assigned to". Members may tick a task off and nothing else: title, owner, deadline and commission are administrator-only at field level, so ticking a box cannot become rewriting the assignment. Verified. |
 | 2026-09-25 | Course progress is a percentage kept by hand | Deriving it would mean modelling lessons and attendance, which nothing has asked for. A member cannot change their own progress. |
 | 2026-09-25 | Event registrations are entered by an administrator, never from the open web | The earlier decision that the website takes no public sign-ups still stands: that is personal data arriving from strangers and needs a processing register entry first. The portal only shows a member their own. |

@@ -54,7 +54,7 @@ export const VolunteerApplications: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'email', 'city', 'interests', 'handled', 'deleteAfter'],
+    defaultColumns: ['name', 'email', 'city', 'interests', 'vogStatus', 'handled'],
     group: 'Mensen',
     description:
       'Aanmeldingen van mensen die vrijwilliger willen worden. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld, en in elk geval voor de datum in de kolom "Opruimen na".',
@@ -148,6 +148,29 @@ export const VolunteerApplications: CollectionConfig = {
       type: 'textarea',
       label: 'Bericht',
       maxLength: 5000,
+    },
+    {
+      /*
+       * Verklaring Omtrent het Gedrag. The dashboard in docs/design/09 shows
+       * it per applicant, so it is tracked here. The certificate itself is
+       * never uploaded: it is shown to a coordinator and the outcome recorded,
+       * which is all the foundation needs to keep.
+       */
+      name: 'vogStatus',
+      type: 'select',
+      defaultValue: 'niet-gestart',
+      index: true,
+      label: 'VOG',
+      options: [
+        { label: 'Niet gestart', value: 'niet-gestart' },
+        { label: 'Loopt', value: 'loopt' },
+        { label: 'OK', value: 'ok' },
+        { label: 'Niet nodig', value: 'niet-nodig' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description: 'Alleen de uitkomst. Upload de verklaring zelf niet.',
+      },
     },
     {
       name: 'handled',

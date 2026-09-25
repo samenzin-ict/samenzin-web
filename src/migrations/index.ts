@@ -13,6 +13,7 @@ import * as migration_20260924_222526_volunteer_hours from './20260924_222526_vo
 import * as migration_20260924_230318_article_categories from './20260924_230318_article_categories';
 import * as migration_20260924_231355_volunteer_intake from './20260924_231355_volunteer_intake';
 import * as migration_20260925_022716_member_portal from './20260925_022716_member_portal';
+import * as migration_20260925_023651_vacancies_and_vog from './20260925_023651_vacancies_and_vog';
 
 export const migrations = [
   {
@@ -88,6 +89,11 @@ export const migrations = [
   {
     up: migration_20260925_022716_member_portal.up,
     down: migration_20260925_022716_member_portal.down,
-    name: '20260925_022716_member_portal'
+    name: '20260925_022716_member_portal',
+  },
+  {
+    up: migration_20260925_023651_vacancies_and_vog.up,
+    down: migration_20260925_023651_vacancies_and_vog.down,
+    name: '20260925_023651_vacancies_and_vog'
   },
 ];

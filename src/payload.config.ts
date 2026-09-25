@@ -17,6 +17,7 @@ import { Media } from './collections/Media'
 import { CourseEnrolments } from './collections/CourseEnrolments'
 import { EventRegistrations } from './collections/EventRegistrations'
 import { MemberTasks } from './collections/MemberTasks'
+import { Vacancies } from './collections/Vacancies'
 import { Members } from './collections/Members'
 import { VolunteerHours } from './collections/VolunteerHours'
 import { MembershipApplications } from './collections/MembershipApplications'
@@ -67,6 +68,14 @@ const r2PublicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, '')
 export default buildConfig({
   admin: {
     user: Users.slug,
+    components: {
+      views: {
+        // Replaces Payload's default dashboard with the board's own, per
+        // docs/design/09-admin-panel-dashboard.png. The sidebar stays
+        // Payload's; its groups already match the mockup.
+        dashboard: { Component: '/admin/views/Dashboard#Dashboard' },
+      },
+    },
     importMap: {
       baseDir: path.resolve(dirname),
     },
@@ -139,6 +148,7 @@ export default buildConfig({
     MemberTasks,
     CourseEnrolments,
     EventRegistrations,
+    Vacancies,
     MembershipApplications,
     Members,
     ContactSubmissions,

@@ -79,6 +79,7 @@ export interface Config {
     'member-tasks': MemberTask;
     'course-enrolments': CourseEnrolment;
     'event-registrations': EventRegistration;
+    vacancies: Vacancy;
     'membership-applications': MembershipApplication;
     members: Member;
     'contact-submissions': ContactSubmission;
@@ -102,6 +103,7 @@ export interface Config {
     'member-tasks': MemberTasksSelect<false> | MemberTasksSelect<true>;
     'course-enrolments': CourseEnrolmentsSelect<false> | CourseEnrolmentsSelect<true>;
     'event-registrations': EventRegistrationsSelect<false> | EventRegistrationsSelect<true>;
+    vacancies: VacanciesSelect<false> | VacanciesSelect<true>;
     'membership-applications': MembershipApplicationsSelect<false> | MembershipApplicationsSelect<true>;
     members: MembersSelect<false> | MembersSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
@@ -769,6 +771,10 @@ export interface VolunteerApplication {
   interest?: (number | null) | Project;
   message?: string | null;
   /**
+   * Alleen de uitkomst. Upload de verklaring zelf niet.
+   */
+  vogStatus?: ('niet-gestart' | 'loopt' | 'ok' | 'niet-nodig') | null;
+  /**
    * Vink aan zodra er contact is geweest.
    */
   handled?: boolean | null;
@@ -914,6 +920,56 @@ export interface EventRegistration {
   attended?: boolean | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * Openstaande vacatures en vrijwilligersplekken.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vacancies".
+ */
+export interface Vacancy {
+  id: number;
+  title: string;
+  /**
+   * Welke commissie dit beheert. Laat leeg als iedere redacteur eraan mag werken.
+   */
+  commission?:
+    | (
+        | 'onderwijs'
+        | 'vrijwilligers'
+        | 'evenementen'
+        | 'media'
+        | 'ict'
+        | 'fondsenwerving'
+        | 'vrouwenwerking'
+        | 'huisvesting'
+      )
+    | null;
+  kind?: ('vrijwillig' | 'betaald' | 'stage') | null;
+  /**
+   * Bijvoorbeeld: 4 tot 6 uur.
+   */
+  hoursPerWeek?: string | null;
+  closesAt?: string | null;
+  excerpt?: string | null;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * Aanvragen om lid te worden. Bevatten persoonsgegevens. Een afgewezen of nog openstaande aanvraag wordt na zes maanden opgeruimd; een goedgekeurde blijft bewaard.
@@ -1113,6 +1169,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'event-registrations';
         value: number | EventRegistration;
+      } | null)
+    | ({
+        relationTo: 'vacancies';
+        value: number | Vacancy;
       } | null)
     | ({
         relationTo: 'membership-applications';
@@ -1486,6 +1546,7 @@ export interface VolunteerApplicationsSelect<T extends boolean = true> {
   availability?: T;
   interest?: T;
   message?: T;
+  vogStatus?: T;
   handled?: T;
   deleteAfter?: T;
   updatedAt?: T;
@@ -1539,6 +1600,22 @@ export interface EventRegistrationsSelect<T extends boolean = true> {
   attended?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vacancies_select".
+ */
+export interface VacanciesSelect<T extends boolean = true> {
+  title?: T;
+  commission?: T;
+  kind?: T;
+  hoursPerWeek?: T;
+  closesAt?: T;
+  excerpt?: T;
+  body?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
