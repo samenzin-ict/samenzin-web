@@ -145,8 +145,13 @@ Nothing deploys from a pull request, only from a push to those two branches.
 | Secret | Where it comes from |
 |---|---|
 | `VERCEL_TOKEN` | Vercel account settings -> Tokens |
-| `VERCEL_ORG_ID` | `.vercel/project.json` after `vercel link` |
-| `VERCEL_PROJECT_ID` | `.vercel/project.json` after `vercel link` |
+| `VERCEL_ORG_ID` | the `orgId` in `.vercel/project.json` after `vercel link` |
+| `VERCEL_PROJECT_ID` | the `projectId` in the same file |
+
+The org id is **not** the team name in the dashboard URL. It looks like
+`team_AbC123...`, not `samenzin-ict`. Copying the slug by mistake makes
+`vercel pull` fail with `Project not found`, which does not say which of the two
+values is wrong; the workflow checks their shape first and names it.
 
 The workflow checks all three before doing anything and says which are missing.
 

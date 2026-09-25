@@ -114,10 +114,12 @@ jobs:
             "") ;;
             *) shape="$shape VERCEL_PROJECT_ID(should start with prj_)" ;;
           esac
+          # A team id is team_..., a personal one is a bare alphanumeric string.
+          # Neither ever contains a hyphen, but the team *slug* does — and the
+          # slug from the dashboard URL is the easy thing to copy by mistake.
           case "${{ secrets.VERCEL_ORG_ID }}" in
-            team_*|user_*) ;;
             "") ;;
-            *) shape="$shape VERCEL_ORG_ID(should start with team_ or user_)" ;;
+            *-*) shape="$shape VERCEL_ORG_ID(looks like a team slug, not an id)" ;;
           esac
           if [ -n "$shape" ]; then
             {
