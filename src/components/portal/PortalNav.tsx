@@ -16,9 +16,15 @@ import { cn } from '@/lib/utils'
 export function PortalNav({ messages }: { messages: Messages }) {
   const pathname = usePathname()
 
+  /*
+   * The four tabs of docs/design/08. Mijn uren is reached from the Uren card
+   * on the overview rather than from a fifth tab, which is where the mockup
+   * puts it.
+   */
   const items = [
-    { href: '/mijn', label: messages.portalNavOverview },
-    { href: '/mijn/uren', label: messages.portalNavHours },
+    { href: '/mijn', label: messages.portalNavTasks },
+    { href: '/mijn/cursussen', label: messages.portalNavCourses },
+    { href: '/mijn/evenementen', label: messages.portalNavEvents },
     { href: '/mijn/gegevens', label: messages.portalNavDetails },
   ]
 

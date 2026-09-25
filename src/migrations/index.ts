@@ -12,6 +12,7 @@ import * as migration_20260924_215010_members from './20260924_215010_members';
 import * as migration_20260924_222526_volunteer_hours from './20260924_222526_volunteer_hours';
 import * as migration_20260924_230318_article_categories from './20260924_230318_article_categories';
 import * as migration_20260924_231355_volunteer_intake from './20260924_231355_volunteer_intake';
+import * as migration_20260925_022716_member_portal from './20260925_022716_member_portal';
 
 export const migrations = [
   {
@@ -82,6 +83,11 @@ export const migrations = [
   {
     up: migration_20260924_231355_volunteer_intake.up,
     down: migration_20260924_231355_volunteer_intake.down,
-    name: '20260924_231355_volunteer_intake'
+    name: '20260924_231355_volunteer_intake',
+  },
+  {
+    up: migration_20260925_022716_member_portal.up,
+    down: migration_20260925_022716_member_portal.down,
+    name: '20260925_022716_member_portal'
   },
 ];

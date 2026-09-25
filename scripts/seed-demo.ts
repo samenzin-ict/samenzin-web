@@ -771,6 +771,146 @@ for (const data of articles) {
   }
 }
 
+/*
+ * A demo member, so Mijn omgeving can actually be looked at.
+ *
+ * Only when DEMO_MEMBER_PASSWORD is set. A login needs a password, and a
+ * password written into this file would be a credential in the repository
+ * (CLAUDE.md, rule 1) that would also be created on any environment this seed
+ * is pointed at. Set it in your shell for local work and leave it unset
+ * everywhere else.
+ */
+const demoPassword = process.env.DEMO_MEMBER_PASSWORD
+
+if (!demoPassword) {
+  console.log('\nSkipping the demo member: DEMO_MEMBER_PASSWORD is not set.')
+  console.log('  To see Mijn omgeving locally:')
+  console.log('    DEMO_MEMBER_PASSWORD=\'a-long-local-only-password\' pnpm seed')
+} else if (!isLocalDatabase) {
+  console.log('\nSkipping the demo member: the target is not a local database.')
+} else {
+  console.log('Writing demolid…')
+
+  const demoEmail = 'demolid@example.org'
+  const found = await payload.find({
+    collection: 'members',
+    where: { email: { equals: demoEmail } },
+    limit: 1,
+    overrideAccess: true,
+  })
+
+  const memberData = {
+    name: 'Voorbeeld Vrijwilliger',
+    email: demoEmail,
+    status: 'actief' as const,
+    memberRole: 'vrijwilliger' as const,
+    commission: 'evenementen' as const,
+    city: 'Rotterdam',
+    memberSince: daysAgo(400),
+  }
+
+  const member = found.docs[0]
+    ? await payload.update({
+        collection: 'members',
+        id: found.docs[0].id,
+        data: memberData,
+        overrideAccess: true,
+      })
+    : await payload.create({
+        collection: 'members',
+        data: { ...memberData, password: demoPassword },
+        overrideAccess: true,
+      })
+
+  console.log(`  ${found.docs[0] ? 'updated' : 'created'} ${demoEmail}`)
+
+  /** Wipes this member's demo rows so a second run does not pile them up. */
+  const resetFor = async (collection: 'member-tasks' | 'course-enrolments' | 'event-registrations' | 'volunteer-hours') => {
+    const { docs } = await payload.find({
+      collection,
+      where: { member: { equals: member.id } },
+      limit: 200,
+      overrideAccess: true,
+    })
+    for (const doc of docs) {
+      await payload.delete({ collection, id: doc.id, overrideAccess: true })
+    }
+  }
+
+  await resetFor('member-tasks')
+  await resetFor('course-enrolments')
+  await resetFor('event-registrations')
+  await resetFor('volunteer-hours')
+
+  const inDays = (days: number) => {
+    const date = new Date()
+    date.setDate(date.getDate() + days)
+    date.setHours(12, 0, 0, 0)
+    return date.toISOString()
+  }
+
+  // The task list of docs/design/08, in Dutch: the mockup's own titles are
+  // English placeholder copy (CLAUDE.md, "Design").
+  const tasks = [
+    { title: 'Locatie zoeken voor het evenement', description: 'Bel de drie zalen uit de lijst.', dueAt: inDays(1), done: false },
+    { title: 'Vrijwilligersbriefing voorbereiden', description: 'Korte instructie voor de dag zelf.', dueAt: inDays(4), done: false },
+    { title: 'Gastsprekers benaderen', description: 'Twee sprekers uitnodigen.', dueAt: inDays(5), done: false },
+    { title: 'Draaiboek rondsturen', description: 'Naar alle vrijwilligers.', dueAt: inDays(20), done: false },
+    { title: 'Social media plannen', description: 'Berichten inplannen voor de hele week.', dueAt: daysAgo(4), done: true },
+    { title: 'Donatiepagina inrichten', description: 'Tekst en bedrag controleren.', dueAt: daysAgo(9), done: true },
+    { title: 'Zaal afrekenen', description: 'Factuur doorsturen naar de penningmeester.', dueAt: daysAgo(14), done: true },
+  ]
+
+  for (const task of tasks) {
+    await payload.create({
+      collection: 'member-tasks',
+      overrideAccess: true,
+      data: { ...task, member: member.id, commission: 'evenementen' },
+    })
+  }
+  console.log(`  ${tasks.length} taken`)
+
+  const allCourses = await payload.find({ collection: 'courses', limit: 3, overrideAccess: true })
+  const progresses = [100, 55, 100]
+
+  for (const [index, course] of allCourses.docs.entries()) {
+    await payload.create({
+      collection: 'course-enrolments',
+      overrideAccess: true,
+      data: { member: member.id, course: course.id, progress: progresses[index] ?? 0 },
+    })
+  }
+  console.log(`  ${allCourses.docs.length} cursusdeelnames`)
+
+  const someEvents = await payload.find({ collection: 'events', limit: 2, sort: 'startsAt', overrideAccess: true })
+
+  for (const event of someEvents.docs) {
+    await payload.create({
+      collection: 'event-registrations',
+      overrideAccess: true,
+      data: { member: member.id, event: event.id, attended: false },
+    })
+  }
+  console.log(`  ${someEvents.docs.length} aanmeldingen voor evenementen`)
+
+  // Eighteen hours this year, the figure on the Uren card in the mockup.
+  const hours = [
+    { date: daysAgo(6), hours: 4, activity: 'Evenement opgebouwd' },
+    { date: daysAgo(20), hours: 6, activity: 'Taalmaatje begeleid' },
+    { date: daysAgo(41), hours: 3.5, activity: 'Vergadering commissie' },
+    { date: daysAgo(70), hours: 4.5, activity: 'Open dag bemand' },
+  ]
+
+  for (const entry of hours) {
+    await payload.create({
+      collection: 'volunteer-hours',
+      overrideAccess: true,
+      data: { ...entry, member: member.id, commission: 'evenementen' },
+    })
+  }
+  console.log('  18 uur geregistreerd')
+}
+
 console.log("Writing pagina's…")
 for (const data of pages) {
   const existing = await payload.find({

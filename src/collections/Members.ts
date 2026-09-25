@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { isAdmin, isAdminFieldLevel, isAdminOrSelfMember } from '@/access'
+import { COMMISSION_OPTIONS } from '@/fields/commissions'
 
 /** How long a member stays signed in before having to log in again. */
 export const TOKEN_EXPIRATION_SECONDS = 60 * 60 * 24 * 7
@@ -127,6 +128,32 @@ export const Members: CollectionConfig = {
         position: 'sidebar',
         description: 'Een beëindigd lid kan niet meer inloggen.',
       },
+    },
+    {
+      /*
+       * The line under the greeting in docs/design/08 reads
+       * "Vrijwilliger - commissie Evenementen - Rotterdam". These two fields
+       * and the city supply it.
+       */
+      name: 'memberRole',
+      type: 'select',
+      defaultValue: 'vrijwilliger',
+      label: 'Rol',
+      options: [
+        { label: 'Vrijwilliger', value: 'vrijwilliger' },
+        { label: 'Lid', value: 'lid' },
+        { label: 'Bestuurslid', value: 'bestuur' },
+      ],
+      access: { update: isAdminFieldLevel },
+      admin: { position: 'sidebar' },
+    },
+    {
+      name: 'commission',
+      type: 'select',
+      options: [...COMMISSION_OPTIONS],
+      label: 'Commissie',
+      access: { update: isAdminFieldLevel },
+      admin: { position: 'sidebar' },
     },
     {
       name: 'memberSince',

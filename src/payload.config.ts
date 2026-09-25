@@ -14,6 +14,9 @@ import { Donations } from './collections/Donations'
 import { Courses } from './collections/Courses'
 import { Events } from './collections/Events'
 import { Media } from './collections/Media'
+import { CourseEnrolments } from './collections/CourseEnrolments'
+import { EventRegistrations } from './collections/EventRegistrations'
+import { MemberTasks } from './collections/MemberTasks'
 import { Members } from './collections/Members'
 import { VolunteerHours } from './collections/VolunteerHours'
 import { MembershipApplications } from './collections/MembershipApplications'
@@ -133,6 +136,9 @@ export default buildConfig({
     Media,
     VolunteerApplications,
     VolunteerHours,
+    MemberTasks,
+    CourseEnrolments,
+    EventRegistrations,
     MembershipApplications,
     Members,
     ContactSubmissions,

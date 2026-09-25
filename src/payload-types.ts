@@ -76,6 +76,9 @@ export interface Config {
     media: Media;
     'volunteer-applications': VolunteerApplication;
     'volunteer-hours': VolunteerHour;
+    'member-tasks': MemberTask;
+    'course-enrolments': CourseEnrolment;
+    'event-registrations': EventRegistration;
     'membership-applications': MembershipApplication;
     members: Member;
     'contact-submissions': ContactSubmission;
@@ -96,6 +99,9 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     'volunteer-applications': VolunteerApplicationsSelect<false> | VolunteerApplicationsSelect<true>;
     'volunteer-hours': VolunteerHoursSelect<false> | VolunteerHoursSelect<true>;
+    'member-tasks': MemberTasksSelect<false> | MemberTasksSelect<true>;
+    'course-enrolments': CourseEnrolmentsSelect<false> | CourseEnrolmentsSelect<true>;
+    'event-registrations': EventRegistrationsSelect<false> | EventRegistrationsSelect<true>;
     'membership-applications': MembershipApplicationsSelect<false> | MembershipApplicationsSelect<true>;
     members: MembersSelect<false> | MembersSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
@@ -816,6 +822,19 @@ export interface Member {
    * Een beëindigd lid kan niet meer inloggen.
    */
   status: 'actief' | 'beeindigd';
+  memberRole?: ('vrijwilliger' | 'lid' | 'bestuur') | null;
+  commission?:
+    | (
+        | 'onderwijs'
+        | 'vrijwilligers'
+        | 'evenementen'
+        | 'media'
+        | 'ict'
+        | 'fondsenwerving'
+        | 'vrouwenwerking'
+        | 'huisvesting'
+      )
+    | null;
   memberSince?: string | null;
   phone?: string | null;
   street?: string | null;
@@ -839,6 +858,62 @@ export interface Member {
     | null;
   password?: string | null;
   collection: 'members';
+}
+/**
+ * Taken die vrijwilligers in Mijn omgeving zien en kunnen afvinken.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "member-tasks".
+ */
+export interface MemberTask {
+  id: number;
+  member: number | Member;
+  title: string;
+  description?: string | null;
+  commission?:
+    | (
+        | 'onderwijs'
+        | 'vrijwilligers'
+        | 'evenementen'
+        | 'media'
+        | 'ict'
+        | 'fondsenwerving'
+        | 'vrouwenwerking'
+        | 'huisvesting'
+      )
+    | null;
+  dueAt?: string | null;
+  done?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Wie welke cursus volgt, en hoe ver. Zichtbaar voor het lid zelf.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-enrolments".
+ */
+export interface CourseEnrolment {
+  id: number;
+  member: number | Member;
+  course: number | Course;
+  progress: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Aanmeldingen van leden voor evenementen. Door een beheerder ingevoerd.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-registrations".
+ */
+export interface EventRegistration {
+  id: number;
+  member: number | Member;
+  event: number | Event;
+  attended?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Aanvragen om lid te worden. Bevatten persoonsgegevens. Een afgewezen of nog openstaande aanvraag wordt na zes maanden opgeruimd; een goedgekeurde blijft bewaard.
@@ -1026,6 +1101,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'volunteer-hours';
         value: number | VolunteerHour;
+      } | null)
+    | ({
+        relationTo: 'member-tasks';
+        value: number | MemberTask;
+      } | null)
+    | ({
+        relationTo: 'course-enrolments';
+        value: number | CourseEnrolment;
+      } | null)
+    | ({
+        relationTo: 'event-registrations';
+        value: number | EventRegistration;
       } | null)
     | ({
         relationTo: 'membership-applications';
@@ -1419,6 +1506,42 @@ export interface VolunteerHoursSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "member-tasks_select".
+ */
+export interface MemberTasksSelect<T extends boolean = true> {
+  member?: T;
+  title?: T;
+  description?: T;
+  commission?: T;
+  dueAt?: T;
+  done?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-enrolments_select".
+ */
+export interface CourseEnrolmentsSelect<T extends boolean = true> {
+  member?: T;
+  course?: T;
+  progress?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-registrations_select".
+ */
+export interface EventRegistrationsSelect<T extends boolean = true> {
+  member?: T;
+  event?: T;
+  attended?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "membership-applications_select".
  */
 export interface MembershipApplicationsSelect<T extends boolean = true> {
@@ -1438,6 +1561,8 @@ export interface MembershipApplicationsSelect<T extends boolean = true> {
 export interface MembersSelect<T extends boolean = true> {
   name?: T;
   status?: T;
+  memberRole?: T;
+  commission?: T;
   memberSince?: T;
   phone?: T;
   street?: T;

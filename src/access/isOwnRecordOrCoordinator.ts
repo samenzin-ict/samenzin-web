@@ -3,7 +3,8 @@ import type { Access, Where } from 'payload'
 import { isAdminPanelUser, isMemberUser } from './userCollections'
 
 /**
- * Who may see registered hours (ROADMAP 3.5).
+ * Who may see a record that belongs to one member: their registered hours,
+ * their tasks, their course enrolments, their event registrations.
  *
  * A member sees their own and nobody else's. Administrators and editors in the
  * vrijwilligers commission see all of them, the same people who already handle
@@ -14,7 +15,7 @@ import { isAdminPanelUser, isMemberUser } from './userCollections'
  * folds it into the database query and another member's hours are never
  * loaded at all.
  */
-export const isOwnHoursOrCoordinator: Access = ({ req: { user } }) => {
+export const isOwnRecordOrCoordinator: Access = ({ req: { user } }) => {
   if (isAdminPanelUser(user)) {
     if (user.role === 'admin') return true
 
@@ -23,6 +24,8 @@ export const isOwnHoursOrCoordinator: Access = ({ req: { user } }) => {
 
   if (!isMemberUser(user)) return false
 
+  // Every collection this guards has a `member` relationship, which is what
+  // makes one rule enough for all of them.
   const own: Where = { member: { equals: user.id } }
 
   return own

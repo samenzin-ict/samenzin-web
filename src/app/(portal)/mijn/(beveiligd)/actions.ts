@@ -7,6 +7,8 @@ import { getMessages } from '@/i18n'
 import { clearMemberSession, getMember } from '@/lib/member-auth'
 import { getPayloadClient } from '@/lib/payload'
 
+export type TaskToggleState = { status: 'idle' | 'error'; error?: string }
+
 export type DetailsFormState = { status: 'idle' | 'success' | 'error'; error?: string }
 export type PasswordFormState = { status: 'idle' | 'success' | 'error'; error?: string }
 
@@ -122,4 +124,49 @@ export async function changePassword(
   }
 
   return { status: 'success' }
+}
+
+/**
+ * Ticks a task off, or puts it back. The one thing a member may change about a
+ * task; every other field is administrator-only at field level.
+ *
+ * Ownership is left to the access rule: the member is handed to Payload with
+ * overrideAccess false, so the same constraint that hides another member's
+ * tasks is what refuses to update one.
+ */
+export async function toggleTask(
+  _previous: TaskToggleState,
+  formData: FormData,
+): Promise<TaskToggleState> {
+  const messages = getMessages()
+  const member = await getMember()
+
+  if (!member) redirect('/mijn/inloggen')
+
+  const id = Number(readText(formData, 'id'))
+  const done = readText(formData, 'done') === 'true'
+
+  if (!Number.isFinite(id) || id <= 0) {
+    return { status: 'error', error: messages.portalTasksError }
+  }
+
+  const payload = await getPayloadClient()
+
+  try {
+    await payload.update({
+      collection: 'member-tasks',
+      id,
+      overrideAccess: false,
+      user: member,
+      data: { done },
+    })
+  } catch (error) {
+    console.error('Toggling a task failed', error)
+    return { status: 'error', error: messages.portalTasksError }
+  }
+
+  revalidatePath('/mijn')
+  revalidatePath('/mijn/taken')
+
+  return { status: 'idle' }
 }

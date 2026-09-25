@@ -76,6 +76,9 @@ the first account you create becomes an administrator automatically.
 - `MembershipApplications` and the form at `/lid-worden` (3.1). Administrators only,
   three fields, an explicit approval step, six-month retention that an approval clears.
   Nothing emails the applicant, because there is still no email adapter.
+- Mijn omgeving as docs/design/08 draws it: the greeting line, four figures, the task
+  list with its deadline badges, and the course row with progress. Tabs for taken,
+  cursussen, evenementen and gegevens; uren is reached from the Uren card.
 - `Members` with their own login, and Mijn omgeving at `/mijn` (3.2): login, overview,
   contact details the member maintains, and a password change. Approving an application
   creates the member. Members cannot reach the admin panel: `admin.user` names `users` as
@@ -277,6 +280,11 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-23 | The project title sits below the banner, not over it as the mockup draws | The image is chosen by an editor, so contrast over it cannot be guaranteed, and WCAG 2.1 AA is a hard rule. Same reasoning as the gold button's text colour. |
 | 2026-09-23 | The fundraising bar is `aria-hidden`; the amounts beside it are the accessible text | "62 percent" tells a screen reader user less than "EUR 2.000 of EUR 5.000 raised", and announcing both says it twice. |
 | 2026-09-22 | Read helpers pass `overrideAccess: false` | The Payload local API skips access control by default, so without it every draft would have been served to the public. This is what makes the published-only rule actually apply. |
+| 2026-09-25 | Tasks are handed out, not self-created | docs/design/08 shows "Assigned to". Members may tick a task off and nothing else: title, owner, deadline and commission are administrator-only at field level, so ticking a box cannot become rewriting the assignment. Verified. |
+| 2026-09-25 | Course progress is a percentage kept by hand | Deriving it would mean modelling lessons and attendance, which nothing has asked for. A member cannot change their own progress. |
+| 2026-09-25 | Event registrations are entered by an administrator, never from the open web | The earlier decision that the website takes no public sign-ups still stands: that is personal data arriving from strangers and needs a processing register entry first. The portal only shows a member their own. |
+| 2026-09-25 | One access rule covers hours, tasks, enrolments and registrations | All four hang off a `member` relationship, so `isOwnRecordOrCoordinator` (renamed from isOwnHoursOrCoordinator) is enough for all of them. One rule is one thing to get right. |
+| 2026-09-25 | The demo member only exists when DEMO_MEMBER_PASSWORD is set | A login needs a password, and one written into the seed would be a credential in the repository that also got created on whatever environment the seed was pointed at. The seed also refuses to create it against a non-local database. |
 | 2026-09-25 | The volunteer form became four steps, and asks for far more than four fields | docs/design/07 specifies it: telephone, interests, skills, Dutch level, city and a day-part grid. The earlier "four fields and nothing more" note in the collection said the opposite and has been rewritten rather than left to mislead. Still no date of birth and no VOG; those belong in the intake conversation the form promises. |
 | 2026-09-25 | Half-finished applications live in payload.kv, not in the cookie | The cookie holds an opaque id only. Putting the answers in the cookie would send a visitor's name, telephone number and availability on every request to the site, into any log that records headers. Nothing is written to the applications table until the last step, so somebody who gives up halfway leaves no record. |
 | 2026-09-25 | The steps work without JavaScript | Each step posts to its own server action, which validates, merges into the draft and redirects. Same as every other form here. Verified by walking all four steps with curl. |

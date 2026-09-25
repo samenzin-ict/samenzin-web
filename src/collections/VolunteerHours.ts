@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { isAdmin, isAdminFieldLevel, isMemberUser, isOwnHoursOrCoordinator } from '@/access'
+import { isAdmin, isAdminFieldLevel, isMemberUser, isOwnRecordOrCoordinator } from '@/access'
 import { COMMISSION_OPTIONS } from '@/fields/commissions'
 
 /** Nobody volunteers more than this in one day; a larger number is a typo. */
@@ -42,9 +42,9 @@ export const VolunteerHours: CollectionConfig = {
     // The portal writes through a server action; the admin panel through an
     // administrator. A member never creates one over the API directly.
     create: isAdmin,
-    read: isOwnHoursOrCoordinator,
-    update: isOwnHoursOrCoordinator,
-    delete: isOwnHoursOrCoordinator,
+    read: isOwnRecordOrCoordinator,
+    update: isOwnRecordOrCoordinator,
+    delete: isOwnRecordOrCoordinator,
   },
   admin: {
     useAsTitle: 'activity',
