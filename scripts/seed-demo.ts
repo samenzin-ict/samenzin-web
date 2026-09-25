@@ -27,13 +27,21 @@ const assets = path.resolve(dirname, 'demo-assets')
  *
  * NODE_ENV only says how this process was started; it is not 'production' when
  * you run this on a laptop with DATABASE_URI pointed at Neon, which is exactly
- * the accident worth preventing. So the host is checked as well.
+ * the accident worth preventing. So the host is checked as well, and the host
+ * check is the one that does the real work.
  *
  * Seeding a hosted database is a legitimate one-off when bootstrapping a new
  * environment, so it is possible, but only on purpose: set SEED_ALLOW_REMOTE.
+ * That opt-in clears both guards, because filling a hosted database *wants*
+ * NODE_ENV=production — it is what keeps `push` off, so connecting cannot
+ * rewrite that database's schema to match this machine. Without the exception
+ * the only safe way to run this would also be the one way it refused to.
  */
-if (process.env.NODE_ENV === 'production') {
-  throw new Error('Refusing to seed demo content into a production database.')
+if (process.env.NODE_ENV === 'production' && process.env.SEED_ALLOW_REMOTE !== 'true') {
+  throw new Error(
+    'Refusing to seed demo content into a production database.\n' +
+      '  If you are filling a hosted environment on purpose, use `pnpm fill:remote`.',
+  )
 }
 
 const databaseUri = process.env.DATABASE_URI ?? ''
@@ -183,46 +191,63 @@ await payload.updateGlobal({
   },
 })
 
-console.log('Writing ANBI-gegevens…')
-await payload.updateGlobal({
-  slug: 'anbi-gegevens',
-  overrideAccess: true,
-  data: {
-    statutoryName: 'Stichting Voorbeeld',
-    kvkNumber: '00000000',
-    rsin: '000000000',
-    foundedOn: new Date('2026-01-01').toISOString(),
-    statutorySeat: 'Gemeente Voorbeeld',
-    operatingArea: 'Voorbeeldstad en overig Nederland',
-    fiscalYear: '1 januari tot en met 31 december.',
-    contact: {
-      address: 'Postbus 0000\n0000 AA Voorbeeldstad',
-      email: 'voorbeeld@example.org',
-      phone: '013 000 0000',
+/*
+ * The ANBI record is the one thing here that is real on a hosted environment.
+ * It carries the foundation's statutory name, KvK number and RSIN, and the
+ * Belastingdienst requires the published page to be correct; overwriting it
+ * with "Stichting Voorbeeld" would break a legal obligation, and there is no
+ * copy of the real text in this repository to put back afterwards.
+ *
+ * So: written locally, never to a hosted database unless somebody explicitly
+ * asks for it. `pnpm fill:remote` therefore leaves the real record alone
+ * instead of overwriting it and hoping something restores it.
+ */
+if (isLocalDatabase || process.env.SEED_INCLUDE_ANBI === 'true') {
+  console.log('Writing ANBI-gegevens…')
+  await payload.updateGlobal({
+    slug: 'anbi-gegevens',
+    overrideAccess: true,
+    data: {
+      statutoryName: 'Stichting Voorbeeld',
+      kvkNumber: '00000000',
+      rsin: '000000000',
+      foundedOn: new Date('2026-01-01').toISOString(),
+      statutorySeat: 'Gemeente Voorbeeld',
+      operatingArea: 'Voorbeeldstad en overig Nederland',
+      fiscalYear: '1 januari tot en met 31 december.',
+      contact: {
+        address: 'Postbus 0000\n0000 AA Voorbeeldstad',
+        email: 'voorbeeld@example.org',
+        phone: '013 000 0000',
+      },
+      iban: 'NL00BANK0000000000',
+      anbiStatus: 'aangevraagd',
+      statusNotice: richText(
+        'Voorbeeldtekst. De stichting heeft de ANBI-status aangevraagd. Zolang deze niet is toegekend kunnen wij niet garanderen dat uw gift aftrekbaar is.',
+      ),
+      objective: richText('Voorbeeldtekst voor de doelstelling volgens de statuten.'),
+      mission: richText('Voorbeeldtekst voor de missie in het kort.'),
+      policyActivities: richText('Voorbeeldtekst. Hier staat wat de stichting doet.'),
+      policyIncome: richText('Voorbeeldtekst. Hier staat hoe de stichting inkomsten werft.'),
+      policyAssets: richText('Voorbeeldtekst. Hier staat hoe het vermogen wordt beheerd en besteed.'),
+      policyPlanOnRequest: 'Voorbeeldtekst. Het volledige beleidsplan sturen wij op verzoek toe.',
+      remunerationPolicy: richText('Voorbeeldtekst. Bestuursleden ontvangen geen beloning.'),
+      boardMembers: [
+        { role: 'Voorzitter', name: 'A. Voorbeeld' },
+        { role: 'Secretaris', name: 'B. Voorbeeld' },
+        { role: 'Penningmeester', name: 'C. Voorbeeld' },
+      ],
+      boardComposition: richText('Voorbeeldtekst over de adviesraad en de commissies.'),
+      reportingNotice:
+        'Voorbeeldtekst. Het verslag over het eerste boekjaar wordt uiterlijk zes maanden na afloop daarvan op deze pagina gepubliceerd.',
+      supportText: richText('Voorbeeldtekst over doneren en periodieke giften.'),
     },
-    iban: 'NL00BANK0000000000',
-    anbiStatus: 'aangevraagd',
-    statusNotice: richText(
-      'Voorbeeldtekst. De stichting heeft de ANBI-status aangevraagd. Zolang deze niet is toegekend kunnen wij niet garanderen dat uw gift aftrekbaar is.',
-    ),
-    objective: richText('Voorbeeldtekst voor de doelstelling volgens de statuten.'),
-    mission: richText('Voorbeeldtekst voor de missie in het kort.'),
-    policyActivities: richText('Voorbeeldtekst. Hier staat wat de stichting doet.'),
-    policyIncome: richText('Voorbeeldtekst. Hier staat hoe de stichting inkomsten werft.'),
-    policyAssets: richText('Voorbeeldtekst. Hier staat hoe het vermogen wordt beheerd en besteed.'),
-    policyPlanOnRequest: 'Voorbeeldtekst. Het volledige beleidsplan sturen wij op verzoek toe.',
-    remunerationPolicy: richText('Voorbeeldtekst. Bestuursleden ontvangen geen beloning.'),
-    boardMembers: [
-      { role: 'Voorzitter', name: 'A. Voorbeeld' },
-      { role: 'Secretaris', name: 'B. Voorbeeld' },
-      { role: 'Penningmeester', name: 'C. Voorbeeld' },
-    ],
-    boardComposition: richText('Voorbeeldtekst over de adviesraad en de commissies.'),
-    reportingNotice:
-      'Voorbeeldtekst. Het verslag over het eerste boekjaar wordt uiterlijk zes maanden na afloop daarvan op deze pagina gepubliceerd.',
-    supportText: richText('Voorbeeldtekst over doneren en periodieke giften.'),
-  },
-})
+  })
+} else {
+  console.log('Skipping ANBI-gegevens: not a local database.')
+  console.log('  The real record there is left untouched.')
+  console.log('  Pass SEED_INCLUDE_ANBI=true to overwrite it with placeholders.')
+}
 
 /** Dates a few weeks out, so the agenda never looks stale. */
 const soon = (days: number) => {

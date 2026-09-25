@@ -105,6 +105,36 @@ jobs:
           [ -n "${{ secrets.VERCEL_TOKEN }}" ] || missing="$missing VERCEL_TOKEN"
           [ -n "${{ secrets.VERCEL_ORG_ID }}" ] || missing="$missing VERCEL_ORG_ID"
           [ -n "${{ secrets.VERCEL_PROJECT_ID }}" ] || missing="$missing VERCEL_PROJECT_ID"
+          # Vercel's ids have fixed prefixes. Checking them turns "Project not
+          # found", which says nothing about which value is wrong, into a
+          # message that names it. The values themselves are never printed.
+          shape=
+          case "${{ secrets.VERCEL_PROJECT_ID }}" in
+            prj_*) ;;
+            "") ;;
+            *) shape="$shape VERCEL_PROJECT_ID(should start with prj_)" ;;
+          esac
+          # A team id is team_..., a personal one is a bare alphanumeric string.
+          # Neither ever contains a hyphen, but the team *slug* does — and the
+          # slug from the dashboard URL is the easy thing to copy by mistake.
+          case "${{ secrets.VERCEL_ORG_ID }}" in
+            "") ;;
+            *-*) shape="$shape VERCEL_ORG_ID(looks like a team slug, not an id)" ;;
+          esac
+          if [ -n "$shape" ]; then
+            {
+              echo "### Deployment secrets look wrong"
+              echo
+              echo "Wrong shape:$shape"
+              echo
+              echo "Both come from \`.vercel/project.json\` after \`vercel link\`:"
+              echo "\`orgId\` -> VERCEL_ORG_ID, \`projectId\` -> VERCEL_PROJECT_ID."
+              echo "Check they have not been swapped."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "Deployment secrets have the wrong shape:$shape" >&2
+            exit 1
+          fi
+
           if [ -n "$missing" ]; then
             {
               echo "### Deployment is not configured yet"
@@ -132,8 +162,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Installed with npm, not pnpm. pnpm/action-setup does not configure a
+      # global bin directory on the runner, so `pnpm add -g` installs the
+      # binary somewhere that is not on PATH and the next step cannot find it.
       - name: Install the Vercel CLI
-        run: pnpm add -g vercel@latest
+        run: npm install -g vercel@latest
 
       # Which Vercel environment this branch belongs to. Everything below reads
       # these two, so the mapping is stated once.
@@ -148,11 +181,46 @@ jobs:
             echo "flag=" >> "$GITHUB_OUTPUT"
           fi
 
+      # Says which account the token authenticates as and which teams it can
+      # reach. "Could not retrieve Project Settings" from the next step means
+      # the token cannot see the team that owns the project, and Vercel's error
+      # does not say so; this does.
+      - name: Check the token can reach the team
+        run: |
+          echo "Authenticated as:"
+          vercel whoami --token=${{ secrets.VERCEL_TOKEN }}
+          echo
+          echo "Teams this token can see:"
+          vercel teams ls --token=${{ secrets.VERCEL_TOKEN }}
+
       # Fetches that environment's variables, including the DATABASE_URI that
       # decides which Neon branch this deployment talks to. They are set in the
       # Vercel dashboard, per environment, and are never read from the repo.
       - name: Pull the environment
         run: vercel pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Prints the database host this deployment will migrate and write to, so
+      # the log shows which Neon branch was touched. A preview pointing at the
+      # production host is the one misconfiguration that would let a test deploy
+      # write to the live site, and nothing else would reveal it. Only the host
+      # is printed; the user, password and database name are cut off.
+      - name: Show which database this deployment uses
+        run: |
+          file=".vercel/.env.${{ steps.target.outputs.environment }}.local"
+          if [ ! -f "$file" ]; then
+            echo "No $file; cannot tell which database this is." >&2
+            exit 0
+          fi
+          host=$(grep -m1 '^DATABASE_URI=' "$file" \
+            | sed 's/^DATABASE_URI=//; s/^"//; s/"$//' \
+            | sed 's|.*@||; s|/.*||; s|:.*||')
+          echo "Target:   ${{ steps.target.outputs.environment }}"
+          echo "Database: ${host:-<not set>}"
+          {
+            echo "### Database"
+            echo
+            echo "\`${{ steps.target.outputs.environment }}\` -> \`${host:-<not set>}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Builds on this runner rather than on Vercel. The build runs the
       # `vercel-build` script, which applies pending migrations to that
