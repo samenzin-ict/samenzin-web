@@ -199,6 +199,29 @@ jobs:
       - name: Pull the environment
         run: vercel pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
 
+      # Prints the database host this deployment will migrate and write to, so
+      # the log shows which Neon branch was touched. A preview pointing at the
+      # production host is the one misconfiguration that would let a test deploy
+      # write to the live site, and nothing else would reveal it. Only the host
+      # is printed; the user, password and database name are cut off.
+      - name: Show which database this deployment uses
+        run: |
+          file=".vercel/.env.${{ steps.target.outputs.environment }}.local"
+          if [ ! -f "$file" ]; then
+            echo "No $file; cannot tell which database this is." >&2
+            exit 0
+          fi
+          host=$(grep -m1 '^DATABASE_URI=' "$file" \
+            | sed 's/^DATABASE_URI=//; s/^"//; s/"$//' \
+            | sed 's|.*@||; s|/.*||; s|:.*||')
+          echo "Target:   ${{ steps.target.outputs.environment }}"
+          echo "Database: ${host:-<not set>}"
+          {
+            echo "### Database"
+            echo
+            echo "\`${{ steps.target.outputs.environment }}\` -> \`${host:-<not set>}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       # Builds on this runner rather than on Vercel. The build runs the
       # `vercel-build` script, which applies pending migrations to that
       # environment's database before compiling, so the deployment never goes
