@@ -188,6 +188,41 @@ export const nl = {
   volunteerPrivacyLink: 'privacyverklaring',
   volunteerRequired: 'verplicht',
 
+  // Word vrijwilliger, de vier stappen van docs/design/07
+  volunteerStepDetails: 'Gegevens',
+  volunteerStepInterests: 'Interesses',
+  volunteerStepAvailability: 'Beschikbaarheid',
+  volunteerStepConfirm: 'Bevestiging',
+  volunteerStepsLabel: 'Stappen van het aanmeldformulier',
+  volunteerStepOf: 'Stap %s van 4',
+  volunteerIntakeNotice: 'Na je aanmelding nodigen we je uit voor een kort intake-gesprek.',
+  volunteerNext: 'Volgende stap',
+  volunteerBack: 'Vorige stap',
+  volunteerPhoneLabel: 'Telefoonnummer',
+  volunteerInterestsLabel: 'Interesses',
+  volunteerInterestsHint: 'Kies waar u aan mee wilt helpen. Meerdere antwoorden mogelijk.',
+  volunteerSkillsLabel: 'Vaardigheden',
+  volunteerSkillsHint: 'Waar bent u goed in? Meerdere antwoorden mogelijk.',
+  volunteerLanguageLabel: 'Taalniveau Nederlands',
+  volunteerLanguagePlaceholder: 'Selecteer niveau',
+  volunteerCityLabel: 'Locatie',
+  volunteerCityPlaceholder: 'Stad',
+  volunteerAvailabilityLabel: 'Beschikbaarheid',
+  volunteerAvailabilityHint:
+    'Kruis de dagdelen aan waarop u meestal kunt. U zit hier niet aan vast.',
+  volunteerAvailabilityNone: 'Nog geen dagdelen aangekruist.',
+  volunteerConfirmTitle: 'Klopt alles?',
+  volunteerConfirmIntro: 'Controleer uw antwoorden en verstuur de aanmelding.',
+  volunteerConfirmEdit: 'Wijzigen',
+  volunteerConfirmSubmit: 'Aanmelding versturen',
+  volunteerConfirmNothing: 'Niets ingevuld',
+  volunteerErrorPhone: 'Vul een geldig telefoonnummer in, of laat het veld leeg.',
+  volunteerErrorInterests: 'Kies ten minste één interesse.',
+  volunteerErrorStart: 'Begin bij de eerste stap.',
+  volunteerErrorExpired:
+    'Uw aanmelding is verlopen omdat er te veel tijd tussen zat. Vul het formulier opnieuw in.',
+
+
   // Lid worden (ROADMAP 3.1)
   membershipTitle: 'Lid worden',
   membershipIntro:

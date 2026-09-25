@@ -1,6 +1,13 @@
 import type { CollectionConfig } from 'payload'
 
 import { isVolunteerCoordinator } from '@/access'
+import {
+  AVAILABILITY_OPTIONS,
+  CITY_OPTIONS,
+  INTEREST_OPTIONS,
+  LANGUAGE_LEVEL_OPTIONS,
+  SKILL_OPTIONS,
+} from '@/fields/volunteering'
 
 /** How long an application is kept before it should be deleted. */
 export const RETENTION_MONTHS = 6
@@ -11,10 +18,13 @@ export const RETENTION_MONTHS = 6
  * This holds personal data, so it is built the same way as contact messages
  * and for the same reasons:
  *
- * - Four fields and nothing more. No telephone number, no date of birth, no
- *   VOG status. The coordinator gathers what they need in a conversation; what
- *   is not collected cannot leak and does not have to be produced on a subject
- *   access request.
+ * - Only what the intake form asks for. That used to be four fields; the
+ *   maintainer then specified the form in
+ *   docs/design/07-vrijwilliger-aanmeldformulier.png, which asks for a
+ *   telephone number, interests, skills, Dutch level, city and availability,
+ *   so those are here now. Still no date of birth and no VOG status: the
+ *   coordinator gathers those in the intake conversation the form promises,
+ *   and what is not collected cannot leak.
  * - Never publicly readable. Administrators and the vrijwilligers commission
  *   only, so a coordinator can work without an administrator account and no
  *   other editor can read applicants' details.
@@ -44,7 +54,7 @@ export const VolunteerApplications: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'email', 'handled', 'createdAt', 'deleteAfter'],
+    defaultColumns: ['name', 'email', 'city', 'interests', 'handled', 'deleteAfter'],
     group: 'Mensen',
     description:
       'Aanmeldingen van mensen die vrijwilliger willen worden. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld, en in elk geval voor de datum in de kolom "Opruimen na".',
@@ -80,12 +90,57 @@ export const VolunteerApplications: CollectionConfig = {
       label: 'E-mailadres',
     },
     {
+      name: 'phone',
+      type: 'text',
+      label: 'Telefoonnummer',
+      maxLength: 40,
+    },
+    {
+      name: 'city',
+      type: 'select',
+      options: [...CITY_OPTIONS],
+      index: true,
+      label: 'Locatie',
+    },
+    {
+      name: 'interests',
+      type: 'select',
+      hasMany: true,
+      options: [...INTEREST_OPTIONS],
+      index: true,
+      label: 'Interesses',
+    },
+    {
+      name: 'skills',
+      type: 'select',
+      hasMany: true,
+      options: [...SKILL_OPTIONS],
+      label: 'Vaardigheden',
+    },
+    {
+      name: 'languageLevel',
+      type: 'select',
+      options: [...LANGUAGE_LEVEL_OPTIONS],
+      label: 'Taalniveau Nederlands',
+    },
+    {
+      name: 'availability',
+      type: 'select',
+      hasMany: true,
+      options: [...AVAILABILITY_OPTIONS],
+      label: 'Beschikbaarheid',
+      admin: {
+        description: 'Dagdelen die deze persoon heeft aangekruist.',
+      },
+    },
+    {
       name: 'interest',
       type: 'relationship',
       relationTo: 'projects',
-      label: 'Waar wil deze persoon bij helpen?',
+      label: 'Voorkeursproject',
       admin: {
-        description: 'Leeg betekent: geen voorkeur opgegeven.',
+        description:
+          'Uit de oude versie van het formulier. Het huidige formulier vraagt naar interesses in plaats van een project.',
       },
     },
     {

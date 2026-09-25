@@ -724,8 +724,41 @@ export interface VolunteerApplication {
   id: number;
   name: string;
   email: string;
+  phone?: string | null;
+  city?: ('tilburg' | 'schiedam' | 'rotterdam') | null;
+  interests?: ('taalmaatje' | 'onderwijs' | 'evenementen' | 'fondsenwerving' | 'media' | 'dames-activiteiten')[] | null;
+  skills?: ('ontwerp' | 'sociale-media' | 'teksten-schrijven' | 'taalcoaching' | 'evenementenbeheer')[] | null;
+  languageLevel?: ('a1' | 'a2' | 'b1' | 'b2' | 'c1' | 'c2' | 'moedertaal') | null;
   /**
-   * Leeg betekent: geen voorkeur opgegeven.
+   * Dagdelen die deze persoon heeft aangekruist.
+   */
+  availability?:
+    | (
+        | 'ma-ochtend'
+        | 'ma-middag'
+        | 'ma-avond'
+        | 'di-ochtend'
+        | 'di-middag'
+        | 'di-avond'
+        | 'wo-ochtend'
+        | 'wo-middag'
+        | 'wo-avond'
+        | 'do-ochtend'
+        | 'do-middag'
+        | 'do-avond'
+        | 'vr-ochtend'
+        | 'vr-middag'
+        | 'vr-avond'
+        | 'za-ochtend'
+        | 'za-middag'
+        | 'za-avond'
+        | 'zo-ochtend'
+        | 'zo-middag'
+        | 'zo-avond'
+      )[]
+    | null;
+  /**
+   * Uit de oude versie van het formulier. Het huidige formulier vraagt naar interesses in plaats van een project.
    */
   interest?: (number | null) | Project;
   message?: string | null;
@@ -1358,6 +1391,12 @@ export interface MediaSelect<T extends boolean = true> {
 export interface VolunteerApplicationsSelect<T extends boolean = true> {
   name?: T;
   email?: T;
+  phone?: T;
+  city?: T;
+  interests?: T;
+  skills?: T;
+  languageLevel?: T;
+  availability?: T;
   interest?: T;
   message?: T;
   handled?: T;

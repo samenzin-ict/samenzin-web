@@ -83,6 +83,9 @@ the first account you create becomes an administrator automatically.
 - `src/access/userCollections.ts`, which every role rule now goes through. Adding a second
   auth collection broke two rules that were correct while `users` was the only one; both
   are described there and both are covered by the checks below.
+- The volunteer intake form as four steps at `/vrijwilligers`, per docs/design/07:
+  gegevens, interesses, beschikbaarheid, bevestiging, with a summary that links back to
+  each step.
 - `VolunteerHours` and `/mijn/uren` (3.5): a member registers, corrects and deletes their
   own hours, with totals for this year and since the beginning. Administrators and editors
   in the vrijwilligers commission see everyone's; no other editor sees any.
@@ -274,6 +277,10 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-23 | The project title sits below the banner, not over it as the mockup draws | The image is chosen by an editor, so contrast over it cannot be guaranteed, and WCAG 2.1 AA is a hard rule. Same reasoning as the gold button's text colour. |
 | 2026-09-23 | The fundraising bar is `aria-hidden`; the amounts beside it are the accessible text | "62 percent" tells a screen reader user less than "EUR 2.000 of EUR 5.000 raised", and announcing both says it twice. |
 | 2026-09-22 | Read helpers pass `overrideAccess: false` | The Payload local API skips access control by default, so without it every draft would have been served to the public. This is what makes the published-only rule actually apply. |
+| 2026-09-25 | The volunteer form became four steps, and asks for far more than four fields | docs/design/07 specifies it: telephone, interests, skills, Dutch level, city and a day-part grid. The earlier "four fields and nothing more" note in the collection said the opposite and has been rewritten rather than left to mislead. Still no date of birth and no VOG; those belong in the intake conversation the form promises. |
+| 2026-09-25 | Half-finished applications live in payload.kv, not in the cookie | The cookie holds an opaque id only. Putting the answers in the cookie would send a visitor's name, telephone number and availability on every request to the site, into any log that records headers. Nothing is written to the applications table until the last step, so somebody who gives up halfway leaves no record. |
+| 2026-09-25 | The steps work without JavaScript | Each step posts to its own server action, which validates, merges into the draft and redirects. Same as every other form here. Verified by walking all four steps with curl. |
+| 2026-09-25 | The availability grid is a table, not a grid of bare checkboxes | The mockup writes the days once along the top. Out of context "checkbox, checked" tells a screen-reader user nothing, so row and column headers carry the day and the part of the day, and each box also has a visually hidden label. |
 | 2026-09-25 | Registered hours have no approval step | The board asked for a register, not a timesheet to sign off. A queue of unapproved hours that nobody empties is worse than no queue. If it is ever needed it is a status field and a rule, not a change to how hours are entered. |
 | 2026-09-25 | A member may correct and delete their own entries | A register that cannot be corrected gets worked around on paper. Nothing is paid from these figures; phase 4 only reports on them. |
 | 2026-09-25 | Deleting a member deletes their registered hours | `volunteer_hours.member_id` is NOT NULL with ON DELETE SET NULL, so without a cascade Postgres refuses the delete and the admin panel shows a raw "Failed query". Deleting a member is for an erasure request anyway, and hours tied to a named person are that person's data. The alternative, keeping the rows and blanking the member, preserves the board's totals; worth revisiting if those totals matter more than simplicity. |

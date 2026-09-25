@@ -1,23 +1,24 @@
 import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 
-import { RenderBlocks } from '@/components/blocks/RenderBlocks'
-import { Container } from '@/components/layout/Container'
-import { VolunteerForm } from '@/components/volunteer/VolunteerForm'
+import { VolunteerShell } from '@/app/(frontend)/vrijwilligers/shell'
+import { DetailsStep } from '@/components/volunteer/DetailsStep'
 import { getMessages } from '@/i18n'
 import { buildPageMetadata } from '@/lib/metadata'
-import { getPageBySlug, getProjects, getSiteSettings } from '@/lib/payload'
+import { getPageBySlug, getSiteSettings } from '@/lib/payload'
+import { getPayloadClient } from '@/lib/payload'
+import { readDraft } from '@/lib/volunteer-draft'
 
 export const dynamic = 'force-dynamic'
 
 const VOLUNTEER_SLUG = 'vrijwilligers'
 
 /**
- * Where somebody offers to help. ROADMAP 2.6.
+ * Step 1 of becoming a volunteer. ROADMAP 2.6, redrawn to docs/design/07.
  *
  * A fixed route rather than a plain CMS page, because the form has to live
- * somewhere. An editor can still add an introduction by creating a page with
- * the slug "vrijwilligers"; its blocks render above the form.
+ * somewhere. An editor can still change the heading and the introduction by
+ * creating a page with the slug "vrijwilligers".
  */
 export async function generateMetadata(): Promise<Metadata> {
   const { isEnabled: isDraft } = await draftMode()
@@ -38,38 +39,18 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata({ page, settings })
 }
 
-export default async function VolunteerPage() {
+export default async function VolunteerDetailsPage() {
   const { isEnabled: isDraft } = await draftMode()
-  const [page, projects] = await Promise.all([
+  const [page, payload] = await Promise.all([
     getPageBySlug(VOLUNTEER_SLUG, undefined, isDraft),
-    getProjects(),
+    getPayloadClient(),
   ])
+  const draft = await readDraft(payload)
   const messages = getMessages()
 
-  const hasHero = page?.body?.[0]?.blockType === 'hero'
-
   return (
-    <>
-      {!hasHero ? (
-        <Container className="pt-10 md:pt-14">
-          <h1 className="font-heading text-3xl sm:text-4xl">
-            {page?.title ?? messages.volunteerTitle}
-          </h1>
-        </Container>
-      ) : null}
-
-      <RenderBlocks blocks={page?.body} />
-
-      <Container className="py-10 md:py-14">
-        <div className="max-w-prose space-y-6">
-          {!page ? <p>{messages.volunteerIntro}</p> : null}
-
-          <VolunteerForm
-            messages={messages}
-            projects={projects.map((project) => ({ id: project.id, title: project.title }))}
-          />
-        </div>
-      </Container>
-    </>
+    <VolunteerShell messages={messages} step={0} title={page?.title}>
+      <DetailsStep messages={messages} draft={draft} />
+    </VolunteerShell>
   )
 }
