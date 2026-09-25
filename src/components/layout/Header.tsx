@@ -5,6 +5,7 @@ import { Logo } from '@/components/layout/Logo'
 import { MobileMenu } from '@/components/layout/MobileMenu'
 import { Button } from '@/components/ui/button'
 import { getMessages } from '@/i18n'
+import { getMember } from '@/lib/member-auth'
 import { getSiteSettings } from '@/lib/payload'
 
 /**
@@ -19,7 +20,7 @@ import { getSiteSettings } from '@/lib/payload'
  * (docs/design/README.md).
  */
 export async function Header() {
-  const settings = await getSiteSettings()
+  const [settings, member] = await Promise.all([getSiteSettings(), getMember()])
   const messages = getMessages()
 
   const navigation = settings.mainNavigation ?? []
@@ -47,13 +48,42 @@ export async function Header() {
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-2">
+            {/*
+              The way in to Mijn omgeving, as docs/design/02 shows it: a quiet
+              link beside the donate button rather than a second button
+              competing with it. Signed in, it becomes the way back.
+
+              getMember returns immediately when there is no session cookie, so
+              this costs an anonymous visitor nothing.
+            */}
+            <Link
+              href={member ? '/mijn' : '/mijn/inloggen'}
+              className="hidden min-h-11 items-center px-3 text-foreground hover:text-primary hover:underline sm:flex"
+            >
+              {member ? messages.headerMyAccount : messages.headerLogin}
+            </Link>
+
             {cta?.label && cta.url ? (
               <Button asChild variant="cta" size="sm">
                 <Link href={cta.url}>{cta.label}</Link>
               </Button>
             ) : null}
 
-            <MobileMenu items={navigation} messages={messages} />
+            {/*
+              The small screen has no room for the link above, so the login
+              entry is appended to the menu instead of being dropped.
+            */}
+            <MobileMenu
+              items={[
+                ...navigation,
+                {
+                  id: 'portal',
+                  label: member ? messages.headerMyAccount : messages.headerLogin,
+                  url: member ? '/mijn' : '/mijn/inloggen',
+                },
+              ]}
+              messages={messages}
+            />
           </div>
         </div>
       </Container>

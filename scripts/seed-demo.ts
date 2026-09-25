@@ -135,12 +135,16 @@ await payload.updateGlobal({
       { label: 'Schiedam', street: 'Voorbeeldlaan 2', postalCode: '3100 BB', city: 'Schiedam' },
       { label: 'Rotterdam', street: 'Voorbeeldkade 3', postalCode: '3000 CC', city: 'Rotterdam' },
     ],
-    // The menu the mockups show: docs/design/05, 06 and 10.
+    // The menu of docs/design/02, plus Lid worden: becoming a member was
+    // reachable only from the footer, which is too well hidden for something
+    // the foundation actually wants people to do.
     mainNavigation: [
       { label: 'Over ons', url: '/over-ons' },
       { label: 'Projecten', url: '/projecten' },
       { label: 'Agenda', url: '/agenda' },
+      { label: 'Cursussen', url: '/cursussen' },
       { label: 'Nieuws', url: '/nieuws' },
+      { label: 'Lid worden', url: '/lid-worden' },
       { label: 'Contact', url: '/contact' },
     ],
     headerCta: { label: 'Doneer', url: '/doneren' },
@@ -268,21 +272,21 @@ const pages = [
             title: 'Taalmaatje',
             description: 'Help een ander de taal te leren.',
             image: taalmaatje,
-            url: '/over-ons',
+            url: '/projecten/taalmaatje',
             linkLabel: 'Lees meer',
           },
           {
             title: 'Retraites',
             description: 'Tijd voor bezinning en rust.',
             image: retraites,
-            url: '/over-ons',
+            url: '/projecten/retraites',
             linkLabel: 'Lees meer',
           },
           {
             title: 'Studentenhuisvesting',
             description: 'Begeleiding bij wonen voor studenten.',
             image: huisvesting,
-            url: '/over-ons',
+            url: '/projecten/studentenhuisvesting',
             linkLabel: 'Lees meer',
           },
         ],

@@ -309,6 +309,28 @@ export const nl = {
   portalStatusEnded:
     'Uw lidmaatschap is beëindigd. Neem contact met ons op als dat niet klopt.',
   portalRequired: 'verplicht',
+  headerLogin: 'Inloggen',
+  donateFrequencyLabel: 'Hoe wilt u geven?',
+  donateFormTitle: 'Steun ons werk',
+  donateOnce: 'Eenmalig',
+  donateMonthly: 'Maandelijks',
+  donatePeriodic: 'Periodieke gift (5 jaar)',
+  donatePaymentMethods: 'Betaalmethoden',
+  donateSubmitWithAmount: 'Doneer %s',
+  donateWhyPeriodicTitle: 'Waarom periodiek geven?',
+  donateWhyPeriodicOne: 'Stabiele steun voor onze projecten.',
+  donateWhyPeriodicTwo: 'Fiscale voordelen voor uw giften.',
+  donateWhyPeriodicThree: 'Eenvoudig en betrouwbaar geregeld.',
+  donateAnbiDeductible: 'Uw gift is fiscaal aftrekbaar',
+  donateRecurringTitle: 'Periodiek geven regelen we samen',
+  donateRecurringBody:
+    'Voor een maandelijkse of vijfjaarlijkse gift leggen wij een machtiging vast. Neem contact met ons op, dan regelen wij het met u.',
+  donateRecurringAction: 'Neem contact op',
+  donateNotLiveTitle: 'Online doneren kan nog niet',
+  donateNotLiveBody:
+    'De koppeling met onze betaaldienst is nog niet actief. U ziet het formulier alvast; zodra de bankrekening en Mollie geregeld zijn, werkt de knop hieronder.',
+
+  headerMyAccount: 'Mijn omgeving',
   portalNavHours: 'Mijn uren',
   portalNavTasks: 'Mijn taken',
   portalNavCourses: 'Mijn cursussen',

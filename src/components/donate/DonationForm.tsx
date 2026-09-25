@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState, useId, useState } from 'react'
 
 import { startDonation, type DonationFormState } from '@/app/(frontend)/doneren/actions'
@@ -10,21 +11,38 @@ import { SUGGESTED_AMOUNTS } from '@/lib/mollie'
 
 const initialState: DonationFormState = { status: 'idle' }
 
+type Frequency = 'once' | 'monthly' | 'periodic'
+
 /**
- * The donation form, modelled on docs/design/04-doneren.png.
+ * The donation form of docs/design/04-doneren.png.
  *
- * One-off gifts only. The monthly and five-year tabs in the mockup need a
- * mandate and are ROADMAP 3.3; drawing them now would be drawing controls that
- * cannot work.
+ * The three frequency tabs are all drawn, because they are what the page
+ * offers. Only "Eenmalig" can be paid here: a monthly or five-year gift needs a
+ * SEPA mandate, which is ROADMAP 3.3 and has legal weight, so choosing one
+ * explains how it is arranged instead of showing a pay button that cannot
+ * honour what it promises.
  *
  * Built on a server action, so it still submits without JavaScript. The amount
  * buttons are a convenience on top of a plain number field, which is what is
  * actually submitted.
+ *
+ * `enabled` is false until MOLLIE_API_KEY is set. The form is still shown, so
+ * the page can be reviewed and so a visitor can see what is coming, but the
+ * button cannot start a payment that would fail.
  */
-export function DonationForm({ messages, funds }: { messages: Messages; funds: string[] }) {
+export function DonationForm({
+  messages,
+  funds,
+  enabled,
+}: {
+  messages: Messages
+  funds: string[]
+  enabled: boolean
+}) {
   const [state, formAction, isPending] = useActionState(startDonation, initialState)
   const [amount, setAmount] = useState<string>(String(SUGGESTED_AMOUNTS[1]))
   const [anonymous, setAnonymous] = useState(false)
+  const [frequency, setFrequency] = useState<Frequency>('once')
 
   const ids = {
     amount: useId(),
@@ -33,6 +51,7 @@ export function DonationForm({ messages, funds }: { messages: Messages; funds: s
     email: useId(),
     anonymous: useId(),
     privacy: useId(),
+    frequency: useId(),
   }
 
   const fieldError = (key: 'amount' | 'name' | 'email') => state.errors?.[key]
@@ -43,6 +62,19 @@ export function DonationForm({ messages, funds }: { messages: Messages; funds: s
       invalid ? 'border-destructive' : 'border-input',
     )
 
+  const tabs: { value: Frequency; label: string }[] = [
+    { value: 'once', label: messages.donateOnce },
+    { value: 'monthly', label: messages.donateMonthly },
+    { value: 'periodic', label: messages.donatePeriodic },
+  ]
+
+  /*
+   * Written out rather than shown as brand logos. The marks belong to the
+   * payment providers and are not ours to ship; the names carry the same
+   * information. Mollie shows the real logos on its own checkout.
+   */
+  const methods = ['iDEAL', 'SEPA-incasso', 'Mastercard', 'Creditcard']
+
   return (
     <form action={formAction} noValidate className="space-y-6">
       {state.errors?.form ? (
@@ -52,49 +84,78 @@ export function DonationForm({ messages, funds }: { messages: Messages; funds: s
       ) : null}
 
       <fieldset className="space-y-2">
-        <legend className="font-semibold text-primary">{messages.donateAmountLabel}</legend>
-
-        <div className="flex flex-wrap gap-2">
-          {SUGGESTED_AMOUNTS.map((suggested) => {
-            const isSelected = amount === String(suggested)
+        <legend className="sr-only">{messages.donateFrequencyLabel}</legend>
+        <div className="flex rounded-full border border-border bg-muted p-1">
+          {tabs.map((tab) => {
+            const isCurrent = frequency === tab.value
 
             return (
               <button
-                key={suggested}
+                key={tab.value}
                 type="button"
-                // Reports selection rather than relying on colour alone.
-                aria-pressed={isSelected}
-                onClick={() => setAmount(String(suggested))}
+                aria-pressed={isCurrent}
+                onClick={() => setFrequency(tab.value)}
                 className={cn(
-                  'min-h-11 min-w-20 rounded-md border px-4 font-medium',
-                  isSelected
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-input bg-card text-primary',
+                  'min-h-11 flex-1 rounded-full px-3 text-sm',
+                  isCurrent ? 'bg-card font-semibold text-primary shadow-sm' : 'text-foreground',
                 )}
               >
-                € {suggested}
+                {tab.label}
               </button>
             )
           })}
         </div>
+      </fieldset>
 
-        <label htmlFor={ids.amount} className="block pt-2 text-sm">
-          {messages.donateOtherAmount}
-        </label>
-        <input
-          id={ids.amount}
-          name="amount"
-          type="number"
-          inputMode="decimal"
-          min={1}
-          step="0.01"
-          required
-          value={amount}
-          onChange={(event) => setAmount(event.target.value)}
-          aria-invalid={Boolean(fieldError('amount'))}
-          aria-describedby={fieldError('amount') ? `${ids.amount}-error` : undefined}
-          className={cn(inputClass(Boolean(fieldError('amount'))), 'max-w-40')}
-        />
+      <fieldset className="space-y-3">
+        <legend className="sr-only">{messages.donateAmountLabel}</legend>
+
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-wrap gap-2">
+            {SUGGESTED_AMOUNTS.map((suggested) => {
+              const isSelected = amount === String(suggested)
+
+              return (
+                <button
+                  key={suggested}
+                  type="button"
+                  // Reports selection rather than relying on colour alone.
+                  aria-pressed={isSelected}
+                  onClick={() => setAmount(String(suggested))}
+                  className={cn(
+                    'min-h-11 min-w-20 rounded-md border px-4 font-medium',
+                    isSelected
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-cta bg-cta text-cta-foreground',
+                  )}
+                >
+                  € {suggested}
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="space-y-1">
+            <label htmlFor={ids.amount} className="block text-sm font-semibold text-primary">
+              {messages.donateOtherAmount}
+            </label>
+            <input
+              id={ids.amount}
+              name="amount"
+              type="number"
+              inputMode="decimal"
+              min={1}
+              step="0.01"
+              required
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              aria-invalid={Boolean(fieldError('amount'))}
+              aria-describedby={fieldError('amount') ? `${ids.amount}-error` : undefined}
+              className={cn(inputClass(Boolean(fieldError('amount'))), 'max-w-40')}
+            />
+          </div>
+        </div>
+
         {fieldError('amount') ? (
           <p id={`${ids.amount}-error`} className="text-sm text-destructive">
             {fieldError('amount')}
@@ -102,39 +163,39 @@ export function DonationForm({ messages, funds }: { messages: Messages; funds: s
         ) : null}
       </fieldset>
 
-      {funds.length > 0 ? (
-        <div className="space-y-1.5">
-          <label htmlFor={ids.fund} className="block font-semibold text-primary">
-            {messages.donateFundLabel}
-          </label>
-          <select id={ids.fund} name="fund" className={inputClass(false)}>
-            <option value="">{messages.donateFundGeneral}</option>
-            {funds.map((fund) => (
-              <option key={fund} value={fund}>
-                {fund}
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : null}
-
-      <div className="flex items-start gap-2">
-        <input
-          id={ids.anonymous}
-          name="anonymous"
-          type="checkbox"
-          checked={anonymous}
-          onChange={(event) => setAnonymous(event.target.checked)}
-          className="mt-1 size-5"
-        />
-        <label htmlFor={ids.anonymous}>
-          <span className="font-semibold text-primary">{messages.donateAnonymousLabel}</span>
-          <span className="block text-sm">{messages.donateAnonymousHint}</span>
+      <div className="space-y-1.5">
+        <label htmlFor={ids.fund} className="block font-semibold text-primary">
+          {messages.donateFundLabel}
         </label>
+        <select id={ids.fund} name="fund" className={inputClass(false)}>
+          <option value="">{messages.donateFundGeneral}</option>
+          {funds.map((fund) => (
+            <option key={fund} value={fund}>
+              {fund}
+            </option>
+          ))}
+        </select>
+        {funds.length > 0 ? (
+          <p className="text-sm">{funds.join(' · ')}</p>
+        ) : null}
+      </div>
+
+      <div>
+        <h2 className="sr-only">{messages.donatePaymentMethods}</h2>
+        <ul className="flex flex-wrap gap-2">
+          {methods.map((method) => (
+            <li
+              key={method}
+              className="rounded-md border border-border bg-card px-3 py-2 text-sm"
+            >
+              {method}
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/*
-        Name and address are only asked for when the gift is not anonymous.
+        Name and e-mail are only asked for when the gift is not anonymous.
         Hiding them is not enough on its own; the action also refuses to store
         them in that case.
       */}
@@ -184,13 +245,46 @@ export function DonationForm({ messages, funds }: { messages: Messages; funds: s
         </>
       ) : null}
 
+      <div className="flex items-start gap-2">
+        <input
+          id={ids.anonymous}
+          name="anonymous"
+          type="checkbox"
+          checked={anonymous}
+          onChange={(event) => setAnonymous(event.target.checked)}
+          className="mt-1 size-5"
+        />
+        <label htmlFor={ids.anonymous}>
+          <span className="font-semibold text-primary">{messages.donateAnonymousLabel}</span>
+          <span className="block text-sm">{messages.donateAnonymousHint}</span>
+        </label>
+      </div>
+
       <p id={ids.privacy} className="text-sm">
         {messages.donatePrivacyNotice}
       </p>
 
-      <Button type="submit" variant="cta" size="lg" disabled={isPending}>
-        {isPending ? messages.donateSubmitting : `${messages.donateSubmit} € ${amount || '0'}`}
-      </Button>
+      {frequency === 'once' ? (
+        <>
+          {/*
+            The explanation lives once, in the notice above the form. Repeating
+            it next to the button would say the same thing twice.
+          */}
+          <Button type="submit" variant="cta" size="lg" disabled={isPending || !enabled}>
+            {isPending
+              ? messages.donateSubmitting
+              : messages.donateSubmitWithAmount.replace('%s', `€ ${amount || '0'}`)}
+          </Button>
+        </>
+      ) : (
+        <div className="space-y-3 rounded-md border border-border bg-muted p-4">
+          <p className="font-semibold text-primary">{messages.donateRecurringTitle}</p>
+          <p className="text-sm">{messages.donateRecurringBody}</p>
+          <Button asChild variant="default" size="sm">
+            <Link href="/contact">{messages.donateRecurringAction}</Link>
+          </Button>
+        </div>
+      )}
     </form>
   )
 }

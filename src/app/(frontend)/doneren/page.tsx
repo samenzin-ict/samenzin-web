@@ -1,36 +1,34 @@
 import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
-import Link from 'next/link'
 
 import { DonationForm } from '@/components/donate/DonationForm'
 import { RenderBlocks } from '@/components/blocks/RenderBlocks'
 import { Container } from '@/components/layout/Container'
-import { Button } from '@/components/ui/button'
 import { Notice } from '@/components/ui/notice'
 import { getMessages } from '@/i18n'
 import { buildPageMetadata } from '@/lib/metadata'
 import { isDonationEnabled } from '@/lib/mollie'
-import { getPageBySlug, getSiteSettings } from '@/lib/payload'
+import { getPageBySlug, getProjects, getSiteSettings } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
 
 const DONATE_SLUG = 'doneren'
 
 /**
- * The donation page, shipped without a payment step.
+ * The donation page, built to docs/design/04-doneren.png.
  *
- * ROADMAP.md says to ship /doneren in a clear "binnenkort mogelijk" state
- * rather than hold the whole site back, because Mollie cannot be registered
- * until the foundation's bank account exists.
+ * The whole page is here, including the form, whether or not Mollie is
+ * configured. Setting MOLLIE_API_KEY is the only thing standing between this
+ * and a working donation: the server action, the webhook and the Donations
+ * collection are already in place. Until then a notice says so and the pay
+ * button is disabled, so nobody is sent into a payment that cannot complete.
  *
- * There is deliberately no amount picker or form. Drawing the controls from
- * docs/design/04-doneren.png and leaving them inert would waste the goodwill
- * of somebody who arrived here meaning to give; saying plainly that it is not
- * ready yet, and offering a way to reach the foundation, does not.
+ * The funds in the dropdown are the published projects, so the board decides
+ * what a gift can be earmarked for by publishing a project rather than by
+ * asking for a code change.
  *
- * When the Mollie flow is built the notice below is replaced by the form. See
- * ARCHITECTURE.md, "Donation flow" — the webhook plus a server-side re-fetch
- * is the only source of truth, never the return URL.
+ * See ARCHITECTURE.md, "Donation flow" — the webhook plus a server-side
+ * re-fetch is the only source of truth, never the return URL.
  */
 export async function generateMetadata(): Promise<Metadata> {
   const { isEnabled: isDraft } = await draftMode()
@@ -44,11 +42,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function DonatePage() {
   const { isEnabled: isDraft } = await draftMode()
-  const page = await getPageBySlug(DONATE_SLUG, undefined, isDraft)
+  const [page, projects] = await Promise.all([
+    getPageBySlug(DONATE_SLUG, undefined, isDraft),
+    getProjects(),
+  ])
   const messages = getMessages()
 
   const hasHero = page?.body?.[0]?.blockType === 'hero'
   const donationsEnabled = isDonationEnabled()
+  const funds = projects.map((project) => project.title).filter(Boolean)
 
   return (
     <>
@@ -60,24 +62,46 @@ export default async function DonatePage() {
         </Container>
       ) : null}
 
-      <Container className="pt-6">
-        <div className="max-w-prose space-y-6">
-          {/*
-            The form appears only once Mollie is configured. Until then the
-            page says so plainly rather than showing controls that cannot work.
-          */}
-          {donationsEnabled ? (
-            <DonationForm messages={messages} funds={[]} />
-          ) : (
-            <Notice title={messages.donateUnavailableTitle}>
-              <p>{messages.donateUnavailableBody}</p>
-              <Button asChild variant="default" size="sm">
-                <Link href="/contact">{messages.donateUnavailableAction}</Link>
-              </Button>
-            </Notice>
-          )}
+      <Container className="py-8 md:py-12">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
+          {/* The card on the left of the mockup. */}
+          <div className="rounded-lg border border-border bg-card p-6 md:p-8">
+            <h2 className="mb-6 font-heading text-2xl sm:text-3xl">
+              {messages.donateFormTitle}
+            </h2>
 
-          <p className="text-sm">{messages.donateAnbiNote}</p>
+            {!donationsEnabled ? (
+              <div className="mb-6">
+                <Notice title={messages.donateNotLiveTitle}>
+                  <p>{messages.donateNotLiveBody}</p>
+                </Notice>
+              </div>
+            ) : null}
+
+            <DonationForm messages={messages} funds={funds} enabled={donationsEnabled} />
+          </div>
+
+          {/* The column on the right: why give periodically, and the ANBI note. */}
+          <div className="space-y-6">
+            <section className="rounded-lg bg-primary p-6 text-primary-foreground">
+              <h2 className="font-heading text-xl text-primary-foreground">
+                {messages.donateWhyPeriodicTitle}
+              </h2>
+              <ul className="mt-4 list-disc space-y-2 pl-5">
+                <li>{messages.donateWhyPeriodicOne}</li>
+                <li>{messages.donateWhyPeriodicTwo}</li>
+                <li>{messages.donateWhyPeriodicThree}</li>
+              </ul>
+            </section>
+
+            <section className="rounded-lg border border-border bg-card p-6 text-center">
+              <p className="rounded-md bg-muted py-8 font-heading text-3xl tracking-wide text-primary">
+                ANBI
+              </p>
+              <p className="mt-4">{messages.donateAnbiDeductible}</p>
+              <p className="mt-2 text-sm">{messages.donateAnbiNote}</p>
+            </section>
+          </div>
         </div>
       </Container>
 
