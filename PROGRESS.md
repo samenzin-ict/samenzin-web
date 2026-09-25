@@ -119,22 +119,18 @@ database stopped, which is the situation in GitHub Actions.
 
 ## Blocked, needs the maintainer
 
-- [x] **Deploying works.** GitHub Actions deploys `dev` to the Vercel Preview and `main`
-      to Production, after lint, types and build pass. Verified on 25 September 2026: a
-      push to `dev` built and deployed, and the log records
-      `Target: preview / Database: ep-rough-dream-...`, which is the Neon `dev` branch.
-      Vercel's own Git integration stays off; the Hobby plan does not build automatically
-      for an organisation-owned repository.
-- [ ] **`main` still carries the first, broken copy of the deploy job.** The fixes are on
-      `dev`: the Vercel CLI is installed with npm rather than pnpm, whose global bin is
-      not on PATH in the runner. Merging `dev` into `main` fixes it and, in the same
-      push, deploys to production for the first time.
-- [ ] **Production content is still the old set.** The menu is the pre-September one
-      (Over ons | ANBI | Doneren | Contact) and there are no projects, articles, events or
-      courses. Content lives in the database, not the repository, so deploying code does
-      not carry it. `pnpm fill:remote` would overwrite site settings and pages with demo
-      content, including replacing the real ANBI text; editing the menu by hand in the
-      admin panel is the safer route.
+- [x] **Deploying works, and production is live.** `dev` deploys to the Vercel Preview and
+      Neon `dev`, `main` to Production and Neon `production`, both after lint, types and
+      build pass. Every deploy logs which database it wrote to. Verified 25 September 2026.
+- [x] **Both databases hold the demo content.** Pages, six projects, six events, six
+      articles, three courses and the new menu. Production's real ANBI record survived:
+      the seed refuses to write `anbi-gegevens` to anything but a local database.
+- [ ] **The site settings on production are demo data.** Addresses, telephone number and
+      e-mail are "Voorbeeldstraat 1" and the like, because `fill:remote` overwrote
+      Instellingen. Real values go in through `/admin` -> Instellingen; only the ANBI
+      record is protected from the seed.
+- [ ] **The privacy statement on production is still the placeholder**, and the forms that
+      collect personal data are now live. This is the most urgent open item.
 
 ## Needs a decision before it can be finished
 
