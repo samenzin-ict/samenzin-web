@@ -813,7 +813,9 @@ if (!demoPassword) {
     ? await payload.update({
         collection: 'members',
         id: found.docs[0].id,
-        data: memberData,
+        // The password is set on every run, not only on the first. Otherwise
+        // a second run leaves an account nobody knows the password to.
+        data: { ...memberData, password: demoPassword },
         overrideAccess: true,
       })
     : await payload.create({
