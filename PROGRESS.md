@@ -124,16 +124,11 @@ database stopped, which is the situation in GitHub Actions.
       Ignored Build Step. Pushing to `main` deploys nothing and Vercel reports the skipped
       build as a green success; that is expected, not a failure. Deployments are made with
       `vercel deploy` and `vercel deploy --prod` from a laptop. See `docs/environments.md`.
-- [ ] **Run `pnpm baseline:prod`.** Neon production was pushed, not migrated, and the
-      bookkeeping is unreconciled.
-      `payload_migrations` holds `20260912_134641_initial` plus a `dev` marker
-      (`batch = -1`); the schema itself is complete and was verified column for column
-      against a database built from the migrations alone — 744 columns, identical — and no
-      content was lost (5 pages, 4 media, 1 user, the real ANBI record all intact).
-      `pnpm baseline:prod` records the 15 migrations as applied and deletes the `dev`
-      row. Without it, the next `payload migrate` against production tries to create
-      tables that already exist and fails. The Neon `dev` branch is already fully
-      migrated, by `pnpm migrate:dev`, and was empty before that.
+- [x] **Neon production is reconciled.** `pnpm baseline:prod` recorded the 15 migrations
+      and removed the `dev` marker on 25 September 2026. `pnpm status:prod` reads 16
+      applied, 0 pending; `pnpm migrate:prod` is now a clean no-op, which is what the
+      deploy runs. Content was unaffected: 5 pages, 4 media, 1 user and the real ANBI
+      record before and after. The Neon `dev` branch was empty and is fully migrated.
 - [ ] **Production content is still the old set.** The menu is the pre-September one
       (Over ons | ANBI | Doneren | Contact) and there are no projects, articles, events or
       courses. Content lives in the database, not the repository, so deploying code does
