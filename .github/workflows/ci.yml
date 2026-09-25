@@ -132,8 +132,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Installed with npm, not pnpm. pnpm/action-setup does not configure a
+      # global bin directory on the runner, so `pnpm add -g` installs the
+      # binary somewhere that is not on PATH and the next step cannot find it.
       - name: Install the Vercel CLI
-        run: pnpm add -g vercel@latest
+        run: npm install -g vercel@latest
 
       # Which Vercel environment this branch belongs to. Everything below reads
       # these two, so the mapping is stated once.
