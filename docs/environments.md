@@ -140,20 +140,76 @@ Nothing deploys from a pull request, only from a push to those two branches.
 
 ### What has to be set up once
 
-**Three repository secrets**, under Settings -> Secrets and variables -> Actions:
+**Three repository secrets**, which GitHub Actions uses to log in to Vercel on
+your behalf. You add them once, by hand, in the browser:
 
-| Secret | Where it comes from |
+GitHub -> the `samenzin-web` repository -> **Settings** -> **Secrets and
+variables** -> **Actions** -> **New repository secret**.
+
+| Secret | What it is |
 |---|---|
-| `VERCEL_TOKEN` | Vercel account settings -> Tokens |
-| `VERCEL_ORG_ID` | the `orgId` in `.vercel/project.json` after `vercel link` |
-| `VERCEL_PROJECT_ID` | the `projectId` in the same file |
+| `VERCEL_TOKEN` | a password for the Vercel API |
+| `VERCEL_ORG_ID` | which Vercel team the project belongs to |
+| `VERCEL_PROJECT_ID` | which project inside that team |
 
-The org id is **not** the team name in the dashboard URL. It looks like
-`team_AbC123...`, not `samenzin-ict`. Copying the slug by mistake makes
-`vercel pull` fail with `Project not found`, which does not say which of the two
-values is wrong; the workflow checks their shape first and names it.
+### Where to find the three values
 
-The workflow checks all three before doing anything and says which are missing.
+**`VERCEL_TOKEN`** — in the Vercel website:
+
+1. Click your avatar, top right -> **Account Settings**.
+2. **Tokens** in the left menu -> **Create Token**.
+3. Name it something like `github-actions`. Under **Scope**, choose the
+   **samenzin-ict** team, not your personal account — the project belongs to the
+   team, and a personal-scope token cannot see it.
+4. Copy the token *now*. Vercel shows it once and never again.
+
+**`VERCEL_PROJECT_ID`** — in the Vercel website:
+
+1. Open the **samenzin-web** project.
+2. **Settings** -> **General**.
+3. Scroll to the bottom. **Project ID** is there, starting with `prj_`.
+
+**`VERCEL_ORG_ID`** — in the Vercel website:
+
+1. From the team dashboard, **Settings** -> **General**.
+2. **Team ID** is near the top, starting with `team_`.
+
+> This is the one people get wrong. The org id is **not** `samenzin-ict`. That is
+> the team's *name*, the part you see in the dashboard address
+> `vercel.com/samenzin-ict/samenzin-web`. The id is a long string beginning
+> `team_`. Paste the name instead of the id and `vercel pull` fails with
+> `Project not found`, which does not tell you which of the two values is wrong.
+> The workflow checks the shape first and names it for you.
+
+### The other way: the Vercel CLI
+
+If you would rather not hunt through the dashboard, the CLI writes both ids to a
+file for you. **You** run these, on **your own laptop**, in the project folder
+(`/home/frknilisu/my_ws/samenzin` — wherever you cloned this repository):
+
+```bash
+npm install -g vercel     # once, installs the `vercel` command
+vercel login              # opens a browser to sign in
+vercel link               # asks which team and project this folder belongs to
+```
+
+`vercel link` then creates a folder called `.vercel` inside the project folder,
+containing `project.json`:
+
+```json
+{ "orgId": "team_AbC123...", "projectId": "prj_XyZ789..." }
+```
+
+`orgId` is `VERCEL_ORG_ID`, `projectId` is `VERCEL_PROJECT_ID`. Read it with:
+
+```bash
+cat .vercel/project.json
+```
+
+The `.vercel` folder is gitignored and stays on your laptop. It is not needed by
+GitHub Actions — the workflow uses the two secrets instead — and it is not in
+this repository, which is why you will not find it until you run `vercel link`
+yourself.
 
 **Vercel environment variables**, set in the Vercel dashboard for each
 environment separately. The important one is `DATABASE_URI`: the Preview
