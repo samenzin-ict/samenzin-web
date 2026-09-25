@@ -181,6 +181,18 @@ jobs:
             echo "flag=" >> "$GITHUB_OUTPUT"
           fi
 
+      # Says which account the token authenticates as and which teams it can
+      # reach. "Could not retrieve Project Settings" from the next step means
+      # the token cannot see the team that owns the project, and Vercel's error
+      # does not say so; this does.
+      - name: Check the token can reach the team
+        run: |
+          echo "Authenticated as:"
+          vercel whoami --token=${{ secrets.VERCEL_TOKEN }}
+          echo
+          echo "Teams this token can see:"
+          vercel teams ls --token=${{ secrets.VERCEL_TOKEN }}
+
       # Fetches that environment's variables, including the DATABASE_URI that
       # decides which Neon branch this deployment talks to. They are set in the
       # Vercel dashboard, per environment, and are never read from the repo.
