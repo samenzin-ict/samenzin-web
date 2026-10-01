@@ -1015,6 +1015,10 @@ export interface ContactSubmission {
    * Vink aan zodra iemand op dit bericht heeft gereageerd.
    */
   handled?: boolean | null;
+  /**
+   * Automatisch ingevuld: 12 maanden na binnenkomst. De privacyverklaring belooft dit.
+   */
+  deleteAfter?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1671,6 +1675,7 @@ export interface ContactSubmissionsSelect<T extends boolean = true> {
   email?: T;
   message?: T;
   handled?: T;
+  deleteAfter?: T;
   updatedAt?: T;
   createdAt?: T;
 }

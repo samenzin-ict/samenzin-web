@@ -184,6 +184,7 @@ await payload.updateGlobal({
         links: [
           { label: 'Contact', url: '/contact' },
           { label: 'Privacyverklaring', url: '/privacyverklaring' },
+          { label: 'Cookiebeleid', url: '/cookiebeleid' },
         ],
       },
     ],
@@ -1004,8 +1005,22 @@ for (const plan of donationPlan) {
 
 console.log(`  ${donationCount} demodonaties`)
 
+/*
+ * Pages whose real text is not demo content and must not be written over on a
+ * hosted environment. The privacyverklaring and the cookiebeleid are published
+ * legal documents; `pnpm load:legal` puts them there, from the Word files in
+ * docs/. Same reasoning as the ANBI record above: the seed holds a placeholder,
+ * and a placeholder privacy statement on a live site is worse than none.
+ */
+const PROTECTED_SLUGS = new Set(['privacyverklaring', 'cookiebeleid'])
+
 console.log("Writing pagina's…")
 for (const data of pages) {
+  if (!isLocalDatabase && PROTECTED_SLUGS.has(data.slug)) {
+    console.log(`  skipped /${data.slug}: real text, not demo content`)
+    continue
+  }
+
   const existing = await payload.find({
     collection: 'pages',
     where: { slug: { equals: data.slug } },

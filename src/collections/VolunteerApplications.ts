@@ -34,7 +34,7 @@ export const RETENTION_MONTHS = 6
  * Retention is six months, agreed with the maintainer. `deleteAfter` is filled
  * in when the application arrives and is shown in the list, so an overdue
  * record is visible rather than theoretical. Deleting is not automatic; run
- * `pnpm prune:applications`, or point a scheduled job at it.
+ * `pnpm prune:expired`, and a daily Vercel cron job calls the same code.
  *
  * This needs an entry in the processing register in samenzin-ict before it
  * goes live.

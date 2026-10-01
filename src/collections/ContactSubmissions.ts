@@ -22,6 +22,15 @@ import { isAdmin } from '@/access'
  * samenzin-ict repository (ARCHITECTURE.md, "Privacy by design"), including
  * how long messages are kept. Nothing here deletes them automatically yet.
  */
+/**
+ * How long a message is kept. The published privacyverklaring says "tot uw
+ * vraag is afgehandeld en daarna maximaal 1 jaar", so this is a promise to
+ * visitors, not a preference. Counted from arrival rather than from the moment
+ * somebody ticks "afgehandeld": that is the stricter reading of "maximaal",
+ * and it does not depend on anyone remembering to tick the box.
+ */
+export const RETENTION_MONTHS = 12
+
 export const ContactSubmissions: CollectionConfig = {
   slug: 'contact-submissions',
   labels: {
@@ -37,12 +46,26 @@ export const ContactSubmissions: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'email', 'handled', 'createdAt'],
+    defaultColumns: ['name', 'email', 'handled', 'createdAt', 'deleteAfter'],
     group: 'Mensen',
     description:
       'Berichten die via het contactformulier zijn binnengekomen. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld.',
   },
   timestamps: true,
+  hooks: {
+    beforeChange: [
+      ({ data, operation }) => {
+        if (operation !== 'create') return data
+
+        // Worked out once, on arrival, so the date stays true even if the
+        // retention period is changed later for new messages.
+        const deleteAfter = new Date()
+        deleteAfter.setMonth(deleteAfter.getMonth() + RETENTION_MONTHS)
+
+        return { ...data, deleteAfter: deleteAfter.toISOString() }
+      },
+    ],
+  },
   fields: [
     {
       name: 'name',
@@ -72,6 +95,17 @@ export const ContactSubmissions: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'Vink aan zodra iemand op dit bericht heeft gereageerd.',
+      },
+    },
+    {
+      name: 'deleteAfter',
+      type: 'date',
+      label: 'Opruimen na',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        date: { pickerAppearance: 'dayOnly', displayFormat: 'd MMMM yyyy' },
+        description: `Automatisch ingevuld: ${RETENTION_MONTHS} maanden na binnenkomst. De privacyverklaring belooft dit.`,
       },
     },
   ],

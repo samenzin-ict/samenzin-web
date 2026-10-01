@@ -27,7 +27,7 @@ export const RETENTION_MONTHS = 6
  * Retention: an application that is still pending or was declined is deleted
  * after six months, the same as a volunteer application. An approved one is
  * kept, because it is the evidence that a membership was granted; it gets no
- * `deleteAfter`, and `pnpm prune:applications` leaves it alone.
+ * `deleteAfter`, and `pnpm prune:expired` leaves it alone.
  *
  * Needs an entry in the processing register in samenzin-ict before it goes
  * live.
