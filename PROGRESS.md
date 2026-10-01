@@ -129,8 +129,34 @@ database stopped, which is the situation in GitHub Actions.
       e-mail are "Voorbeeldstraat 1" and the like, because `fill:remote` overwrote
       Instellingen. Real values go in through `/admin` -> Instellingen; only the ANBI
       record is protected from the seed.
-- [ ] **The privacy statement on production is still the placeholder**, and the forms that
-      collect personal data are now live. This is the most urgent open item.
+- [x] **The privacyverklaring and the cookiebeleid are published**, with the real texts,
+      and the footer links to both. The placeholder is gone from the live site.
+- [ ] **Set `CRON_SECRET` in Vercel (Production), then redeploy.** The daily clear-out at
+      /api/cron/prune returns 503 until it is set, and nothing is deleted. Any random
+      string of 16 characters or more. Verified live: 503 now, 401 for a wrong secret,
+      200 for the right one.
+
+## Retention, and what the privacyverklaring promises
+
+The published statement is a commitment, so the gap between it and the code is worth
+keeping visible. Implemented:
+
+| Data | Promised | Implemented |
+|---|---|---|
+| Contact messages | handled, then at most 1 year, deleted automatically | `deleteAfter` on arrival, daily cron |
+| Volunteer applications | — | 6 months, same mechanism |
+| Membership applications | — | 6 months; an approved one is kept |
+
+Not implemented, and the statement does promise them:
+
+- [ ] **Members: "zolang uw account bestaat en daarna 2 jaar."** Nothing deletes an ended
+      member; `status` goes to `beeindigd` and the record stays. Needs a decision about
+      what "account ends" means before it can be automated.
+- [ ] **Website logs: "maximaal 6 maanden."** These are Vercel's runtime logs, not ours.
+      Check the retention Vercel actually applies on this plan and make the statement
+      match it, rather than the other way round.
+- [ ] **Donations: 7 years, a legal obligation.** Nothing deletes them, which is correct
+      for now, but nothing enforces the seven-year point either.
 
 ## Needs a decision before it can be finished
 
