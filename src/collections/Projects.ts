@@ -151,7 +151,7 @@ export const Projects: CollectionConfig = {
       label: 'Inzamelingsdoel',
       admin: {
         description:
-          'Laat het doelbedrag leeg om de voortgangsbalk te verbergen. De bedragen worden met de hand bijgehouden; zij komen niet automatisch uit de donaties.',
+          'Laat het doelbedrag leeg om de voortgangsbalk te verbergen. Giften die via de website binnenkomen en op dit project zijn gekozen, worden automatisch opgeteld; vul hieronder alleen in wat daarbuiten is binnengekomen.',
       },
       fields: [
         {
@@ -165,7 +165,11 @@ export const Projects: CollectionConfig = {
           type: 'number',
           min: 0,
           defaultValue: 0,
-          label: 'Opgehaald in euro',
+          label: 'Buiten de website opgehaald, in euro',
+          admin: {
+            description:
+              'Overboekingen, collectes en toezeggingen. Giften via de website komen hier automatisch bovenop, dus tel die hier niet bij op.',
+          },
         },
       ],
     },

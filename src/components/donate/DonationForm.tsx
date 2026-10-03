@@ -30,14 +30,20 @@ type Frequency = 'once' | 'monthly' | 'periodic'
  * the page can be reviewed and so a visitor can see what is coming, but the
  * button cannot start a payment that would fail.
  */
+/** A project a gift can be earmarked for. */
+export type Fund = { id: number; title: string }
+
 export function DonationForm({
   messages,
   funds,
   enabled,
+  selectedFundId,
 }: {
   messages: Messages
-  funds: string[]
+  funds: Fund[]
   enabled: boolean
+  /** Preselected from ?project= on the donate page. Null means general. */
+  selectedFundId?: number | null
 }) {
   const [state, formAction, isPending] = useActionState(startDonation, initialState)
   const [amount, setAmount] = useState<string>(String(SUGGESTED_AMOUNTS[1]))
@@ -167,17 +173,24 @@ export function DonationForm({
         <label htmlFor={ids.fund} className="block font-semibold text-primary">
           {messages.donateFundLabel}
         </label>
-        <select id={ids.fund} name="fund" className={inputClass(false)}>
+        {/*
+          The value is the project's id, not its title. A title can be edited
+          and the gift has to stay attached to the project it was meant for;
+          the action stores the title alongside as a label.
+        */}
+        <select
+          id={ids.fund}
+          name="project"
+          defaultValue={selectedFundId ? String(selectedFundId) : ''}
+          className={inputClass(false)}
+        >
           <option value="">{messages.donateFundGeneral}</option>
           {funds.map((fund) => (
-            <option key={fund} value={fund}>
-              {fund}
+            <option key={fund.id} value={fund.id}>
+              {fund.title}
             </option>
           ))}
         </select>
-        {funds.length > 0 ? (
-          <p className="text-sm">{funds.join(' · ')}</p>
-        ) : null}
       </div>
 
       <div>

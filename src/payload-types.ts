@@ -463,10 +463,13 @@ export interface Project {
       }[]
     | null;
   /**
-   * Laat het doelbedrag leeg om de voortgangsbalk te verbergen. De bedragen worden met de hand bijgehouden; zij komen niet automatisch uit de donaties.
+   * Laat het doelbedrag leeg om de voortgangsbalk te verbergen. Giften die via de website binnenkomen en op dit project zijn gekozen, worden automatisch opgeteld; vul hieronder alleen in wat daarbuiten is binnengekomen.
    */
   funding?: {
     goal?: number | null;
+    /**
+     * Overboekingen, collectes en toezeggingen. Giften via de website komen hier automatisch bovenop, dus tel die hier niet bij op.
+     */
     raised?: number | null;
   };
   /**
@@ -609,11 +612,11 @@ export interface Event {
     amount?: number | null;
   };
   /**
-   * Aantal personen. Optioneel.
+   * Aantal personen. Vult u dit in, dan rekent de website zelf uit hoeveel plaatsen er nog vrij zijn en sluit de aanmelding zodra het vol is.
    */
   capacity?: number | null;
   /**
-   * Wordt met de hand bijgehouden; de website neemt geen aanmeldingen aan. Laat leeg om dit niet te tonen.
+   * Alleen nodig als u geen capaciteit invult, bijvoorbeeld bij een evenement waarvoor elders wordt aangemeld. Vult u wel een capaciteit in, dan wordt dit veld genegeerd en rekent de website zelf. Laat leeg om geen aantal te tonen.
    */
   spotsAvailable?: number | null;
   /**
@@ -898,7 +901,7 @@ export interface MemberTask {
   createdAt: string;
 }
 /**
- * Wie welke cursus volgt, en hoe ver. Zichtbaar voor het lid zelf.
+ * Wie welke cursus volgt, en hoe ver. Zichtbaar voor het lid zelf. Leden schrijven zich zelf in via de cursuspagina en kunnen zich weer uitschrijven zolang de voortgang nul is.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "course-enrolments".
@@ -912,7 +915,7 @@ export interface CourseEnrolment {
   createdAt: string;
 }
 /**
- * Aanmeldingen van leden voor evenementen. Door een beheerder ingevoerd.
+ * Aanmeldingen van leden voor evenementen. Leden melden zich zelf aan via de evenementpagina en kunnen zich weer afmelden tot u ze als aanwezig hebt aangevinkt.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "event-registrations".
@@ -1044,7 +1047,11 @@ export interface Donation {
    */
   status: 'open' | 'pending' | 'paid' | 'canceled' | 'expired' | 'failed';
   /**
-   * Waar de gever de gift aan wilde besteden. Leeg betekent algemeen.
+   * Het project waarvoor de gever heeft gekozen. Leeg betekent een algemene gift. Betaalde giften worden bij het opgehaalde bedrag van het project geteld.
+   */
+  project?: (number | null) | Project;
+  /**
+   * Waar de gever de gift aan wilde besteden, zoals het project toen heette. Leeg betekent algemeen.
    */
   fund?: string | null;
   /**
@@ -1692,6 +1699,7 @@ export interface DonationsSelect<T extends boolean = true> {
   molliePaymentId?: T;
   amount?: T;
   status?: T;
+  project?: T;
   fund?: T;
   anonymous?: T;
   donorName?: T;

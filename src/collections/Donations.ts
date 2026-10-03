@@ -166,12 +166,40 @@ export const Donations: CollectionConfig = {
       },
     },
     {
+      /*
+       * Which project the gift was earmarked for, as a relationship, so the
+       * amounts on a project page can be counted rather than typed in.
+       *
+       * Optional: most gifts are general, and a donation whose project is
+       * later deleted keeps its `fund` label below.
+       */
+      name: 'project',
+      type: 'relationship',
+      relationTo: 'projects',
+      index: true,
+      label: 'Project',
+      admin: {
+        readOnly: true,
+        description:
+          'Het project waarvoor de gever heeft gekozen. Leeg betekent een algemene gift. Betaalde giften worden bij het opgehaalde bedrag van het project geteld.',
+      },
+    },
+    {
+      /*
+       * The project's title as it read at the time of the gift.
+       *
+       * Kept beside the relationship on purpose, not instead of it: a project
+       * that is renamed or deleted would otherwise rewrite or erase history,
+       * and this is a financial record the accountant may have to read years
+       * from now.
+       */
       name: 'fund',
       type: 'text',
       label: 'Bestemming',
       admin: {
         readOnly: true,
-        description: 'Waar de gever de gift aan wilde besteden. Leeg betekent algemeen.',
+        description:
+          'Waar de gever de gift aan wilde besteden, zoals het project toen heette. Leeg betekent algemeen.',
       },
     },
     {

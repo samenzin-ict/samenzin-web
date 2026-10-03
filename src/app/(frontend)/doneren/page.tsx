@@ -27,6 +27,11 @@ const DONATE_SLUG = 'doneren'
  * what a gift can be earmarked for by publishing a project rather than by
  * asking for a code change.
  *
+ * `?project=<slug>` preselects one, which is what the "Steun dit project"
+ * button on a project page links to. An unknown slug is ignored rather than
+ * refused: the visitor still gets a working donation form, which matters more
+ * than telling them a link was stale.
+ *
  * See ARCHITECTURE.md, "Donation flow" — the webhook plus a server-side
  * re-fetch is the only source of truth, never the return URL.
  */
@@ -40,9 +45,14 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata({ page, settings })
 }
 
-export default async function DonatePage() {
+export default async function DonatePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ project?: string }>
+}) {
   const { isEnabled: isDraft } = await draftMode()
-  const [page, projects] = await Promise.all([
+  const [{ project: requestedSlug }, page, projects] = await Promise.all([
+    searchParams,
     getPageBySlug(DONATE_SLUG, undefined, isDraft),
     getProjects(),
   ])
@@ -50,7 +60,12 @@ export default async function DonatePage() {
 
   const hasHero = page?.body?.[0]?.blockType === 'hero'
   const donationsEnabled = isDonationEnabled()
-  const funds = projects.map((project) => project.title).filter(Boolean)
+  const funds = projects
+    .filter((project) => Boolean(project.title))
+    .map((project) => ({ id: project.id, title: project.title }))
+
+  const selectedFundId =
+    projects.find((project) => project.slug === requestedSlug)?.id ?? null
 
   return (
     <>
@@ -78,7 +93,12 @@ export default async function DonatePage() {
               </div>
             ) : null}
 
-            <DonationForm messages={messages} funds={funds} enabled={donationsEnabled} />
+            <DonationForm
+              messages={messages}
+              funds={funds}
+              enabled={donationsEnabled}
+              selectedFundId={selectedFundId}
+            />
           </div>
 
           {/* The column on the right: why give periodically, and the ANBI note. */}
