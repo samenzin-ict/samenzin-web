@@ -216,3 +216,64 @@
     }
   }
 }
+
+/*
+ * The printed certificate. ROADMAP 3.6.
+ *
+ * The document is an ordinary page that the browser turns into a file through
+ * "Opslaan als pdf", so these rules are the whole difference between a web
+ * page and a certificate. No PDF library is involved; see the comment on
+ * src/app/(portal)/mijn/(beveiligd)/certificaten/[id]/page.tsx.
+ *
+ * Everything that is not the certificate carries `print:hidden` in the markup.
+ * What is left here is making the certificate itself fill the sheet.
+ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 18mm;
+  }
+
+  html,
+  body {
+    background: #fff;
+  }
+
+  /*
+   * Colour is not decoration on a certificate: the forest green heading and
+   * the hairline above the signature are what make it look like a document
+   * rather than a memo. Browsers strip backgrounds and colours when printing
+   * unless asked not to.
+   */
+  .certificate {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    /* It is the whole sheet now, so the card's own frame is noise. */
+    margin: 0;
+    border: 0;
+    padding: 0;
+    box-shadow: none;
+    /* Pushes the signature to the foot of the page rather than under the text. */
+    display: flex;
+    min-height: calc(297mm - 36mm);
+    flex-direction: column;
+  }
+
+  .certificate footer {
+    margin-top: auto;
+  }
+
+  /*
+   * A certificate is one page. Without this a stray line can start a second
+   * sheet carrying nothing but the signature.
+   */
+  .certificate,
+  .certificate * {
+    break-inside: avoid;
+  }
+
+  /* A URL printed after every link would be nonsense on a certificate. */
+  .certificate a::after {
+    content: none;
+  }
+}

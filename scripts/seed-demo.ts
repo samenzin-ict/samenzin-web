@@ -1161,7 +1161,6 @@ if (seedPeople) {
       availability: ['za-ochtend', 'wo-avond'],
       message: 'Ik wil graag helpen bij taalactiviteiten. Dit is verzonnen tekst.',
       status: 'aangemeld',
-      handled: false,
     },
     {
       name: 'Bram Voorbeeld',
@@ -1173,7 +1172,6 @@ if (seedPeople) {
       languageLevel: 'moedertaal',
       availability: ['zo-middag', 'za-middag'],
       status: 'in-gesprek',
-      handled: false,
     },
     {
       name: 'Chloé Voorbeeld',
@@ -1184,7 +1182,6 @@ if (seedPeople) {
       languageLevel: 'a2',
       availability: ['ma-avond'],
       status: 'goedgekeurd',
-      handled: true,
       vogStatus: 'ok',
     },
     {
@@ -1195,7 +1192,6 @@ if (seedPeople) {
       languageLevel: 'c1',
       availability: ['vr-avond'],
       status: 'afgewezen',
-      handled: true,
     },
   ])
 

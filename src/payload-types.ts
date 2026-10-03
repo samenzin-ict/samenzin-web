@@ -782,10 +782,6 @@ export interface VolunteerApplication {
    */
   status: 'aangemeld' | 'in-gesprek' | 'goedgekeurd' | 'afgewezen';
   /**
-   * Wordt zelf aangevinkt zodra u de status op Goedgekeurd of Afgewezen zet. Vink het met de hand aan voor een aanmelding die u zonder bericht afdoet.
-   */
-  handled?: boolean | null;
-  /**
    * Automatisch ingevuld: 6 maanden na binnenkomst.
    */
   deleteAfter?: string | null;
@@ -915,6 +911,10 @@ export interface CourseEnrolment {
   member: number | Member;
   course: number | Course;
   progress: number;
+  /**
+   * Wordt zelf gevuld zodra de voortgang 100% is. Vanaf dat moment kan het lid een certificaat downloaden.
+   */
+  completedAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1571,7 +1571,6 @@ export interface VolunteerApplicationsSelect<T extends boolean = true> {
   message?: T;
   vogStatus?: T;
   status?: T;
-  handled?: T;
   deleteAfter?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1611,6 +1610,7 @@ export interface CourseEnrolmentsSelect<T extends boolean = true> {
   member?: T;
   course?: T;
   progress?: T;
+  completedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1872,6 +1872,20 @@ export interface SiteSetting {
       }[]
     | null;
   copyright?: string | null;
+  certificate?: {
+    /**
+     * De zin onder de naam van het lid. Laat leeg voor de standaardtekst.
+     */
+    statement?: string | null;
+    /**
+     * Komt onder de ondertekeningslijn. Optioneel.
+     */
+    signatoryName?: string | null;
+    /**
+     * Bijvoorbeeld "Voorzitter". Optioneel.
+     */
+    signatoryRole?: string | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -2200,6 +2214,13 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         id?: T;
       };
   copyright?: T;
+  certificate?:
+    | T
+    | {
+        statement?: T;
+        signatoryName?: T;
+        signatoryRole?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

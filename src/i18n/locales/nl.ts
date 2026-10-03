@@ -464,6 +464,33 @@ export const nl = {
   portalResetToLogin: 'Naar inloggen',
   portalResetRequestNew: 'Nieuwe link aanvragen',
 
+  // Certificaten, ROADMAP 3.6.
+  portalCertificatesTitle: 'Mijn certificaten',
+  portalCertificatesIntro:
+    'Van elke cursus die u heeft afgerond kunt u hier een certificaat opvragen.',
+  portalCertificatesEmpty:
+    'U heeft nog geen cursus afgerond. Zodra een cursus op 100% staat, verschijnt het certificaat hier.',
+  portalCertificatesLink: 'Naar mijn certificaten',
+  portalCertificateView: 'Certificaat bekijken',
+  portalCertificateCompletedOn: 'Afgerond op',
+  // Het certificaat zelf.
+  certificateHeading: 'Certificaat van deelname',
+  certificateAwardedTo: 'Dit certificaat is toegekend aan',
+  /*
+   * De standaardverklaring. Het bestuur kan deze overschrijven in
+   * Instellingen > Certificaten; die tekst gaat voor op deze.
+   */
+  certificateStatementDefault:
+    'heeft met goed gevolg de cursus hieronder afgerond en wordt daarvoor van harte gefeliciteerd.',
+  certificateCourseLabel: 'Cursus',
+  certificateDateLabel: 'Datum',
+  certificateDurationLabel: 'Studielast',
+  certificateSignature: 'Namens het bestuur',
+  certificatePrint: 'Opslaan of afdrukken',
+  certificatePrintHint:
+    'Kies in het afdrukvenster "Opslaan als pdf" om het certificaat als bestand te bewaren.',
+  certificateBackToList: 'Terug naar mijn certificaten',
+
   previewBannerTitle: 'U bekijkt een voorbeeld',
   previewBannerBody:
     'Deze pagina is nog niet gepubliceerd, of u ziet een versie die afwijkt van de gepubliceerde. Bezoekers zien dit niet.',

@@ -33,12 +33,11 @@ export const RETENTION_MONTHS = 6
  * - Closed to the API. The public form writes through a server action that
  *   validates first and then overrides access.
  *
- * `status` is the outcome and `handled` is the administration of it, which is
- * a distinction worth keeping straight. The coordinator sets the status; that
- * writes to the applicant, and it ticks `handled` by itself, because deciding
- * is the thing that makes an application dealt with. `handled` can still be
- * ticked on its own for an application that needs no decision mail, which is
- * what the dashboard counts.
+ * `status` is the one place an application's state lives. There used to be a
+ * `handled` checkbox beside it, from before the status field existed; it ended
+ * up meaning "goedgekeurd or afgewezen" and nothing read it, so it was two
+ * sources of truth for one fact. Removed while no real application existed
+ * yet, because dropping a column once they do is a migration that loses data.
  *
  * Retention is six months, agreed with the maintainer. `deleteAfter` is filled
  * in when the application arrives and is shown in the list, so an overdue
@@ -63,7 +62,7 @@ export const VolunteerApplications: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'email', 'city', 'status', 'vogStatus', 'handled'],
+    defaultColumns: ['name', 'email', 'city', 'status', 'vogStatus', 'createdAt'],
     group: 'Mensen',
     description:
       'Aanmeldingen van mensen die vrijwilliger willen worden. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld, en in elk geval voor de datum in de kolom "Opruimen na".',
@@ -81,19 +80,6 @@ export const VolunteerApplications: CollectionConfig = {
         deleteAfter.setMonth(deleteAfter.getMonth() + RETENTION_MONTHS)
 
         return { ...data, deleteAfter: deleteAfter.toISOString() }
-      },
-      /*
-       * A decision is what makes an application dealt with, so recording one
-       * ticks "afgehandeld" without the coordinator having to remember. Never
-       * unticks it: an application that was handled and then reopened is still
-       * one somebody has worked on.
-       */
-      ({ data }) => {
-        if (data?.status === 'goedgekeurd' || data?.status === 'afgewezen') {
-          return { ...data, handled: true }
-        }
-
-        return data
       },
     ],
     afterChange: [
@@ -241,17 +227,7 @@ export const VolunteerApplications: CollectionConfig = {
           'Let op: bij Goedgekeurd en Afgewezen krijgt de aanmelder automatisch bericht. Aangemeld en In gesprek sturen niets.',
       },
     },
-    {
-      name: 'handled',
-      type: 'checkbox',
-      defaultValue: false,
-      label: 'Afgehandeld',
-      admin: {
-        position: 'sidebar',
-        description:
-          'Wordt zelf aangevinkt zodra u de status op Goedgekeurd of Afgewezen zet. Vink het met de hand aan voor een aanmelding die u zonder bericht afdoet.',
-      },
-    },
+
     {
       name: 'deleteAfter',
       type: 'date',

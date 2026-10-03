@@ -185,7 +185,6 @@ export async function submitApplication(
         // Never anything else from a public form: an aanmelding arrives
         // undecided, and the coordinator is the only one who may change that.
         status: 'aangemeld',
-        handled: false,
       },
     })
 

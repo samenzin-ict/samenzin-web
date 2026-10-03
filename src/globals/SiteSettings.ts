@@ -283,6 +283,59 @@ export const SiteSettings: GlobalConfig = {
             },
           ],
         },
+        {
+          /*
+           * The wording on a course certificate. ROADMAP 3.6.
+           *
+           * Here rather than in the code, because this is the board's text and
+           * they will want to word it themselves — it carries the foundation's
+           * name and somebody signs it. CLAUDE.md rule 5: visible content
+           * comes from the CMS, not from a component.
+           *
+           * One set of wording for every course, not one per course. Nothing
+           * has asked for per-course text, and a field on every course is a
+           * field somebody has to fill in each time.
+           */
+          label: 'Certificaten',
+          description:
+            'De tekst op het certificaat dat een lid kan downloaden na het afronden van een cursus.',
+          fields: [
+            {
+              name: 'certificate',
+              type: 'group',
+              label: 'Certificaat',
+              fields: [
+                {
+                  name: 'statement',
+                  type: 'textarea',
+                  localized: true,
+                  label: 'Verklaring',
+                  admin: {
+                    description:
+                      'De zin onder de naam van het lid. Laat leeg voor de standaardtekst.',
+                  },
+                },
+                {
+                  name: 'signatoryName',
+                  type: 'text',
+                  label: 'Naam van de ondertekenaar',
+                  admin: {
+                    description: 'Komt onder de ondertekeningslijn. Optioneel.',
+                  },
+                },
+                {
+                  name: 'signatoryRole',
+                  type: 'text',
+                  localized: true,
+                  label: 'Functie van de ondertekenaar',
+                  admin: {
+                    description: 'Bijvoorbeeld "Voorzitter". Optioneel.',
+                  },
+                },
+              ],
+            },
+          ],
+        },
       ],
     },
   ],
