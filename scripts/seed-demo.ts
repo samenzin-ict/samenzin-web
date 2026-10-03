@@ -560,6 +560,8 @@ const events = [
     price: { isFree: true },
     capacity: 100,
     spotsAvailable: 12,
+    // Kept on purpose. An aanmeldlink wins over the site's own button,
+    // so this one keeps that branch visible in the demo data.
     registrationUrl: '/contact',
     image: heroImage,
     excerpt: 'Voorbeeldtekst. Een dag voor open gesprek, ontmoeting en wederzijds begrip.',
@@ -579,7 +581,18 @@ const events = [
     theme: 'Ontmoeting',
     audience: 'Iedereen',
     price: { isFree: false, amount: 15 },
-    registrationUrl: '/contact',
+    /*
+     * One place, and the first demo member takes it. Deliberately small so the
+     * full state is reachable: signed in as that member you can cancel and
+     * watch the place come back, and as any other member you see "volgeboekt"
+     * with no button rather than one that would fail.
+     */
+    capacity: 1,
+    // No aanmeldlink, so the website offers its own aanmeldknop to a
+    // signed-in member. Null rather than omitted: the field is
+    // localized, and leaving it out of an update keeps the old value,
+    // so re-seeding would never clear one that had been set.
+    registrationUrl: null,
     image: heroImage,
     excerpt: 'Voorbeeldtekst. Samen eten en elkaar leren kennen.',
     body: richText('Voorbeeldtekst over het iftar-diner.'),
@@ -595,7 +608,11 @@ const events = [
     theme: 'Bezinning',
     audience: 'Iedereen',
     price: { isFree: false, amount: 50 },
-    registrationUrl: '/contact',
+    // No aanmeldlink, so the website offers its own aanmeldknop to a
+    // signed-in member. Null rather than omitted: the field is
+    // localized, and leaving it out of an update keeps the old value,
+    // so re-seeding would never clear one that had been set.
+    registrationUrl: null,
     image: heroImage,
     excerpt: 'Voorbeeldtekst. Een dag rust en bezinning.',
     body: richText('Voorbeeldtekst over het bezinningsretreat.'),
@@ -611,7 +628,11 @@ const events = [
     theme: 'Taal',
     audience: 'Iedereen',
     price: { isFree: false, amount: 30 },
-    registrationUrl: '/contact',
+    // No aanmeldlink, so the website offers its own aanmeldknop to a
+    // signed-in member. Null rather than omitted: the field is
+    // localized, and leaving it out of an update keeps the old value,
+    // so re-seeding would never clear one that had been set.
+    registrationUrl: null,
     image: heroImage,
     excerpt: 'Voorbeeldtekst. Training voor nieuwe taalmaatjes.',
     body: richText('Voorbeeldtekst over de taalmaatje-training.'),
@@ -627,7 +648,11 @@ const events = [
     theme: 'Bezinning',
     audience: 'Iedereen',
     price: { isFree: false, amount: 50 },
-    registrationUrl: '/contact',
+    // No aanmeldlink, so the website offers its own aanmeldknop to a
+    // signed-in member. Null rather than omitted: the field is
+    // localized, and leaving it out of an update keeps the old value,
+    // so re-seeding would never clear one that had been set.
+    registrationUrl: null,
     image: heroImage,
     excerpt: 'Voorbeeldtekst. Een avond over samenleven in de wijk.',
     body: richText('Voorbeeldtekst over het symposium.'),
@@ -676,7 +701,11 @@ const courses = [
     duration: '8 weken, wekelijks een avond',
     startsAt: at(30, 19),
     price: { isFree: true },
-    registrationUrl: '/contact',
+    // No aanmeldlink, so the site's own button shows. This course is enrolled
+    // at 100%, which is what makes uitschrijven refused — the state worth
+    // being able to see. The external-link branch is demonstrated by
+    // /agenda/meet-islam-dag instead.
+    registrationUrl: null,
     excerpt: 'Voorbeeldtekst. Een cursus voor wie net begint met Nederlands.',
     image: taalmaatje,
     body: richText('Voorbeeldtekst over deze cursus.'),
@@ -688,7 +717,11 @@ const courses = [
     level: 'iedereen' as const,
     duration: '4 bijeenkomsten',
     price: { isFree: false, amount: 25 },
-    registrationUrl: '/contact',
+    // No aanmeldlink, so the website offers its own aanmeldknop to a
+    // signed-in member. Null rather than omitted: the field is
+    // localized, and leaving it out of an update keeps the old value,
+    // so re-seeding would never clear one that had been set.
+    registrationUrl: null,
     excerpt: 'Voorbeeldtekst. Wat komt er kijken bij vrijwilligerswerk?',
     image: retraites,
     body: richText('Voorbeeldtekst over deze cursus.'),
