@@ -223,6 +223,17 @@ await payload.updateGlobal({
       },
     ],
     copyright: 'Stichting Samenleving en Zingeving',
+    /*
+     * The wording on a course certificate, so the preview shows a filled-in
+     * document rather than the fallbacks. Invented, like everything else here:
+     * the board writes its own in Instellingen > Certificaten.
+     */
+    certificate: {
+      statement:
+        'heeft de cursus hieronder met goed gevolg afgerond. Wij danken u voor uw inzet en wensen u veel succes met wat u heeft geleerd.',
+      signatoryName: 'V. Voorbeeld',
+      signatoryRole: 'Voorzitter',
+    },
   },
 })
 

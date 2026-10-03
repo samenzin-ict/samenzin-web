@@ -9,9 +9,9 @@ Keep it short. This is a status board, not a diary.
 
 ## Current state
 
-**Phase:** 3 — Member portal. 3.1, 3.2, 3.4 and 3.5 are done. 3.3 (SEPA) and 3.6
-(certificates) are open. Phases 1 and 2 are built apart from 2.5 and 2.7, which the
-maintainer chose to skip.
+**Phase:** 3 — Member portal. 3.1, 3.2, 3.4, 3.5 and 3.6 are done; 3.3 (SEPA) waits on
+the bank account. Phases 1 and 2 are complete apart from 2.5 (team section) and 2.7
+(vacancies), which the maintainer chose to skip.
 **Deployment:** Vercel, Neon PostgreSQL (branches `production` and `dev`) and Cloudflare
 R2 for media, replacing the EU VPS plan. See `docs/environments.md`.
 **Status:** All six phase 1 routes are built, the initial migration exists and the
@@ -121,6 +121,14 @@ the first account you create becomes an administrator automatically.
   the amount an editor typed in for everything that arrived off the website.
 - Retention is enforced for members (two years after `beeindigd`) and donations (the
   donor's name comes off after the seven-year fiscal period; the amount stays).
+- ROADMAP 3.6: certificates at `/mijn/certificaten`. A print-styled page the browser
+  saves as a pdf, so no PDF library is in the bundle and the document is real text.
+  Nothing is stored: a certificate is a view of an enrolment that reached 100%, dated
+  with `completedAt`, which a hook stamps once and never moves. The wording and the
+  signatory live in Instellingen.
+- ROADMAP 2.8's read half: an editor no longer sees other commissions' **drafts**.
+  Published content stays visible to every editor, because hiding what is already on
+  the public site protects nothing and makes the panel look broken.
 
 Verified on a rebuilt database: `pnpm dev` runs, `/admin` loads, the first user is created
 and becomes an administrator, the public routes render from the CMS, and `pnpm build`,
@@ -222,10 +230,12 @@ Still open:
       change a colour there and nowhere else, and that is the one place that cannot: an
       e-mail cannot read a CSS custom property and the stylesheet is not bundled into the
       function that sends the mail. Changing a brand colour means changing it there too.
-- [ ] **Commissions scope changing content, not reading it.** Every editor can still see
-      every document in the admin panel; they cannot alter one another's. Hiding them from
-      the list as well is a change to `read`, which also governs the public site, so it
-      needs care rather than a quick edit.
+- [x] **Commissions now scope reading as well as changing.** The worry in this note —
+      that `read` also governs the public site — turned out not to apply: every helper in
+      `src/lib/payload.ts` calls the local API without `user` or `req`, so public queries
+      carry no identity and take the anonymous branch. Narrower than the note asked for:
+      only other commissions' *drafts* are hidden, because hiding published content from
+      a colleague protects nothing. See `src/access/isPublishedOrOwnCommission.ts`.
 - [ ] **Every collection added from here needs the same three things** as `Pages` and
       `Projects`: `versions.drafts`, the published-only read rule, and `overrideAccess:
       false` in its read helper. The third is the one that is easy to forget and silently
@@ -398,6 +408,14 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-25 | "Export naar boekhouding" is a working CSV download, not a decorative link | A link that does nothing is worse than no link. It returns the paid donations of one month as semicolon-separated UTF-8 with a BOM, which is what Dutch Excel opens without an import dialogue, and it refuses anyone who is not an administrator. Cells starting with = + - or @ are prefixed so a spreadsheet cannot treat them as formulas. |
 | 2026-09-25 | VOG is tracked as an outcome, never as an upload | The dashboard shows it per applicant. The certificate itself is shown to a coordinator in person; storing a scan would mean holding a government document the foundation has no reason to keep. |
 | 2026-09-25 | No separate Donateurs collection | The mockup's sidebar lists one, but donations already carry the giver's name and e-mail. A second collection would be the same personal data in two places, which is two places to delete it from on request. |
+| 2026-10-04 | The database schema was settled deliberately before real data arrives | The maintainer asked to finalise it while nothing real exists, to avoid risky migrations later. The honest framing: *adding* a column or a table never loses data and can wait; what is hard later is dropping, renaming, retyping, tightening NOT NULL, changing a select's stored values, or making a field localized (Payload moves it to a `_locales` table). So the audit looked only for things we would want to *change*. |
+| 2026-10-04 | `volunteer_applications.handled` dropped | It predated the status field, then meant no more than "goedgekeurd or afgewezen", and nothing read it — the dashboard never filtered on it. Two sources of truth for one fact is how they drift. Dropped while production held 0 volunteer aanmeldingen; after real ones arrive the same migration destroys an answer somebody gave. |
+| 2026-10-04 | `events.spotsAvailable` kept, despite looking redundant | It is the only way to show a number for an event where people register somewhere else, which the site cannot count. Derived capacity covers on-site registration; this covers the rest. Recorded so it is not "tidied away" later. |
+| 2026-10-04 | `aangevraagd` for a lidmaatschap, `aangemeld` for a vrijwilliger | Different Dutch nouns — aanvraag and aanmelding — so the initial status differs by design rather than by accident. Renaming either later needs a data migration, so it is written down. |
+| 2026-10-04 | No certificate collection | A certificate is a view of an enrolment that reached 100%, not a thing to store. A stored copy would be a second record that could disagree about whether somebody passed, and another row to keep in step when a coordinator corrects a figure. It is why the access rule refuses to let a member delete an enrolment they have progress on. |
+| 2026-10-04 | A certificate is a print-styled page, not a generated PDF | The browser's own "Opslaan als pdf" makes the file. No PDF library in the serverless bundle, no fonts embedded by hand, and the document is real text a screen reader can read and a phone can zoom. The cost is margins varying slightly between browsers, which for a certificate of participation is not worth a dependency. |
+| 2026-10-04 | `completedAt` is stored, not derived | It is the date the course was finished, which nothing else records: `updatedAt` moves whenever anything on the row changes. Stamped once so a date a certificate already carries cannot move, and cleared if the progress is corrected back below 100. |
+| 2026-10-04 | SEPA subscriptions and vacancy applications stay unbuilt | Both need a new table, and a new table never endangers existing rows, so waiting for the bank account and for the CV-retention decision costs nothing. The thing that could not wait was the column drop above. |
 | 2026-10-03 | E-mail goes over SMTP, not a hosted mail API | The maintainer's call: it points at the mailbox the foundation already has, and later at Google Workspace, so no second processor handles members' names and addresses and no processing register entry or processor agreement is needed for one. `src/lib/email/adapter.ts` is the only file that names a provider, so swapping is four variables and one function. |
 | 2026-10-03 | Nothing in src/lib/email may import `server-only` | Collection configs call `sendMail`, and the configs are loaded by the `payload` CLI, which runs on plain Node where that package does not resolve. With the marker, `payload migrate` fails with ERR_MODULE_NOT_FOUND — and `vercel-build` runs it before `next build`, so the deploy breaks. |
 | 2026-10-03 | The adapter passes `skipVerify` | It otherwise opens a full SMTP handshake while building the config, which happens on every serverless cold start, including functions that will never send anything. A bad setting shows up in the log of the first message instead. |
