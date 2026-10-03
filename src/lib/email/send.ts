@@ -1,4 +1,14 @@
-import 'server-only'
+/*
+ * No `import 'server-only'` in this file or in ./auth.ts, deliberately.
+ *
+ * Collection configs call these, and the configs are loaded by the `payload`
+ * CLI — `payload migrate`, which the Vercel build runs before `next build`,
+ * and `payload run` for the seed and the retention script. Those run on plain
+ * Node with no Next bundler, where the `server-only` package does not resolve
+ * at all: adding the marker makes every one of them fail with
+ * ERR_MODULE_NOT_FOUND. The sibling modules that do carry it, such as
+ * src/lib/member-auth.ts, are only ever reached from a request.
+ */
 
 import type { Payload } from 'payload'
 
@@ -134,6 +144,30 @@ export async function sendNotification(
   }
 
   return sendMail(payload, { to: notifyAddress, template })
+}
+
+/**
+ * Renders a template without sending it.
+ *
+ * For Payload's own authentication emails, which it sends itself: the
+ * collection's generateEmailHTML hook has to hand back HTML rather than
+ * dispatch a message. Going through here means the password-reset mail gets
+ * the same shell, the same escaping and the same footer as everything else.
+ */
+export async function renderTemplate(
+  payload: Payload,
+  template: EmailTemplate,
+): Promise<{ html: string; text: string }> {
+  const sender = await getSender(payload)
+
+  const content = {
+    preview: template.preview,
+    blocks: template.blocks,
+    organisation: sender.organisation,
+    siteUrl: sender.siteUrl,
+  }
+
+  return { html: renderEmailHtml(content), text: renderEmailText(content) }
 }
 
 /** A link into the admin panel, for the notifications that carry one. */

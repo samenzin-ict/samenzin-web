@@ -15,6 +15,7 @@ import * as migration_20260924_231355_volunteer_intake from './20260924_231355_v
 import * as migration_20260925_022716_member_portal from './20260925_022716_member_portal';
 import * as migration_20260925_023651_vacancies_and_vog from './20260925_023651_vacancies_and_vog';
 import * as migration_20261001_131451_contact_retention from './20261001_131451_contact_retention';
+import * as migration_20261003_142915_volunteer_status from './20261003_142915_volunteer_status';
 
 export const migrations = [
   {
@@ -100,6 +101,11 @@ export const migrations = [
   {
     up: migration_20261001_131451_contact_retention.up,
     down: migration_20261001_131451_contact_retention.down,
-    name: '20261001_131451_contact_retention'
+    name: '20261001_131451_contact_retention',
+  },
+  {
+    up: migration_20261003_142915_volunteer_status.up,
+    down: migration_20261003_142915_volunteer_status.down,
+    name: '20261003_142915_volunteer_status'
   },
 ];

@@ -1,6 +1,8 @@
 import type { CollectionConfig } from 'payload'
 
 import { isVolunteerCoordinator } from '@/access'
+import { getEmailMessages } from '@/i18n'
+import { sendMail } from '@/lib/email'
 import {
   AVAILABILITY_OPTIONS,
   CITY_OPTIONS,
@@ -31,6 +33,13 @@ export const RETENTION_MONTHS = 6
  * - Closed to the API. The public form writes through a server action that
  *   validates first and then overrides access.
  *
+ * `status` is the outcome and `handled` is the administration of it, which is
+ * a distinction worth keeping straight. The coordinator sets the status; that
+ * writes to the applicant, and it ticks `handled` by itself, because deciding
+ * is the thing that makes an application dealt with. `handled` can still be
+ * ticked on its own for an application that needs no decision mail, which is
+ * what the dashboard counts.
+ *
  * Retention is six months, agreed with the maintainer. `deleteAfter` is filled
  * in when the application arrives and is shown in the list, so an overdue
  * record is visible rather than theoretical. Deleting is not automatic; run
@@ -54,7 +63,7 @@ export const VolunteerApplications: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'email', 'city', 'interests', 'vogStatus', 'handled'],
+    defaultColumns: ['name', 'email', 'city', 'status', 'vogStatus', 'handled'],
     group: 'Mensen',
     description:
       'Aanmeldingen van mensen die vrijwilliger willen worden. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld, en in elk geval voor de datum in de kolom "Opruimen na".',
@@ -72,6 +81,47 @@ export const VolunteerApplications: CollectionConfig = {
         deleteAfter.setMonth(deleteAfter.getMonth() + RETENTION_MONTHS)
 
         return { ...data, deleteAfter: deleteAfter.toISOString() }
+      },
+      /*
+       * A decision is what makes an application dealt with, so recording one
+       * ticks "afgehandeld" without the coordinator having to remember. Never
+       * unticks it: an application that was handled and then reopened is still
+       * one somebody has worked on.
+       */
+      ({ data }) => {
+        if (data?.status === 'goedgekeurd' || data?.status === 'afgewezen') {
+          return { ...data, handled: true }
+        }
+
+        return data
+      },
+    ],
+    afterChange: [
+      /**
+       * Tells the applicant what was decided.
+       *
+       * Only on the two statuses that are a decision. "In gesprek" is an
+       * internal note about where the coordinator has got to, and sending mail
+       * for it would be noise.
+       *
+       * Fires on a change of status and not on every save, so correcting a
+       * typo in somebody's telephone number does not tell them again that they
+       * were turned down.
+       */
+      async ({ doc, previousDoc, operation, req }) => {
+        if (operation !== 'update') return
+        if (doc.status === previousDoc?.status) return
+        if (doc.status !== 'goedgekeurd' && doc.status !== 'afgewezen') return
+
+        const email = getEmailMessages()
+
+        await sendMail(req.payload, {
+          to: doc.email,
+          template:
+            doc.status === 'goedgekeurd'
+              ? email.volunteerApproved({ name: doc.name })
+              : email.volunteerRejected({ name: doc.name }),
+        })
       },
     ],
   },
@@ -173,13 +223,33 @@ export const VolunteerApplications: CollectionConfig = {
       },
     },
     {
+      name: 'status',
+      type: 'select',
+      required: true,
+      defaultValue: 'aangemeld',
+      index: true,
+      label: 'Status',
+      options: [
+        { label: 'Aangemeld', value: 'aangemeld' },
+        { label: 'In gesprek', value: 'in-gesprek' },
+        { label: 'Goedgekeurd', value: 'goedgekeurd' },
+        { label: 'Afgewezen', value: 'afgewezen' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description:
+          'Let op: bij Goedgekeurd en Afgewezen krijgt de aanmelder automatisch bericht. Aangemeld en In gesprek sturen niets.',
+      },
+    },
+    {
       name: 'handled',
       type: 'checkbox',
       defaultValue: false,
       label: 'Afgehandeld',
       admin: {
         position: 'sidebar',
-        description: 'Vink aan zodra er contact is geweest.',
+        description:
+          'Wordt zelf aangevinkt zodra u de status op Goedgekeurd of Afgewezen zet. Vink het met de hand aan voor een aanmelding die u zonder bericht afdoet.',
       },
     },
     {

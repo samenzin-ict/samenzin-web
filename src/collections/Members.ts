@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { isAdmin, isAdminFieldLevel, isAdminOrSelfMember } from '@/access'
 import { COMMISSION_OPTIONS } from '@/fields/commissions'
+import { memberResetUrl, resetPasswordEmail } from '@/lib/email/auth'
 
 /** How long a member stays signed in before having to log in again. */
 export const TOKEN_EXPIRATION_SECONDS = 60 * 60 * 24 * 7
@@ -24,9 +25,12 @@ export const TOKEN_EXPIRATION_SECONDS = 60 * 60 * 24 * 7
  * administrator. There is no public sign-up: membership is granted, not
  * claimed.
  *
- * Until an email adapter exists there is no "forgotten password" and no way to
- * invite somebody. An administrator sets the password here and passes it on
- * themselves. That is recorded as a launch blocker in PROGRESS.md.
+ * A member sets their own password and always has. Approving an application
+ * sends them a link to do it with, and the login page offers "wachtwoord
+ * vergeten", both of which land on /mijn/wachtwoord-instellen. An
+ * administrator never sees or sets a member's password; the random one the
+ * account is created with exists only so the account cannot be claimed by
+ * somebody who guesses the address.
  */
 export const Members: CollectionConfig = {
   slug: 'members',
@@ -44,8 +48,21 @@ export const Members: CollectionConfig = {
      */
     maxLoginAttempts: 5,
     lockTime: 15 * 60 * 1000,
-    // Email verification needs an email adapter. There is none yet.
+    /*
+     * No address verification. A member does not sign themselves up: the board
+     * approves an application and the account is created from the address the
+     * applicant gave. Setting a password already proves they can read mail at
+     * that address, so a separate verification step would ask the same
+     * question twice.
+     */
     verify: false,
+    /*
+     * The Dutch reset mail, instead of Payload's English default. Expiry is
+     * deliberately left at Payload's one hour: a per-collection value would
+     * also override the 24 hours that the welcome message asks for, because
+     * the collection setting wins over the per-call one.
+     */
+    forgotPassword: resetPasswordEmail(memberResetUrl),
   },
   access: {
     create: isAdmin,
@@ -105,7 +122,7 @@ export const Members: CollectionConfig = {
     defaultColumns: ['name', 'email', 'status', 'memberSince'],
     group: 'Mensen',
     description:
-      'Leden met een eigen inlog voor Mijn omgeving. Leden kunnen niet in dit beheerpaneel. Zolang er geen e-mail is ingesteld, stelt een beheerder hier het wachtwoord in en geeft dat zelf door. Let op: een lid verwijderen wist ook de uren die dit lid heeft ingevoerd. Wilt u het lidmaatschap alleen beëindigen, zet de status dan op Beëindigd.',
+      'Leden met een eigen inlog voor Mijn omgeving. Leden kunnen niet in dit beheerpaneel. Een lid stelt zijn eigen wachtwoord in via de link die het bij goedkeuring krijgt, of via "Wachtwoord vergeten" op de inlogpagina. Let op: een lid verwijderen wist ook de uren die dit lid heeft ingevoerd. Wilt u het lidmaatschap alleen beëindigen, zet de status dan op Beëindigd.',
   },
   fields: [
     { name: 'name', type: 'text', required: true, label: 'Naam', maxLength: 200 },

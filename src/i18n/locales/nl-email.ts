@@ -253,7 +253,7 @@ export const nlEmail = {
       },
       {
         type: 'paragraph',
-        text: 'U ontvangt een apart bericht waarmee u een wachtwoord instelt voor Mijn omgeving.',
+        text: 'Wij maken uw account voor Mijn omgeving in orde en nemen contact met u op zodra u kunt inloggen.',
       },
       { type: 'paragraph', text: signOff },
     ],

@@ -11,7 +11,8 @@ import {
   isLanguageLevel,
   isSkill,
 } from '@/fields/volunteering'
-import { getMessages } from '@/i18n'
+import { getEmailMessages, getMessages } from '@/i18n'
+import { adminUrlFor, sendMail, sendNotification } from '@/lib/email'
 import { getPayloadClient } from '@/lib/payload'
 import { checkRateLimit, pruneRateLimits } from '@/lib/rate-limit'
 import { clearDraft, readDraft, saveDraft } from '@/lib/volunteer-draft'
@@ -162,8 +163,10 @@ export async function submitApplication(
   const city = draft.city
   const level = draft.languageLevel
 
+  let applicationId: number | string
+
   try {
-    await payload.create({
+    const application = await payload.create({
       collection: 'volunteer-applications',
       // Validated step by step; the collection is closed to the API on purpose.
       overrideAccess: true,
@@ -179,13 +182,40 @@ export async function submitApplication(
         languageLevel: level && isLanguageLevel(level) ? level : null,
         availability: (draft.availability ?? []).filter(isAvailability),
         message: draft.message?.slice(0, 5000) || null,
+        // Never anything else from a public form: an aanmelding arrives
+        // undecided, and the coordinator is the only one who may change that.
+        status: 'aangemeld',
         handled: false,
       },
     })
+
+    applicationId = application.id
   } catch (error) {
     console.error('Volunteer application failed', error)
     return { status: 'error', errors: { form: messages.volunteerErrorGeneric } }
   }
+
+  /*
+   * Both messages before the redirect, because redirect() works by throwing:
+   * anything after it never runs. After the record is stored, so a mail
+   * server that is down costs a confirmation rather than the application.
+   */
+  const email = getEmailMessages()
+
+  await sendMail(payload, {
+    to: draft.email,
+    template: email.volunteerConfirmation({ name: draft.name }),
+  })
+
+  await sendNotification(
+    payload,
+    email.volunteerNotification({
+      name: draft.name,
+      email: draft.email,
+      city: city && isCity(city) ? city : null,
+      url: adminUrlFor('volunteer-applications', applicationId),
+    }),
+  )
 
   await pruneRateLimits(payload, 'volunteer')
   await clearDraft(payload)

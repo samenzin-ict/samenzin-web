@@ -3,7 +3,8 @@
 import { headers } from 'next/headers'
 
 import { HONEYPOT_FIELD } from '@/app/(frontend)/contact/honeypot'
-import { getMessages } from '@/i18n'
+import { getEmailMessages, getMessages } from '@/i18n'
+import { adminUrlFor, sendMail, sendNotification } from '@/lib/email'
 import { getPayloadClient } from '@/lib/payload'
 import { checkRateLimit, pruneRateLimits } from '@/lib/rate-limit'
 
@@ -74,8 +75,10 @@ export async function submitContactForm(
     return { status: 'error', errors, values }
   }
 
+  let submissionId: number | string
+
   try {
-    await payload.create({
+    const submission = await payload.create({
       collection: 'contact-submissions',
       /*
        * The collection is closed to public creation on purpose, so that
@@ -90,6 +93,8 @@ export async function submitContactForm(
         handled: false,
       },
     })
+
+    submissionId = submission.id
   } catch (error) {
     /*
      * Logged for the maintainer, never shown to the visitor: the message may
@@ -98,6 +103,34 @@ export async function submitContactForm(
     console.error('Contact form submission failed', error)
     return { status: 'error', errors: { form: messages.contactErrorGeneric }, values }
   }
+
+  /*
+   * Two messages, after the record is safely stored and never before it.
+   *
+   * Order matters: if sending were first, a mail server that hung would make
+   * the visitor wait and then see an error for a message that was never
+   * saved. sendMail does not throw, so neither of these can turn a received
+   * message into a failed one; a mail server that is down costs a
+   * confirmation, not the message itself.
+   */
+  const email = getEmailMessages()
+
+  await sendMail(payload, {
+    to: values.email,
+    template: email.contactConfirmation({
+      name: values.name,
+      message: values.message,
+    }),
+  })
+
+  await sendNotification(
+    payload,
+    email.contactNotification({
+      name: values.name,
+      email: values.email,
+      url: adminUrlFor('contact-submissions', submissionId),
+    }),
+  )
 
   // Cheap to do here: a successful submission is rare.
   await pruneRateLimits(payload)

@@ -277,8 +277,9 @@ export const nl = {
     'Dit account is tijdelijk geblokkeerd na te veel mislukte pogingen. Probeer het over een kwartier opnieuw.',
   portalLoginTooMany:
     'U heeft kort achter elkaar te vaak geprobeerd in te loggen. Wacht een paar minuten en probeer het opnieuw.',
+  portalLoginForgot: 'Wachtwoord vergeten?',
   portalLoginNoAccount:
-    'Wachtwoord vergeten? Neem contact met ons op; wij kunnen een nieuw wachtwoord voor u instellen.',
+    'Heeft u nog geen account? Lidmaatschap wordt door het bestuur toegekend. Neem contact met ons op als u denkt dat u wel een account zou moeten hebben.',
   portalOverviewIntro:
     'Hier vindt u uw uren, uw lidmaatschap en uw gegevens. In een volgende fase komen hier ook uw taken, cursussen en evenementen bij.',
   portalDetailsTitle: 'Mijn gegevens',
@@ -394,6 +395,38 @@ export const nl = {
   portalHoursTableCommission: 'Commissie',
   portalHoursTableActions: 'Acties',
 
+  // Wachtwoord vergeten, en de pagina waar een lid er een instelt.
+  portalForgotTitle: 'Wachtwoord vergeten',
+  portalForgotIntro:
+    'Vul het e-mailadres in waarmee u bij ons bekend bent. Wij sturen u een link waarmee u een nieuw wachtwoord instelt.',
+  portalForgotEmailLabel: 'E-mailadres',
+  portalForgotSubmit: 'Stuur mij een link',
+  portalForgotSubmitting: 'Bezig met versturen\u2026',
+  /*
+   * Hetzelfde antwoord of het adres bestaat of niet. Anders kan iedereen
+   * uitproberen welke adressen lid zijn, en dat is precies wat een
+   * ledenregister niet mag verklappen.
+   */
+  portalForgotSent:
+    'Als dit adres bij ons bekend is, ontvangt u binnen enkele minuten een e-mail met een link. Kijk ook in uw map met ongewenste e-mail.',
+  portalForgotTooMany:
+    'Er zijn te veel aanvragen gedaan. Wacht tien minuten en probeer het dan opnieuw.',
+  portalForgotBackToLogin: 'Terug naar inloggen',
+
+  portalResetTitle: 'Wachtwoord instellen',
+  portalResetIntro: 'Kies een wachtwoord waarmee u inlogt op Mijn omgeving.',
+  portalResetSubmit: 'Wachtwoord instellen',
+  portalResetSubmitting: 'Bezig met instellen\u2026',
+  portalResetSuccess: 'Uw wachtwoord is ingesteld. U kunt nu inloggen.',
+  portalResetInvalidTitle: 'Deze link werkt niet meer',
+  portalResetInvalidBody:
+    'De link is verlopen of al gebruikt. Vraag op de pagina "Wachtwoord vergeten" een nieuwe link aan.',
+  portalResetErrorToken:
+    'Deze link is verlopen of al gebruikt. Vraag een nieuwe link aan.',
+  portalResetError:
+    'Uw wachtwoord kon niet worden ingesteld. Probeer het later opnieuw.',
+  portalResetToLogin: 'Naar inloggen',
+  portalResetRequestNew: 'Nieuwe link aanvragen',
 
   previewBannerTitle: 'U bekijkt een voorbeeld',
   previewBannerBody:

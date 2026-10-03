@@ -775,7 +775,11 @@ export interface VolunteerApplication {
    */
   vogStatus?: ('niet-gestart' | 'loopt' | 'ok' | 'niet-nodig') | null;
   /**
-   * Vink aan zodra er contact is geweest.
+   * Let op: bij Goedgekeurd en Afgewezen krijgt de aanmelder automatisch bericht. Aangemeld en In gesprek sturen niets.
+   */
+  status: 'aangemeld' | 'in-gesprek' | 'goedgekeurd' | 'afgewezen';
+  /**
+   * Wordt zelf aangevinkt zodra u de status op Goedgekeurd of Afgewezen zet. Vink het met de hand aan voor een aanmelding die u zonder bericht afdoet.
    */
   handled?: boolean | null;
   /**
@@ -816,7 +820,7 @@ export interface VolunteerHour {
   createdAt: string;
 }
 /**
- * Leden met een eigen inlog voor Mijn omgeving. Leden kunnen niet in dit beheerpaneel. Zolang er geen e-mail is ingesteld, stelt een beheerder hier het wachtwoord in en geeft dat zelf door. Let op: een lid verwijderen wist ook de uren die dit lid heeft ingevoerd. Wilt u het lidmaatschap alleen beëindigen, zet de status dan op Beëindigd.
+ * Leden met een eigen inlog voor Mijn omgeving. Leden kunnen niet in dit beheerpaneel. Een lid stelt zijn eigen wachtwoord in via de link die het bij goedkeuring krijgt, of via "Wachtwoord vergeten" op de inlogpagina. Let op: een lid verwijderen wist ook de uren die dit lid heeft ingevoerd. Wilt u het lidmaatschap alleen beëindigen, zet de status dan op Beëindigd.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "members".
@@ -866,7 +870,7 @@ export interface Member {
   collection: 'members';
 }
 /**
- * Taken die vrijwilligers in Mijn omgeving zien en kunnen afvinken.
+ * Taken die vrijwilligers in Mijn omgeving zien en kunnen afvinken. Het lid krijgt bericht zodra u een taak aan hem toewijst.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "member-tasks".
@@ -986,7 +990,7 @@ export interface MembershipApplication {
    */
   motivation?: string | null;
   /**
-   * De aanvrager krijgt hiervan geen automatisch bericht. Neem zelf contact op.
+   * Let op: de aanvrager krijgt hiervan automatisch bericht. Bij Goedgekeurd ontvangt hij een welkomstmail met een link om zelf een wachtwoord in te stellen; bij Afgewezen een kort bericht.
    */
   status: 'aangevraagd' | 'goedgekeurd' | 'afgewezen';
   /**
@@ -1551,6 +1555,7 @@ export interface VolunteerApplicationsSelect<T extends boolean = true> {
   interest?: T;
   message?: T;
   vogStatus?: T;
+  status?: T;
   handled?: T;
   deleteAfter?: T;
   updatedAt?: T;

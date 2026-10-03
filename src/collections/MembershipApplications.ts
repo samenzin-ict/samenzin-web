@@ -3,6 +3,9 @@ import { randomBytes } from 'crypto'
 import type { CollectionConfig } from 'payload'
 
 import { isAdmin, isAdminFieldLevel } from '@/access'
+import { getEmailMessages } from '@/i18n'
+import { sendMail } from '@/lib/email'
+import { memberResetUrl } from '@/lib/email/auth'
 
 /** How long an application that did not become a membership is kept. */
 export const RETENTION_MONTHS = 6
@@ -20,9 +23,10 @@ export const RETENTION_MONTHS = 6
  * holding them for people who are turned down.
  *
  * Approval is explicit and never automatic. `status` can only be changed by an
- * administrator, and the applicant is not told anything by this system: the
- * board writes to them. Approving does create the member record (ROADMAP 3.2),
- * so nobody has to retype a name and an e-mail address that are already here.
+ * administrator. Changing it does now write to the applicant: approving sends
+ * a welcome message with a link to set a password, declining sends a short
+ * note. Approving also creates the member record (ROADMAP 3.2), so nobody has
+ * to retype a name and an e-mail address that are already here.
  *
  * Retention: an application that is still pending or was declined is deleted
  * after six months, the same as a volunteer application. An approved one is
@@ -57,21 +61,34 @@ export const MembershipApplications: CollectionConfig = {
   hooks: {
     afterChange: [
       /**
-       * Approving an application creates the member. ROADMAP 3.1 into 3.2.
+       * Acting on the board's decision. ROADMAP 3.1 into 3.2.
        *
-       * Idempotent on the e-mail address, because "goedgekeurd" can be saved
-       * more than once and a second save must not create a second member or
-       * overwrite the first one's password.
+       * Approving creates the member and tells them so, with a link to set
+       * their own password. Declining sends a short message saying so. Either
+       * way the applicant now hears something, which until this existed they
+       * never did: the status changed in the admin panel and nothing left the
+       * building.
        *
-       * The password is random and is never shown to anyone. There is no email
-       * adapter yet, so there is no invitation to send and no reset link to
-       * follow; an administrator opens the new member and sets a password they
-       * pass on themselves. The alternative, leaving the account without a
-       * password, would be an account anybody could claim.
+       * Creating the member is idempotent on the e-mail address, because
+       * "goedgekeurd" can be saved more than once and a second save must not
+       * create a second member or reset the first one's password.
        */
       async ({ doc, previousDoc, operation, req }) => {
         if (operation !== 'update') return
-        if (doc.status !== 'goedgekeurd' || previousDoc?.status === 'goedgekeurd') return
+        if (doc.status === previousDoc?.status) return
+
+        const email = getEmailMessages()
+
+        if (doc.status === 'afgewezen') {
+          await sendMail(req.payload, {
+            to: doc.email,
+            template: email.membershipRejected({ name: doc.name }),
+          })
+
+          return
+        }
+
+        if (doc.status !== 'goedgekeurd') return
 
         const existing = await req.payload.find({
           collection: 'members',
@@ -81,29 +98,80 @@ export const MembershipApplications: CollectionConfig = {
           req,
         })
 
-        if (existing.totalDocs > 0) return
+        if (existing.totalDocs === 0) {
+          try {
+            await req.payload.create({
+              collection: 'members',
+              overrideAccess: true,
+              req,
+              data: {
+                name: doc.name,
+                email: doc.email,
+                status: 'actief',
+                memberSince: new Date().toISOString(),
+                /*
+                 * 32 bytes of entropy nobody holds, not even an
+                 * administrator. The member sets their own password through
+                 * the link below. The account is never passwordless, which
+                 * would be an account anybody could claim.
+                 */
+                password: randomBytes(32).toString('hex'),
+              },
+            })
+          } catch (error) {
+            // Never let this fail the approval itself: the board's decision is
+            // recorded either way, and an administrator can add the member by
+            // hand. Swallowing it silently would be worse than a log line.
+            req.payload.logger.error(
+              { err: error },
+              'Approved membership application but could not create the member',
+            )
 
+            // No account, so no link to send. Say the decision and nothing
+            // about logging in.
+            await sendMail(req.payload, {
+              to: doc.email,
+              template: email.membershipApproved({ name: doc.name }),
+            })
+
+            return
+          }
+        }
+
+        /*
+         * The welcome message carries a password-reset token, which is how the
+         * member gets in the first time. Payload's own reset mail is
+         * suppressed: this one says more, and the member has not asked to
+         * reset anything.
+         *
+         * 24 hours rather than the usual hour. This link is the member's only
+         * way in and arrives unannounced, so it has to survive a weekend.
+         * Passed per call because a value on the collection would also stretch
+         * the ordinary "wachtwoord vergeten" link to 24 hours.
+         */
         try {
-          await req.payload.create({
+          const token = await req.payload.forgotPassword({
             collection: 'members',
-            overrideAccess: true,
+            data: { email: doc.email },
+            disableEmail: true,
+            expiration: 24 * 60 * 60 * 1000,
             req,
-            data: {
-              name: doc.name,
-              email: doc.email,
-              status: 'actief',
-              memberSince: new Date().toISOString(),
-              // 32 bytes of entropy nobody holds. See the note above.
-              password: randomBytes(32).toString('hex'),
-            },
+          })
+
+          await sendMail(req.payload, {
+            to: doc.email,
+            template: email.memberWelcome({ name: doc.name, url: memberResetUrl(token) }),
           })
         } catch (error) {
-          // Never let this fail the approval itself: the board's decision is
-          // recorded either way, and an administrator can add the member by
-          // hand. Swallowing it silently would be worse than a log line.
+          /*
+           * The member exists and the approval stands; only the invitation
+           * failed. An administrator can send a new link from the login page's
+           * "wachtwoord vergeten", so this is recoverable without touching
+           * the database.
+           */
           req.payload.logger.error(
             { err: error },
-            'Approved membership application but could not create the member',
+            `Created or found the member for ${doc.email} but could not send the welcome message`,
           )
         }
       },
@@ -161,7 +229,7 @@ export const MembershipApplications: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description:
-          'De aanvrager krijgt hiervan geen automatisch bericht. Neem zelf contact op.',
+          'Let op: de aanvrager krijgt hiervan automatisch bericht. Bij Goedgekeurd ontvangt hij een welkomstmail met een link om zelf een wachtwoord in te stellen; bij Afgewezen een kort bericht.',
       },
     },
     {
