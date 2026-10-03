@@ -301,7 +301,31 @@ checkboxes for Production, Preview and Development. Tick only the ones named
 below; leave Development unticked, it is for `vercel dev` which we do not use.
 
 After saving, **redeploy**. Variables are read when a build runs, not injected
-into a build that already happened.
+into a build that already happened. Run the CI workflow by hand from the
+Actions tab — on `dev` for the Preview, on `main` for Production — rather than
+making an empty commit.
+
+### Do not mark anything Sensitive
+
+Vercel offers a **Sensitive** toggle, which stops a variable's value being read
+back after it is saved. **It cannot be used here**, for any variable, including
+the ones that really are secrets.
+
+The reason is this project's deployment model. GitHub Actions builds on its own
+runner and uploads the result, rather than letting Vercel build (see above).
+The build gets its variables from `vercel pull`, and a sensitive variable is
+exactly the thing `vercel pull` is not allowed to return — so the build runs
+without it.
+
+What that looks like, if it happens anyway: a `DATABASE_URI` that arrives empty
+or truncated, and then `getaddrinfo EAI_AGAIN <fragment>` from inside the
+Postgres driver, which reads like a network fault and sends you looking at
+Neon. The deploy job checks the connection string's shape before the build and
+names this cause, so a future occurrence says so rather than being puzzled over.
+
+The protection that does apply: these values live only in Vercel and in GitHub
+Actions secrets, never in the repository, and the deploy log prints the
+database *host* and nothing else.
 
 ### Production
 
