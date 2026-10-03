@@ -9,8 +9,9 @@ Keep it short. This is a status board, not a diary.
 
 ## Current state
 
-**Phase:** 3 — Member portal. 3.1, 3.2, 3.5 and the 3.4 catalogue are done. Phases 1 and 2
-are built apart from 2.5 and 2.7, which the maintainer chose to skip.
+**Phase:** 3 — Member portal. 3.1, 3.2, 3.4 and 3.5 are done. 3.3 (SEPA) and 3.6
+(certificates) are open. Phases 1 and 2 are built apart from 2.5 and 2.7, which the
+maintainer chose to skip.
 **Deployment:** Vercel, Neon PostgreSQL (branches `production` and `dev`) and Cloudflare
 R2 for media, replacing the EU VPS plan. See `docs/environments.md`.
 **Status:** All six phase 1 routes are built, the initial migration exists and the
@@ -95,6 +96,31 @@ the first account you create becomes an administrator automatically.
 - `VolunteerHours` and `/mijn/uren` (3.5): a member registers, corrects and deletes their
   own hours, with totals for this year and since the beginning. Administrators and editors
   in the vrijwilligers commission see everyone's; no other editor sees any.
+- **E-mail, over SMTP, behind one swappable adapter.** `src/lib/email/adapter.ts` is the
+  only file that names a provider; everything else calls `sendMail`, which calls
+  `payload.sendEmail`. Dutch text lives in `src/i18n/locales/nl-email.ts`. With SMTP_HOST
+  unset nothing is sent and Payload logs the recipient and subject, so a local clone and a
+  deploy with a missing variable both still work.
+- Eight messages: a welcome with a set-password link when an application is approved, a
+  Dutch "wachtwoord vergeten" for members *and* administrators, a decision mail for a
+  declined membership and for a volunteer aanmelding, confirmations to whoever filled in
+  the contact, vrijwilligers or lid-worden form, notifications to the foundation's own
+  mailbox, a task-assignment message, and enrolment and registration confirmations.
+- `/mijn/wachtwoord-vergeten` and `/mijn/wachtwoord-instellen`. A member sets their own
+  password; an administrator never sees one. Resetting deliberately does not sign them in.
+- `status` on `VolunteerApplications` (aangemeld / in gesprek / goedgekeurd / afgewezen).
+  `handled` still means "the coordinator dealt with it" and is ticked automatically by
+  recording a decision.
+- ROADMAP 3.4 finished: a signed-in member enrols from `/cursussen/<slug>` and registers
+  from `/agenda/<slug>`, and may undo either — withdrawing while progress is zero,
+  cancelling until somebody ticks them as attended. Both limits are query constraints in
+  `src/access/selfEnrolment.ts`, so the REST endpoint is bound by them too. Event capacity
+  is counted from the registrations instead of being hand-decremented.
+- A gift can be earmarked for a project: `/doneren?project=<slug>`, a `project`
+  relationship on `Donations`, and a fundraising bar that adds the paid online gifts to
+  the amount an editor typed in for everything that arrived off the website.
+- Retention is enforced for members (two years after `beeindigd`) and donations (the
+  donor's name comes off after the seven-year fiscal period; the amount stays).
 
 Verified on a rebuilt database: `pnpm dev` runs, `/admin` loads, the first user is created
 and becomes an administrator, the public routes render from the CMS, and `pnpm build`,
@@ -103,16 +129,20 @@ database stopped, which is the situation in GitHub Actions.
 
 ## In progress
 
-- Nothing half-done. The session ended on a clean tree.
+- Nothing half-done. The session ended on a clean tree, lint, types and build all
+  passing, and both branches in step.
 
 ## Next up
 
-1. **Write the privacy statement.** This is a launch blocker, see below. It now has to
-   cover three forms: contact, volunteer applications and membership applications.
-2. **An email adapter.** This now blocks more than password resets: a new member cannot
-   receive their own login. See below.
-3. Fill in Instellingen and create the pages: `home`, `over-ons`, `contact`, `doneren`,
-   `privacyverklaring`. The site is empty until someone does.
+1. **Fill in the SMTP variables in Vercel, then redeploy.** Everything that sends mail is
+   built and tested, and nothing is sent until `SMTP_HOST` is set. See `.env.example`; for
+   Google Workspace it is `smtp.gmail.com`, port 587, and an app password. Until then an
+   approved member still never hears that their account exists.
+2. **Set `CRON_SECRET` in Vercel (Production), then redeploy.** The daily clear-out
+   returns 503 without it.
+3. Replace the demo values in Instellingen on production with the real address, telephone
+   number and e-mail. The privacyverklaring already gives `info@samenzin.org`, so the two
+   disagree until this is done.
 4. Set `PREVIEW_SECRET` in Vercel for Production and Preview, then redeploy
 5. Decide the backup arrangement for Neon, see below
 6. Lighthouse pass on mobile once there is real content to measure
@@ -135,28 +165,50 @@ database stopped, which is the situation in GitHub Actions.
       /api/cron/prune returns 503 until it is set, and nothing is deleted. Any random
       string of 16 characters or more. Verified live: 503 now, 401 for a wrong secret,
       200 for the right one.
+- [ ] **Set the SMTP variables in Vercel (Production and Preview), then redeploy.** This is
+      the one that matters most: everything that sends mail is built and tested, and
+      nothing is sent until `SMTP_HOST` is set. Until then an approved member still never
+      learns their account exists, and nobody who fills in a form hears anything back.
+      `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM_ADDRESS`,
+      `EMAIL_FROM_NAME`; for Google Workspace that is smtp.gmail.com, port 587, and an app
+      password rather than the account password. `EMAIL_NOTIFY_ADDRESS` is optional and
+      defaults to the e-mail address in Instellingen.
+      Nothing breaks while they are empty: Payload logs the recipient and subject instead
+      of sending, and no form or approval fails.
+- [ ] **Check whether the foundation's mail provider lets the site send as its own
+      address.** Most relays refuse to send as an address the authenticated account does
+      not own, so `EMAIL_FROM_ADDRESS` usually has to be the same mailbox as `SMTP_USER`.
+      Worth testing with one real message before relying on it.
 
 ## Retention, and what the privacyverklaring promises
 
 The published statement is a commitment, so the gap between it and the code is worth
-keeping visible. Implemented:
+keeping visible. All of it is enforced by `src/lib/retention.ts`, run by a daily Vercel
+cron job at 04:00 UTC and by `pnpm prune:expired`.
 
 | Data | Promised | Implemented |
 |---|---|---|
-| Contact messages | handled, then at most 1 year, deleted automatically | `deleteAfter` on arrival, daily cron |
-| Volunteer applications | — | 6 months, same mechanism |
+| Contact messages | handled, then at most 1 year, deleted automatically | `deleteAfter` on arrival |
+| Volunteer applications | — | 6 months from arrival |
 | Membership applications | — | 6 months; an approved one is kept |
+| Members | "zolang uw account bestaat en daarna 2 jaar" | 2 years from `status: beeindigd`; deleting takes their hours, tasks, enrolments and registrations |
+| Donations | 7 years, a legal obligation | the donor's name and e-mail come off after the fiscal period; the amount, date and Mollie reference stay |
 
-Not implemented, and the statement does promise them:
+Two decisions inside that worth knowing:
 
-- [ ] **Members: "zolang uw account bestaat en daarna 2 jaar."** Nothing deletes an ended
-      member; `status` goes to `beeindigd` and the record stays. Needs a decision about
-      what "account ends" means before it can be automated.
+- **"The account ends" means the status becoming `beeindigd`**, which is the only signal
+  the model has and the only one an administrator controls. Reinstating a member clears
+  the date; editing an ended member does not push it out.
+- **A donation is anonymised, not deleted.** The obligation is about the amount, the date
+  and the payment reference, which the accountant and the ANBI figures need; the name and
+  the e-mail address are the personal data and only those go. Deleting the row would
+  destroy a financial record to protect something removable on its own.
+
+Still open:
+
 - [ ] **Website logs: "maximaal 6 maanden."** These are Vercel's runtime logs, not ours.
       Check the retention Vercel actually applies on this plan and make the statement
-      match it, rather than the other way round.
-- [ ] **Donations: 7 years, a legal obligation.** Nothing deletes them, which is correct
-      for now, but nothing enforces the seven-year point either.
+      match it, rather than the other way round. The only remaining gap.
 
 ## Needs a decision before it can be finished
 
@@ -166,6 +218,10 @@ Not implemented, and the statement does promise them:
 - [ ] **Four derived colour tints** are marked in `globals.css` as interpolated from the
       mockups (button hover fills, hairline borders). They are not part of the approved
       palette and need confirming.
+- [ ] **Five palette values are mirrored in `src/lib/email/layout.ts`.** `brand.css` says to
+      change a colour there and nowhere else, and that is the one place that cannot: an
+      e-mail cannot read a CSS custom property and the stylesheet is not bundled into the
+      function that sends the mail. Changing a brand colour means changing it there too.
 - [ ] **Commissions scope changing content, not reading it.** Every editor can still see
       every document in the admin panel; they cannot alter one another's. Hiding them from
       the list as well is a change to `read`, which also governs the public site, so it
@@ -174,16 +230,18 @@ Not implemented, and the statement does promise them:
       `Projects`: `versions.drafts`, the published-only read rule, and `overrideAccess:
       false` in its read helper. The third is the one that is easy to forget and silently
       serves drafts to the public.
-- [ ] **Event capacity and remaining places are typed in by hand**, like the project
-      funding figures, because the site takes no registrations. Whoever runs an event has
-      to keep them current or leave them empty.
-- [ ] **Project funding figures are typed in by hand.** They are not derived from
-      `Donations`, because a gift can be earmarked in ways the website never sees and a
-      bank transfer never passes through it at all. Someone has to keep them current.
-- [ ] **The donation page cannot yet be told which project to fund.** The mockup's
-      "Doneer aan dit project" links to `/doneren` without preselecting anything. Wiring
-      the fund dropdown to published projects is small and worth doing with the Mollie
-      work.
+- [x] **Event places are counted, not typed in.** Fill in a capacity and the site works
+      out what is left from the registrations and closes the aanmelding when it is full.
+      `spotsAvailable` remains for an event with no capacity, for instance one where people
+      register elsewhere, and is ignored when a capacity is set.
+- [x] **Project funding figures are part typed in, part counted.** `funding.raised` is now
+      labelled as money that arrived away from the website — bank transfers, collections, a
+      pledge — which nothing else can know about, and the paid online gifts earmarked for
+      that project are added on top. Someone still has to keep the offline figure current.
+- [x] **The donation page can be told which project to fund.** `/doneren?project=<slug>`
+      preselects it and the project page links there. The select posts the project's id and
+      the action resolves it with access not overridden, so a draft or deleted project
+      cannot become a destination.
 - [ ] **The Mollie flow has never talked to Mollie.** The collection, the start action,
       the webhook and the form are built and the disabled state still works, but no
       request has reached Mollie because there is no account. Before switching it on:
@@ -194,12 +252,13 @@ Not implemented, and the statement does promise them:
       every donation stays `open` regardless of whether it was paid.
 - [ ] **Donations hold personal data** and need a processing register entry in
       `samenzin-ict`, including how long records are kept.
-- [ ] **No email adapter, and from 3.2 this blocks getting a member their login.**
-      Payload writes mail to the console, so there is no invitation, no password reset and
-      no "forgotten password". Today an administrator opens the member in the admin panel,
-      sets a password and passes it on themselves; the login form says so in as many
-      words. Configuring an adapter means adding a service to the deployment, which
-      CLAUDE.md says to ask about first, so it is a decision rather than a task.
+- [x] **There is an e-mail adapter, and a member gets their own login.** SMTP through
+      nodemailer, chosen over a hosted mail API by the maintainer so that no second
+      processor handles members' names and addresses and no processing register entry or
+      processor agreement is needed for one. `src/lib/email/adapter.ts` is the only file
+      that names a provider. An administrator no longer sets anybody's password: an
+      approved application sends a link, and the login page offers "wachtwoord vergeten".
+      What remains is filling in the variables, listed above.
 - [ ] **Only members can register hours, and not every volunteer is a member.** A
       volunteer who never became a member has no login and therefore nowhere to enter
       hours. Either they are given a membership record, or 3.5 needs a second way in.
@@ -226,22 +285,26 @@ Not implemented, and the statement does promise them:
       `voorbeeld@example.org` and invented project names are publicly visible. Replace
       them before the site is announced, and before the contact form faces the public.
       The seeded privacy statement says in capitals that it is not valid.
-- [ ] **The privacy statement does not exist. This blocks launch.** The contact form now
-      collects personal data and links to `/privacyverklaring`, which returns 404 until
-      someone creates a page with that slug. Do not put the contact form in front of the
-      public before that page exists. The text has to describe what the foundation
-      actually does with the data, so it cannot be written from the code.
+- [x] **The privacy statement exists and is published**, with the real text, and the
+      footer links to it. See the retention table above for what it promises and what
+      enforces each promise.
 - [ ] **The contact form needs a processing register entry** in `samenzin-ict` before it
-      goes live, including how long messages are kept. Nothing deletes them automatically.
+      goes live, including how long messages are kept. Deletion is automatic now; the
+      register entry is still missing.
 - [ ] **Volunteer and membership applications need processing register entries too**,
       before either form faces the public. Both keep records six months, enforced by
-      `pnpm prune:applications`, but nothing runs it yet: point a scheduled job at it, or
-      it stays a manual chore somebody has to remember. Note the difference to write down:
+      `pnpm prune:expired` and by the daily cron job, so the deletion itself is handled;
+      the register entries are not. Note the difference to write down:
       an approved membership application is kept indefinitely, because it is the record
       that a membership was granted. That needs its own line in the register, with a
       retention tied to the membership rather than to a date.
-- [ ] **Contact messages have no retention mechanism**, unlike volunteer applications.
-      Worth giving them the same `deleteAfter` treatment.
+- [ ] **Course enrolments and event registrations need a line in the processing
+      register.** They were administrator-entered and are now created by the member
+      themselves, which changes who the data comes from even though the fields did not
+      change. Both say who went to what, which is personal data.
+- [ ] **Outgoing e-mail belongs in the register too**, including the mail provider as a
+      processor if the foundation's mailbox is hosted. SMTP was chosen partly to avoid a
+      *separate* processor, but whoever hosts the mailbox is still one.
 - [ ] **Contact messages are visible to administrators only.** If a volunteer with the
       editor role is meant to answer them, that needs a deliberate decision, because the
       messages contain personal data.
@@ -309,7 +372,7 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-22 | Anonymous donations store no name or e-mail at all | Same reasoning as the contact form: what is not collected cannot leak. The form hides the fields and the action refuses to store them. |
 | 2026-09-24 | The course catalogue shipped without enrolment | ROADMAP always allowed this, and enrolment needs a member identity, which is 3.2 and still undecided. "Aanmelden" is a link, as it is for events. |
 | 2026-09-24 | The volunteer form collects four fields and no more | Agreed with the maintainer. No telephone, date of birth or VOG status: the coordinator gathers what they need in conversation, and what is not collected cannot leak. |
-| 2026-09-24 | Volunteer applications are kept six months | Agreed with the maintainer. `deleteAfter` is written on arrival and shown in the list, and `pnpm prune:applications` acts on it, so the retention is a mechanism rather than a promise. |
+| 2026-09-24 | Volunteer applications are kept six months | Agreed with the maintainer. `deleteAfter` is written on arrival and shown in the list, and `pnpm prune:applications` acts on it (since renamed `pnpm prune:expired`), so the retention is a mechanism rather than a promise. |
 | 2026-09-24 | Volunteer applications are readable by the vrijwilligers commission, not every editor | A coordinator should not need an administrator account to do their job, and no other editor has business reading applicants' details. |
 | 2026-09-24 | Content with no commission stays editable by every editor | Everything written before commissions existed has no commission. Locking it to administrators would have turned a permissions feature into an outage. |
 | 2026-09-24 | The commission rule returns a query constraint, not a boolean | Payload folds it into the query, so content owned by another commission is never fetched. A boolean would have to load the document first and be repeated in every list, count and bulk operation. |
@@ -335,6 +398,22 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-25 | "Export naar boekhouding" is a working CSV download, not a decorative link | A link that does nothing is worse than no link. It returns the paid donations of one month as semicolon-separated UTF-8 with a BOM, which is what Dutch Excel opens without an import dialogue, and it refuses anyone who is not an administrator. Cells starting with = + - or @ are prefixed so a spreadsheet cannot treat them as formulas. |
 | 2026-09-25 | VOG is tracked as an outcome, never as an upload | The dashboard shows it per applicant. The certificate itself is shown to a coordinator in person; storing a scan would mean holding a government document the foundation has no reason to keep. |
 | 2026-09-25 | No separate Donateurs collection | The mockup's sidebar lists one, but donations already carry the giver's name and e-mail. A second collection would be the same personal data in two places, which is two places to delete it from on request. |
+| 2026-10-03 | E-mail goes over SMTP, not a hosted mail API | The maintainer's call: it points at the mailbox the foundation already has, and later at Google Workspace, so no second processor handles members' names and addresses and no processing register entry or processor agreement is needed for one. `src/lib/email/adapter.ts` is the only file that names a provider, so swapping is four variables and one function. |
+| 2026-10-03 | Nothing in src/lib/email may import `server-only` | Collection configs call `sendMail`, and the configs are loaded by the `payload` CLI, which runs on plain Node where that package does not resolve. With the marker, `payload migrate` fails with ERR_MODULE_NOT_FOUND — and `vercel-build` runs it before `next build`, so the deploy breaks. |
+| 2026-10-03 | The adapter passes `skipVerify` | It otherwise opens a full SMTP handshake while building the config, which happens on every serverless cold start, including functions that will never send anything. A bad setting shows up in the log of the first message instead. |
+| 2026-10-03 | The welcome link lasts 24 hours, the ordinary reset link one | It arrives unannounced and has to survive a weekend. Passed per call, because a value in the collection's `forgotPassword` block wins over the per-call one and would stretch both. |
+| 2026-10-03 | Resetting a password does not sign the member in | Payload's reset operation will hand back a session token. A link that logs you in means whoever reads that mailbox later gets into the account in one click. The member types the new password once on the login page, which also confirms they remember it. |
+| 2026-10-03 | "Wachtwoord vergeten" answers the same for an unknown address | Anything else lets a stranger test which addresses are members, which is the one fact a membership register must not hand out. The error path and the success path therefore look identical, including when the mail server is down. |
+| 2026-10-03 | Mail is sent after the record is stored, and sendMail never throws | Every caller is in the middle of something that matters more: a visitor submitting a form, the board approving a member. A mail server that is down costs a confirmation, not somebody's message. |
+| 2026-10-03 | A signed-in member may enrol and register themselves; the open web still may not | The earlier decision was about personal data arriving from strangers. A member is not a stranger — the foundation already holds their record, granted by the board — and an enrolment is two foreign keys and no new personal data. A visitor who is not a member is shown the login. |
+| 2026-10-03 | A member may undo an enrolment only before it counts for anything | Withdrawing while progress is zero, cancelling until somebody ticks them as attended. After that the record is evidence of what the foundation did, and the basis for a certificate in 3.6. Expressed as a query constraint in the access rule, so the REST endpoint is bound by it too. |
+| 2026-10-03 | Event capacity is counted, `spotsAvailable` is the fallback | Deriving it is the point of taking registrations on the site. The hand-kept number is never trusted to decide whether an event is full, because nothing keeps it true; it is still used for an event with no capacity set. |
+| 2026-10-03 | A donation stores both the project and its title | The relationship is what the fundraising bar counts; the title is what a gift was given for. A project that is renamed or deleted would otherwise rewrite or erase a financial record, and the foreign key is ON DELETE SET NULL. |
+| 2026-10-03 | Only `paid` donations count towards a project's total | An "open" donation is somebody who reached Mollie's checkout and may never have finished. Showing it on a public progress bar would overstate what the project has. |
+| 2026-10-03 | An expired donation is anonymised, not deleted | The seven-year obligation is about the amount, the date and the payment reference, which the accountant and the ANBI figures need. The name and the e-mail address are the personal data and only those go. Deleting the row would destroy a financial record to protect something removable on its own. |
+| 2026-10-03 | "The account ends" means the status becoming `beeindigd` | The only signal the model has and the only one an administrator controls. Reinstating clears the date; editing an ended member does not push it out. |
+| 2026-10-03 | Every Intl formatter is pinned to Europe/Amsterdam | Without it a formatter uses the rendering machine's timezone: Amsterdam on a laptop, UTC on Vercel. The live agenda was showing summer events two hours early. Three files had grown their own formatters with the same bug and now call `src/lib/dates.ts`. |
+| 2026-10-03 | Deleting a member cascades to all four of their tables, not just hours | `member_tasks`, `course_enrolments` and `event_registrations` have the same `member_id integer NOT NULL` with ON DELETE SET NULL, so the delete failed with a raw "Failed query" for any member who had used the portal. Proved on a fresh database before fixing. |
 | 2026-09-25 | Tasks are handed out, not self-created | docs/design/08 shows "Assigned to". Members may tick a task off and nothing else: title, owner, deadline and commission are administrator-only at field level, so ticking a box cannot become rewriting the assignment. Verified. |
 | 2026-09-25 | Course progress is a percentage kept by hand | Deriving it would mean modelling lessons and attendance, which nothing has asked for. A member cannot change their own progress. |
 | 2026-09-25 | Event registrations are entered by an administrator, never from the open web | The earlier decision that the website takes no public sign-ups still stands: that is personal data arriving from strangers and needs a processing register entry first. The portal only shows a member their own. |
@@ -359,7 +438,7 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-24 | The membership form asks for name, e-mail and motivation only | Address, date of birth and bank details are needed to administer a membership, not to decide on one. Asking everybody means holding them for people who are turned down. |
 | 2026-09-24 | Membership applications are administrators only | Granting membership is a board decision and no commission owns it. Volunteer applications got their own rule because there is a commission for them; there is none for members. |
 | 2026-09-24 | Approving an application clears its delete-by date | An approved application is the evidence a membership was granted, so it must not be pruned. Clearing on approval rather than only setting on creation means one approved in month five does not vanish in month six. |
-| 2026-09-24 | `prune:applications` skips records with no `deleteAfter` | It queries `exists: true` as well as the date, so "keep this" is expressed by the absence of a date rather than by a special case in the script. |
+| 2026-09-24 | `prune:applications` (now `prune:expired`) skips records with no `deleteAfter` | It queries `exists: true` as well as the date, so "keep this" is expressed by the absence of a date rather than by a special case in the script. |
 | 2026-09-22 | The drafts migration publishes rows that already existed | Postgres backfills a new column with its default, so `_status` would have been `draft` everywhere and every live page would have vanished. Hand-added `UPDATE`, marked as such in the migration. |
 | 2026-09-22 | Preview needs a secret **and** a Payload session | The secret travels in a URL, and URLs reach browser history, chat messages and logs. On its own it is not a credential. |
 | 2026-09-22 | Two error boundaries, not one | `error.tsx` renders inside the layout, so it cannot catch the layout failing. An unreachable database takes down the layout, which is the failure most likely in production. |
