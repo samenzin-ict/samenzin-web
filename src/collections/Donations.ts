@@ -44,6 +44,15 @@ const csvCell = (value: unknown): string => {
   return `"${safe.replace(/"/g, '""')}"`
 }
 
+/**
+ * How long a donation record is kept before the donor's name comes off it.
+ *
+ * Seven years, which is the fiscal retention obligation and what the published
+ * privacyverklaring says. Counted from the end of the year of the gift, not
+ * from the gift itself. Change this and the statement has to change with it.
+ */
+export const RETENTION_YEARS = 7
+
 export const Donations: CollectionConfig = {
   slug: 'donations',
   labels: {
@@ -121,9 +130,49 @@ export const Donations: CollectionConfig = {
     defaultColumns: ['createdAt', 'amount', 'status', 'fund', 'donorName'],
     group: 'Financieel',
     description:
-      'Donaties die via de website zijn gestart. Deze records bevatten persoonsgegevens en zijn niet openbaar.',
+      'Donaties die via de website zijn gestart. Deze records bevatten persoonsgegevens en zijn niet openbaar. Naam en e-mailadres worden automatisch weggehaald zodra de wettelijke bewaartermijn is verstreken; het bedrag blijft bewaard.',
   },
   timestamps: true,
+  hooks: {
+    beforeChange: [
+      /**
+       * The clock on the seven-year obligation.
+       *
+       * The privacyverklaring says donation records are kept seven years
+       * because the law requires it. Nothing acted on that, so they were kept
+       * for ever, which is a different promise.
+       *
+       * Counted from the end of the year the gift was made, which is how the
+       * fiscal retention period actually runs: a gift in 2026 is kept through
+       * 2033 and may go from 1 January 2034.
+       *
+       * What happens then is anonymising, not deleting. The amount, the date
+       * and the Mollie reference are what the accountant and the ANBI figures
+       * need and what the obligation is about; the donor's name and e-mail
+       * address are the personal data, and only those are removed. Deleting
+       * the row would destroy a financial record to protect something that can
+       * be removed on its own. See src/lib/retention.ts.
+       */
+      ({ data, operation, originalDoc }) => {
+        if (operation === 'create') {
+          const year = new Date().getFullYear()
+
+          return {
+            ...data,
+            // 1 January, RETENTION_YEARS after the end of this year.
+            deleteAfter: new Date(Date.UTC(year + RETENTION_YEARS + 1, 0, 1)).toISOString(),
+          }
+        }
+
+        /*
+         * Left alone on update. A null here is how an already-anonymised gift
+         * is marked done, and recalculating would put it back in the queue
+         * every single day.
+         */
+        return data ?? originalDoc
+      },
+    ],
+  },
   fields: [
     {
       name: 'molliePaymentId',
@@ -237,6 +286,17 @@ export const Donations: CollectionConfig = {
       admin: {
         readOnly: true,
         date: { pickerAppearance: 'dayAndTime' },
+      },
+    },
+    {
+      name: 'deleteAfter',
+      type: 'date',
+      label: 'Naam weghalen na',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        date: { pickerAppearance: 'dayOnly', displayFormat: 'd MMMM yyyy' },
+        description: `Automatisch ingevuld: ${RETENTION_YEARS} jaar na het einde van het jaar waarin de gift is gedaan, zoals de wet voorschrijft. Op die datum worden naam en e-mailadres weggehaald; het bedrag, de datum en het Mollie-kenmerk blijven staan voor de boekhouding.`,
       },
     },
   ],

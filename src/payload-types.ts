@@ -853,6 +853,10 @@ export interface Member {
   street?: string | null;
   postalCode?: string | null;
   city?: string | null;
+  /**
+   * Wordt gevuld zodra u de status op Beëindigd zet: 2 jaar daarna wordt het lid verwijderd, met de uren, taken, inschrijvingen en aanmeldingen. Zet u de status terug op Actief, dan vervalt de datum.
+   */
+  deleteAfter?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -1030,7 +1034,7 @@ export interface ContactSubmission {
   createdAt: string;
 }
 /**
- * Donaties die via de website zijn gestart. Deze records bevatten persoonsgegevens en zijn niet openbaar.
+ * Donaties die via de website zijn gestart. Deze records bevatten persoonsgegevens en zijn niet openbaar. Naam en e-mailadres worden automatisch weggehaald zodra de wettelijke bewaartermijn is verstreken; het bedrag blijft bewaard.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "donations".
@@ -1067,6 +1071,10 @@ export interface Donation {
    */
   donorEmail?: string | null;
   paidAt?: string | null;
+  /**
+   * Automatisch ingevuld: 7 jaar na het einde van het jaar waarin de gift is gedaan, zoals de wet voorschrijft. Op die datum worden naam en e-mailadres weggehaald; het bedrag, de datum en het Mollie-kenmerk blijven staan voor de boekhouding.
+   */
+  deleteAfter?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1661,6 +1669,7 @@ export interface MembersSelect<T extends boolean = true> {
   street?: T;
   postalCode?: T;
   city?: T;
+  deleteAfter?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1705,6 +1714,7 @@ export interface DonationsSelect<T extends boolean = true> {
   donorName?: T;
   donorEmail?: T;
   paidAt?: T;
+  deleteAfter?: T;
   updatedAt?: T;
   createdAt?: T;
 }

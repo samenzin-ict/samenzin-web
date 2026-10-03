@@ -1,5 +1,6 @@
 /**
- * Deletes personal data whose retention period has passed.
+ * Acts on personal data whose retention period has passed: deletes it, or for a
+ * donation takes the donor's name off a row that stays.
  *
  * The same code the daily cron job runs; see src/lib/retention.ts. This is the
  * way to run it by hand, or against an environment that has no scheduler:
@@ -26,15 +27,16 @@ for (const result of results) {
     failed = true
     console.error(`  ${result.collection}: FAILED — ${result.error}`)
   } else {
-    console.log(`  ${result.collection}: deleted ${result.deleted}`)
-    total += result.deleted
+    const verb = result.action === 'delete' ? 'deleted' : 'anonymised'
+    console.log(`  ${result.collection}: ${verb} ${result.affected}`)
+    total += result.affected
   }
 }
 
 console.log(
   total === 0 && !failed
-    ? 'Nothing to delete: no record is past its retention date.'
-    : `Deleted ${total} record(s) past their retention date.`,
+    ? 'Nothing to do: no record is past its retention date.'
+    : `Handled ${total} record(s) past their retention date.`,
 )
 
 process.exit(failed ? 1 : 0)
