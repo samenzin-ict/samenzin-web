@@ -18,6 +18,21 @@ import { fileURLToPath } from 'url'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 
+/*
+ * No e-mail, whatever the environment says.
+ *
+ * Creating an enrolment, a registration or a task now sends a confirmation,
+ * and this script creates dozens of them for people who do not exist. With
+ * SMTP configured — which it is in any shell that has read .env — seeding
+ * would fire a burst of mail at example.org, every message bouncing, from the
+ * foundation's own address. A fast way to a damaged sending reputation.
+ *
+ * Cleared before getPayload, because the adapter reads it once while the
+ * config is built. Payload then logs "attempted without being configured" per
+ * message instead, which doubles as a list of what the seed would have sent.
+ */
+delete process.env.SMTP_HOST
+
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const assets = path.resolve(dirname, 'demo-assets')
 
@@ -56,7 +71,26 @@ if (!isLocalDatabase && process.env.SEED_ALLOW_REMOTE !== 'true') {
   )
 }
 
-console.log(`Seeding ${targetHost}${isLocalDatabase ? '' : '   <-- NOT LOCAL'}\n`)
+/*
+ * Invented people: members with a login, applications and contact messages.
+ *
+ * On by default locally and never on a hosted database unless asked for by
+ * name, because these are not like a demo project. A fake member is an account
+ * that can sign in to a deployment, and fake applications and messages land in
+ * the list a volunteer works through, where they are indistinguishable from
+ * real ones until somebody opens them.
+ *
+ * `pnpm fill:remote dev` sets this. `pnpm fill:remote production` deliberately
+ * does not, and refuses to.
+ */
+const seedPeople = isLocalDatabase || process.env.SEED_DEMO_PEOPLE === 'true'
+
+console.log(`Seeding ${targetHost}${isLocalDatabase ? '' : '   <-- NOT LOCAL'}`)
+console.log(
+  seedPeople
+    ? '  Including invented people: members, aanmeldingen and berichten.\n'
+    : '  Content only. No members, aanmeldingen or berichten (SEED_DEMO_PEOPLE is not set).\n',
+)
 
 const payload = await getPayload({ config })
 
@@ -802,65 +836,101 @@ for (const data of articles) {
 }
 
 /*
- * A demo member, so Mijn omgeving can actually be looked at.
+ * Invented members, so Mijn omgeving can actually be used.
+ *
+ * Three of them rather than one. Several of the rules written this phase are
+ * about one member not seeing another's rows, and a single member cannot show
+ * whether that works. The coordinator's view of everybody's hours is likewise
+ * empty with one person in it.
  *
  * Only when DEMO_MEMBER_PASSWORD is set. A login needs a password, and a
  * password written into this file would be a credential in the repository
  * (CLAUDE.md, rule 1) that would also be created on any environment this seed
- * is pointed at. Set it in your shell for local work and leave it unset
- * everywhere else.
+ * is pointed at. All three share it, which is fine for invented people and
+ * saves remembering three.
  */
 const demoPassword = process.env.DEMO_MEMBER_PASSWORD
 
+/** Filled in below, so the applications and donations further down can use it. */
+const demoMembers: { id: number; name: string; email: string }[] = []
+
 if (!demoPassword) {
-  console.log('\nSkipping the demo member: DEMO_MEMBER_PASSWORD is not set.')
-  console.log('  To see Mijn omgeving locally:')
-  console.log('    DEMO_MEMBER_PASSWORD=\'a-long-local-only-password\' pnpm seed')
-} else if (!isLocalDatabase) {
-  console.log('\nSkipping the demo member: the target is not a local database.')
+  console.log('\nSkipping the demo members: DEMO_MEMBER_PASSWORD is not set.')
+  console.log('  To see Mijn omgeving:')
+  console.log("    DEMO_MEMBER_PASSWORD='a-long-local-only-password' pnpm seed")
+} else if (!seedPeople) {
+  console.log('\nSkipping the demo members: SEED_DEMO_PEOPLE is not set for this target.')
 } else {
-  console.log('Writing demolid…')
+  console.log('Writing demoleden…')
 
-  const demoEmail = 'demolid@example.org'
-  const found = await payload.find({
-    collection: 'members',
-    where: { email: { equals: demoEmail } },
-    limit: 1,
-    overrideAccess: true,
-  })
+  const people = [
+    {
+      name: 'Voorbeeld Vrijwilliger',
+      email: 'demolid@example.org',
+      memberRole: 'vrijwilliger' as const,
+      commission: 'evenementen' as const,
+      city: 'Rotterdam',
+      memberSince: daysAgo(400),
+    },
+    {
+      name: 'Tweede Voorbeeld',
+      email: 'tweedelid@example.org',
+      memberRole: 'lid' as const,
+      commission: 'media' as const,
+      city: 'Tilburg',
+      memberSince: daysAgo(120),
+    },
+    {
+      name: 'Derde Voorbeeld',
+      email: 'derdelid@example.org',
+      memberRole: 'bestuur' as const,
+      commission: 'vrijwilligers' as const,
+      city: 'Schiedam',
+      memberSince: daysAgo(900),
+    },
+  ]
 
-  const memberData = {
-    name: 'Voorbeeld Vrijwilliger',
-    email: demoEmail,
-    status: 'actief' as const,
-    memberRole: 'vrijwilliger' as const,
-    commission: 'evenementen' as const,
-    city: 'Rotterdam',
-    memberSince: daysAgo(400),
+  for (const person of people) {
+    const found = await payload.find({
+      collection: 'members',
+      where: { email: { equals: person.email } },
+      limit: 1,
+      overrideAccess: true,
+    })
+
+    const data = { ...person, status: 'actief' as const }
+
+    const existing = found.docs[0]
+
+    // The password is set on every run, not only on the first. Otherwise a
+    // second run leaves an account nobody knows the password to.
+    const member = existing
+      ? await payload.update({
+          collection: 'members',
+          id: existing.id,
+          data: { ...data, password: demoPassword },
+          overrideAccess: true,
+        })
+      : await payload.create({
+          collection: 'members',
+          data: { ...data, password: demoPassword },
+          overrideAccess: true,
+        })
+
+    demoMembers.push({ id: member.id, name: member.name, email: member.email })
+    console.log(`  ${existing ? 'updated' : 'created'} ${person.email}`)
   }
 
-  const member = found.docs[0]
-    ? await payload.update({
-        collection: 'members',
-        id: found.docs[0].id,
-        // The password is set on every run, not only on the first. Otherwise
-        // a second run leaves an account nobody knows the password to.
-        data: { ...memberData, password: demoPassword },
-        overrideAccess: true,
-      })
-    : await payload.create({
-        collection: 'members',
-        data: { ...memberData, password: demoPassword },
-        overrideAccess: true,
-      })
+  const [first, second, third] = demoMembers
 
-  console.log(`  ${found.docs[0] ? 'updated' : 'created'} ${demoEmail}`)
-
-  /** Wipes this member's demo rows so a second run does not pile them up. */
-  const resetFor = async (collection: 'member-tasks' | 'course-enrolments' | 'event-registrations' | 'volunteer-hours') => {
+  /** Wipes a member's demo rows so a second run does not pile them up. */
+  const resetFor = async (
+    collection: 'member-tasks' | 'course-enrolments' | 'event-registrations' | 'volunteer-hours',
+    memberId: number,
+  ) => {
     const { docs } = await payload.find({
       collection,
-      where: { member: { equals: member.id } },
+      where: { member: { equals: memberId } },
       limit: 200,
       overrideAccess: true,
     })
@@ -869,10 +939,16 @@ if (!demoPassword) {
     }
   }
 
-  await resetFor('member-tasks')
-  await resetFor('course-enrolments')
-  await resetFor('event-registrations')
-  await resetFor('volunteer-hours')
+  for (const member of demoMembers) {
+    for (const collection of [
+      'member-tasks',
+      'course-enrolments',
+      'event-registrations',
+      'volunteer-hours',
+    ] as const) {
+      await resetFor(collection, member.id)
+    }
+  }
 
   const inDays = (days: number) => {
     const date = new Date()
@@ -897,33 +973,81 @@ if (!demoPassword) {
     await payload.create({
       collection: 'member-tasks',
       overrideAccess: true,
-      data: { ...task, member: member.id, commission: 'evenementen' },
+      data: { ...task, member: first.id, commission: 'evenementen' },
     })
   }
-  console.log(`  ${tasks.length} taken`)
 
-  const allCourses = await payload.find({ collection: 'courses', limit: 3, overrideAccess: true })
-  const progresses = [100, 55, 100]
+  // One for somebody else, so "a member sees only their own" is testable.
+  await payload.create({
+    collection: 'member-tasks',
+    overrideAccess: true,
+    data: {
+      member: second.id,
+      title: 'Nieuwsbrief van deze maand schrijven',
+      description: 'Deze taak hoort bij het tweede lid en mag niet bij het eerste verschijnen.',
+      dueAt: inDays(9),
+      done: false,
+      commission: 'media',
+    },
+  })
+  console.log(`  ${tasks.length + 1} taken`)
 
-  for (const [index, course] of allCourses.docs.entries()) {
+  /*
+   * Enrolments and registrations, with something deliberately left undone.
+   *
+   * The first member is enrolled in all but one course and registered for all
+   * but one upcoming event, so "Inschrijven" and "Aanmelden" can both actually
+   * be tried on the preview. One enrolment has progress, which is what makes
+   * withdrawing refused; one is at zero, which is what makes it allowed.
+   */
+  const courses = await payload.find({
+    collection: 'courses',
+    limit: 10,
+    sort: 'createdAt',
+    overrideAccess: true,
+  })
+  const progresses = [100, 0]
+  const enrolledCourses = courses.docs.slice(0, Math.max(courses.docs.length - 1, 0))
+
+  for (const [index, course] of enrolledCourses.entries()) {
     await payload.create({
       collection: 'course-enrolments',
       overrideAccess: true,
-      data: { member: member.id, course: course.id, progress: progresses[index] ?? 0 },
+      data: { member: first.id, course: course.id, progress: progresses[index] ?? 40 },
     })
   }
-  console.log(`  ${allCourses.docs.length} cursusdeelnames`)
+  console.log(
+    `  ${enrolledCourses.length} cursusdeelnames; ${courses.docs.length - enrolledCourses.length} cursus vrij om te testen`,
+  )
 
-  const someEvents = await payload.find({ collection: 'events', limit: 2, sort: 'startsAt', overrideAccess: true })
+  const upcoming = await payload.find({
+    collection: 'events',
+    where: { startsAt: { greater_than_equal: new Date().toISOString() } },
+    limit: 10,
+    sort: 'startsAt',
+    overrideAccess: true,
+  })
+  const registeredEvents = upcoming.docs.slice(0, Math.max(upcoming.docs.length - 1, 0))
 
-  for (const event of someEvents.docs) {
+  for (const event of registeredEvents) {
     await payload.create({
       collection: 'event-registrations',
       overrideAccess: true,
-      data: { member: member.id, event: event.id, attended: false },
+      data: { member: first.id, event: event.id, attended: false },
     })
   }
-  console.log(`  ${someEvents.docs.length} aanmeldingen voor evenementen`)
+
+  // A second member on one of them, so a capacity count is not just one row.
+  if (registeredEvents[0]) {
+    await payload.create({
+      collection: 'event-registrations',
+      overrideAccess: true,
+      data: { member: second.id, event: registeredEvents[0].id, attended: false },
+    })
+  }
+  console.log(
+    `  ${registeredEvents.length} aanmeldingen; ${upcoming.docs.length - registeredEvents.length} evenement vrij om te testen`,
+  )
 
   // Eighteen hours this year, the figure on the Uren card in the mockup.
   const hours = [
@@ -937,10 +1061,154 @@ if (!demoPassword) {
     await payload.create({
       collection: 'volunteer-hours',
       overrideAccess: true,
-      data: { ...entry, member: member.id, commission: 'evenementen' },
+      data: { ...entry, member: first.id, commission: 'evenementen' },
     })
   }
-  console.log('  18 uur geregistreerd')
+
+  // Hours for the others, so the coordinator's overview has more than one name.
+  await payload.create({
+    collection: 'volunteer-hours',
+    overrideAccess: true,
+    data: { date: daysAgo(12), hours: 2, activity: 'Nieuwsbrief opgemaakt', member: second.id, commission: 'media' },
+  })
+  await payload.create({
+    collection: 'volunteer-hours',
+    overrideAccess: true,
+    data: { date: daysAgo(30), hours: 5, activity: 'Intakegesprekken gevoerd', member: third.id, commission: 'vrijwilligers' },
+  })
+  console.log('  18 uur voor het eerste lid, 7 uur voor de andere twee')
+}
+
+/*
+ * Aanmeldingen, aanvragen en berichten: the three things a volunteer works
+ * through in the admin panel, and the three that now write back by e-mail.
+ *
+ * Left in the states that are worth testing: something undecided, so a
+ * decision can be recorded and the mail watched; something already decided, so
+ * the list is not uniformly new.
+ *
+ * Replaced rather than added to on a second run, matched on the invented
+ * e-mail addresses, so running the seed twice does not pile them up.
+ */
+if (seedPeople) {
+  console.log('Writing aanmeldingen, aanvragen en berichten…')
+
+  const replace = async (
+    collection: 'volunteer-applications' | 'membership-applications' | 'contact-submissions',
+    rows: Record<string, unknown>[],
+  ) => {
+    const { docs } = await payload.find({
+      collection,
+      where: { email: { like: '@example.org' } },
+      limit: 200,
+      overrideAccess: true,
+    })
+    for (const doc of docs) {
+      await payload.delete({ collection, id: doc.id, overrideAccess: true })
+    }
+
+    for (const row of rows) {
+      // @ts-expect-error — one helper for three collections; each row below is
+      // written against its own collection's fields.
+      await payload.create({ collection, data: row, overrideAccess: true })
+    }
+
+    console.log(`  ${rows.length} ${collection}`)
+  }
+
+  await replace('volunteer-applications', [
+    {
+      name: 'Aisha Voorbeeld',
+      email: 'aisha@example.org',
+      phone: '06 0000 0001',
+      city: 'tilburg',
+      interests: ['taalmaatje', 'onderwijs'],
+      skills: ['taalcoaching', 'teksten-schrijven'],
+      languageLevel: 'b2',
+      availability: ['za-ochtend', 'wo-avond'],
+      message: 'Ik wil graag helpen bij taalactiviteiten. Dit is verzonnen tekst.',
+      status: 'aangemeld',
+      handled: false,
+    },
+    {
+      name: 'Bram Voorbeeld',
+      email: 'bram@example.org',
+      phone: '06 0000 0002',
+      city: 'rotterdam',
+      interests: ['evenementen', 'media'],
+      skills: ['sociale-media', 'ontwerp'],
+      languageLevel: 'moedertaal',
+      availability: ['zo-middag', 'za-middag'],
+      status: 'in-gesprek',
+      handled: false,
+    },
+    {
+      name: 'Chloé Voorbeeld',
+      email: 'chloe@example.org',
+      city: 'schiedam',
+      interests: ['dames-activiteiten'],
+      skills: ['evenementenbeheer'],
+      languageLevel: 'a2',
+      availability: ['ma-avond'],
+      status: 'goedgekeurd',
+      handled: true,
+      vogStatus: 'ok',
+    },
+    {
+      name: 'Daan Voorbeeld',
+      email: 'daan@example.org',
+      city: 'tilburg',
+      interests: ['fondsenwerving'],
+      languageLevel: 'c1',
+      availability: ['vr-avond'],
+      status: 'afgewezen',
+      handled: true,
+    },
+  ])
+
+  await replace('membership-applications', [
+    {
+      name: 'Esra Voorbeeld',
+      email: 'esra@example.org',
+      motivation:
+        'Ik lees al een tijd mee en wil me graag verbinden aan de stichting. Dit is verzonnen tekst.',
+      status: 'aangevraagd',
+    },
+    {
+      name: 'Faruk Voorbeeld',
+      email: 'faruk@example.org',
+      motivation: 'Een vriend heeft me over het werk verteld. Dit is verzonnen tekst.',
+      status: 'aangevraagd',
+    },
+    {
+      name: 'Gina Voorbeeld',
+      email: 'gina@example.org',
+      motivation: 'Verzonnen tekst.',
+      status: 'afgewezen',
+    },
+  ])
+
+  await replace('contact-submissions', [
+    {
+      name: 'Hakan Voorbeeld',
+      email: 'hakan@example.org',
+      message: 'Wanneer is de volgende open avond? Dit is een verzonnen bericht.',
+      handled: false,
+    },
+    {
+      name: 'Ingrid Voorbeeld',
+      email: 'ingrid@example.org',
+      message:
+        'Ik zou graag een zaal willen huren voor een bijeenkomst. Dit is een verzonnen bericht.',
+      handled: false,
+    },
+    {
+      name: 'Joost Voorbeeld',
+      email: 'joost@example.org',
+      message: 'Bedankt voor de hulp van vorige week. Dit is een verzonnen bericht.',
+      handled: true,
+    },
+  ])
 }
 
 console.log('Writing demodonaties…')
@@ -963,6 +1231,25 @@ const donationPlan = [
 ]
 
 const donorNames = ['M. Voorbeeld', 'A. Voorbeeld', 'R. Voorbeeld', 'S. Voorbeeld']
+
+/*
+ * The fund names above are project titles, so they are resolved to real
+ * projects and the gifts are attached to them.
+ *
+ * Without this the fundraising bar on a project page would only ever show the
+ * amount typed into `funding.raised`, and the part of it that counts paid
+ * online gifts would read zero on every project — which looks exactly like a
+ * feature that does not work. "Algemeen" stays unattached on purpose: a
+ * general gift belongs to no project and is worth having in the data.
+ */
+const projectsForFunds = await payload.find({
+  collection: 'projects',
+  limit: 100,
+  depth: 0,
+  overrideAccess: true,
+})
+
+const projectIdByTitle = new Map(projectsForFunds.docs.map((doc) => [doc.title, doc.id]))
 
 const existingDonations = await payload.find({
   collection: 'donations',
@@ -992,6 +1279,7 @@ for (const plan of donationPlan) {
         molliePaymentId: `demo-${plan.monthsAgo}-${index}`,
         amount,
         status: 'paid',
+        project: projectIdByTitle.get(plan.fund) ?? null,
         fund: plan.fund,
         anonymous,
         donorName: anonymous ? null : donorNames[index % donorNames.length],
