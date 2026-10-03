@@ -7,11 +7,14 @@ import { notFound } from 'next/navigation'
 import { RichTextContent } from '@/components/RichTextContent'
 import { Container } from '@/components/layout/Container'
 import { LEVEL_LABELS } from '@/components/courses/CourseCard'
+import { EnrolPanel } from '@/components/courses/EnrolPanel'
 import { PriceBadge } from '@/components/events/PriceBadge'
 import { Button } from '@/components/ui/button'
 import { getMessages } from '@/i18n'
 import { formatLongDate } from '@/lib/dates'
-import { getCourseBySlug, getSiteSettings } from '@/lib/payload'
+import { getCourseEnrolment } from '@/lib/enrolment'
+import { getMember } from '@/lib/member-auth'
+import { getCourseBySlug, getPayloadClient, getSiteSettings } from '@/lib/payload'
 import type { Media } from '@/payload-types'
 
 export const dynamic = 'force-dynamic'
@@ -56,6 +59,16 @@ export default async function CoursePage({ params }: Params) {
   const messages = getMessages()
   const media = typeof course.image === 'object' ? (course.image as Media | null) : null
   const starts = formatLongDate(course.startsAt)
+
+  /*
+   * Enrolment state for whoever is looking. ROADMAP 3.4's second half: a
+   * signed-in member enrols themselves, and may withdraw while their progress
+   * is still zero.
+   */
+  const member = await getMember()
+  const enrolment = member
+    ? await getCourseEnrolment(await getPayloadClient(), member, course.id)
+    : null
 
   type Fact = { label: string; value: React.ReactNode }
 
@@ -112,14 +125,25 @@ export default async function CoursePage({ params }: Params) {
             </dl>
 
             {/*
-              A link, not an enrolment. Enrolment needs a member identity,
-              which is ROADMAP 3.2 and still undecided.
+              An external aanmeldlink wins when the editor has set one: that is
+              them saying enrolment happens somewhere else, often because the
+              course is open to people who are not members.
             */}
             {course.registrationUrl ? (
               <Button asChild variant="cta" className="w-full">
                 <Link href={course.registrationUrl}>{messages.coursesRegister}</Link>
               </Button>
-            ) : null}
+            ) : (
+              <EnrolPanel
+                messages={messages}
+                courseId={course.id}
+                slug={course.slug}
+                enrolment={
+                  enrolment ? { id: enrolment.id, progress: enrolment.progress ?? 0 } : null
+                }
+                isMember={Boolean(member)}
+              />
+            )}
           </aside>
         </div>
 

@@ -163,6 +163,24 @@ export const nl = {
   eventsPeople: 'personen',
   eventsPrice: 'Prijs',
   eventsSpotsLeft: 'plaatsen beschikbaar',
+  // Aanmelden voor een evenement, voor leden.
+  eventsRegisterSelf: 'Aanmelden',
+  eventsRegistering: 'Bezig met aanmelden\u2026',
+  eventsRegistered: 'U bent aangemeld voor dit evenement.',
+  eventsRegisterError:
+    'Uw aanmelding kon niet worden verwerkt. Probeer het later opnieuw.',
+  eventsRegisterFull: 'Dit evenement is volgeboekt.',
+  eventsRegisterClosed: 'Dit evenement is al begonnen; aanmelden kan niet meer.',
+  eventsCancel: 'Afmelden',
+  eventsCancelling: 'Bezig met afmelden\u2026',
+  eventsCancelled: 'U bent afgemeld. Uw plaats is weer vrij.',
+  eventsCancelError:
+    'U kunt zich niet meer afmelden. Neem contact met ons op als dit niet klopt.',
+  eventsAttended: 'U was hierbij aanwezig.',
+  eventsRegisterLoginTitle: 'Aanmelden kan als lid',
+  eventsRegisterLoginBody:
+    'Aanmelden voor een evenement gaat via Mijn omgeving. Log in met uw ledenaccount, of neem contact met ons op als u nog geen account heeft.',
+  eventsRegisterLogin: 'Inloggen',
   eventsBackToOverview: 'Terug naar de agenda',
 
   // Vrijwilligers (ROADMAP 2.6)
@@ -256,6 +274,24 @@ export const nl = {
   coursesStartsRolling: 'Doorlopend',
   coursesPrice: 'Deelname',
   coursesRegister: 'Aanmelden',
+  // Inschrijven voor een cursus, voor leden. ROADMAP 3.4.
+  coursesEnrol: 'Inschrijven',
+  coursesEnrolling: 'Bezig met inschrijven\u2026',
+  coursesEnrolled: 'U bent ingeschreven voor deze cursus.',
+  coursesEnrolError:
+    'Uw inschrijving kon niet worden verwerkt. Probeer het later opnieuw.',
+  coursesWithdraw: 'Uitschrijven',
+  coursesWithdrawing: 'Bezig met uitschrijven\u2026',
+  coursesWithdrawn: 'U bent uitgeschreven voor deze cursus.',
+  coursesWithdrawError:
+    'U kunt zich niet meer uitschrijven. Neem contact met ons op als dit niet klopt.',
+  coursesEnrolStarted:
+    'U volgt deze cursus al. Uitschrijven kan niet meer; neem contact met ons op als u wilt stoppen.',
+  coursesEnrolLoginTitle: 'Inschrijven kan als lid',
+  coursesEnrolLoginBody:
+    'Inschrijven voor een cursus gaat via Mijn omgeving. Log in met uw ledenaccount, of neem contact met ons op als u nog geen account heeft.',
+  coursesEnrolLogin: 'Inloggen',
+  coursesEnrolProgress: 'Uw voortgang',
   coursesBackToOverview: 'Alle cursussen',
 
   // Mijn omgeving (ROADMAP 3.2)

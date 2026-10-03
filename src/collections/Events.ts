@@ -162,16 +162,19 @@ export const Events: CollectionConfig = {
       type: 'number',
       min: 0,
       label: 'Capaciteit',
-      admin: { description: 'Aantal personen. Optioneel.' },
+      admin: {
+        description:
+          'Aantal personen. Vult u dit in, dan rekent de website zelf uit hoeveel plaatsen er nog vrij zijn en sluit de aanmelding zodra het vol is.',
+      },
     },
     {
       name: 'spotsAvailable',
       type: 'number',
       min: 0,
-      label: 'Nog beschikbare plaatsen',
+      label: 'Nog beschikbare plaatsen (met de hand)',
       admin: {
         description:
-          'Wordt met de hand bijgehouden; de website neemt geen aanmeldingen aan. Laat leeg om dit niet te tonen.',
+          'Alleen nodig als u geen capaciteit invult, bijvoorbeeld bij een evenement waarvoor elders wordt aangemeld. Vult u wel een capaciteit in, dan wordt dit veld genegeerd en rekent de website zelf. Laat leeg om geen aantal te tonen.',
       },
     },
     {

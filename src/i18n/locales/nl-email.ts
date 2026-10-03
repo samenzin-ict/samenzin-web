@@ -145,9 +145,9 @@ export const nlEmail = {
       },
       {
         type: 'paragraph',
-        text: 'In Mijn omgeving ziet u uw inschrijving terug en kunt u volgen hoe ver u bent. Kunt u niet meer meedoen? Laat het ons dan weten, dan geven wij uw plaats aan iemand anders.',
+        text: 'In Mijn omgeving ziet u uw inschrijving terug en kunt u volgen hoe ver u bent. Kunt u niet meer meedoen? Dan kunt u zich op de cursuspagina weer uitschrijven, zolang de cursus nog niet is begonnen.',
       },
-      { type: 'button', label: 'Naar mijn cursussen', url },
+      { type: 'button', label: 'Naar de cursus', url },
       { type: 'paragraph', text: signOff },
     ],
   }),
@@ -179,9 +179,9 @@ export const nlEmail = {
       },
       {
         type: 'paragraph',
-        text: 'Bent u onverhoopt verhinderd? Meld u dan af in Mijn omgeving, zodat uw plaats vrijkomt.',
+        text: 'Bent u onverhoopt verhinderd? Meld u dan af op de pagina van het evenement, zodat uw plaats vrijkomt voor iemand anders.',
       },
-      { type: 'button', label: 'Naar mijn evenementen', url },
+      { type: 'button', label: 'Naar het evenement', url },
       { type: 'paragraph', text: signOff },
     ],
   }),

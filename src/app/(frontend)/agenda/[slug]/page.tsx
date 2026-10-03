@@ -8,10 +8,18 @@ import { CalendarDays, Clock, MapPin, Users } from 'lucide-react'
 import { RichTextContent } from '@/components/RichTextContent'
 import { Container } from '@/components/layout/Container'
 import { PriceBadge } from '@/components/events/PriceBadge'
+import { RegisterPanel } from '@/components/events/RegisterPanel'
 import { Button } from '@/components/ui/button'
 import { getMessages } from '@/i18n'
 import { formatLongDate, formatTimeRange } from '@/lib/dates'
-import { getEventBySlug, getSiteSettings } from '@/lib/payload'
+import {
+  countEventRegistrations,
+  getEventRegistration,
+  hasStarted,
+  placesLeft,
+} from '@/lib/enrolment'
+import { getMember } from '@/lib/member-auth'
+import { getEventBySlug, getPayloadClient, getSiteSettings } from '@/lib/payload'
 import type { Media } from '@/payload-types'
 
 export const dynamic = 'force-dynamic'
@@ -57,6 +65,26 @@ export default async function EventPage({ params }: Params) {
   const media = typeof event.image === 'object' ? (event.image as Media | null) : null
   const place = [event.locationName, event.city].filter(Boolean).join(', ')
   const time = formatTimeRange(event.startsAt, event.endsAt)
+
+  /*
+   * Registration state for whoever is looking. ROADMAP 3.4's sibling: a
+   * signed-in member may register themselves and cancel again.
+   *
+   * The places left are counted from the registrations when the editor has
+   * set a capacity, so the number on the page is a fact rather than something
+   * somebody remembered to decrement. `spotsAvailable` stays the fallback for
+   * an event with no capacity; see src/lib/enrolment.ts.
+   */
+  const payload = await getPayloadClient()
+  const member = await getMember()
+
+  const [registration, registered] = await Promise.all([
+    member ? getEventRegistration(payload, member, event.id) : Promise.resolve(null),
+    countEventRegistrations(payload, event.id),
+  ])
+
+  const places = placesLeft(event, registered)
+  const started = hasStarted(event)
 
   const facts = [
     { icon: CalendarDays, label: messages.eventsDate, value: formatLongDate(event.startsAt) },
@@ -113,15 +141,34 @@ export default async function EventPage({ params }: Params) {
               <PriceBadge price={event.price} />
             </div>
 
+            {/*
+              An external aanmeldlink wins when the editor has set one: that is
+              them saying registration happens somewhere else, often because
+              the event is open to people who are not members.
+            */}
             {event.registrationUrl ? (
               <Button asChild variant="cta" className="w-full">
                 <Link href={event.registrationUrl}>{messages.eventsRegister}</Link>
               </Button>
-            ) : null}
+            ) : (
+              <RegisterPanel
+                messages={messages}
+                eventId={event.id}
+                slug={event.slug}
+                registration={
+                  registration
+                    ? { id: registration.id, attended: Boolean(registration.attended) }
+                    : null
+                }
+                isMember={Boolean(member)}
+                isFull={places.isFull}
+                hasStarted={started}
+              />
+            )}
 
-            {typeof event.spotsAvailable === 'number' ? (
+            {places.remaining !== null && !started ? (
               <p className="text-sm">
-                {event.spotsAvailable} {messages.eventsSpotsLeft}
+                {places.remaining} {messages.eventsSpotsLeft}
               </p>
             ) : null}
           </aside>
