@@ -13,7 +13,7 @@ export { isEditorOfCommission } from './isEditorOfCommission'
 export { isOwnRecordOrCoordinator } from './isOwnRecordOrCoordinator'
 export { isPublic } from './isPublic'
 export { isVolunteerCoordinator } from './isVolunteerCoordinator'
-export { isPublishedOrAuthenticated } from './isPublishedOrAuthenticated'
+export { isPublishedOrOwnCommission } from './isPublishedOrOwnCommission'
 export {
   canCancelCourseEnrolment,
   canCancelEventRegistration,

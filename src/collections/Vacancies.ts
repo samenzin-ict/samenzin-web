@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { isAdminOrEditor, isPublishedOrAuthenticated } from '@/access'
+import { isAdminOrEditor, isPublishedOrOwnCommission } from '@/access'
 import { commissionField } from '@/fields/commissions'
 
 /**
@@ -22,7 +22,7 @@ export const Vacancies: CollectionConfig = {
   versions: { drafts: true },
   access: {
     create: isAdminOrEditor,
-    read: isPublishedOrAuthenticated,
+    read: isPublishedOrOwnCommission,
     update: isAdminOrEditor,
     delete: isAdminOrEditor,
   },

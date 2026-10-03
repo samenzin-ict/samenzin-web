@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { isAdminOrEditor, isEditorOfCommission, isPublishedOrAuthenticated } from '@/access'
+import { isAdminOrEditor, isEditorOfCommission, isPublishedOrOwnCommission } from '@/access'
 import { commissionField } from '@/fields/commissions'
 import { formatSlug } from '@/fields/slug'
 
@@ -26,7 +26,7 @@ export const Projects: CollectionConfig = {
     plural: 'Projecten',
   },
   access: {
-    read: isPublishedOrAuthenticated,
+    read: isPublishedOrOwnCommission,
     create: isAdminOrEditor,
     // ROADMAP 2.8: an editor may change what their commission owns, and what
     // no commission owns.
