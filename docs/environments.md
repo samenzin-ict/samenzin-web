@@ -307,17 +307,34 @@ into a build that already happened.
 
 Deployed from `main`, serving `samenzin.org`.
 
-| Variable | Value |
-|---|---|
-| `DATABASE_URI` | Neon **`production`** branch, pooled string |
-| `PAYLOAD_SECRET` | `openssl rand -hex 32` |
-| `PREVIEW_SECRET` | `openssl rand -hex 32`, different again |
-| `NEXT_PUBLIC_SERVER_URL` | `https://samenzin.org` |
-| `R2_BUCKET` | `samenzin-media` |
-| `R2_ENDPOINT` | `https://<account-id>.r2.cloudflarestorage.com` |
-| `R2_ACCESS_KEY_ID` | From the R2 API token |
-| `R2_SECRET_ACCESS_KEY` | From the R2 API token |
-| `R2_PUBLIC_URL` | The bucket's public address |
+| Variable | Value | Without it |
+|---|---|---|
+| `DATABASE_URI` | Neon **`production`** branch, pooled string | the build fails with a named error |
+| `PAYLOAD_SECRET` | `openssl rand -hex 32` | nobody can sign in |
+| `NEXT_PUBLIC_SERVER_URL` | `https://samenzin.org` | links in e-mail and the sitemap point at the deployment's own hostname |
+| `PREVIEW_SECRET` | `openssl rand -hex 32`, different again | the preview button returns 503 |
+| `CRON_SECRET` | `openssl rand -hex 32`, different again | the daily clear-out returns 503 and no personal data is ever deleted |
+| `R2_BUCKET` | `samenzin-media` | uploads are written to a disk that is discarded |
+| `R2_ENDPOINT` | `https://<account-id>.r2.cloudflarestorage.com` | as above |
+| `R2_ACCESS_KEY_ID` | From the R2 API token | as above |
+| `R2_SECRET_ACCESS_KEY` | From the R2 API token | as above |
+| `R2_PUBLIC_URL` | The bucket's public address | images resolve to addresses the deployment does not serve |
+| `SMTP_HOST` | the mail server, e.g. `smtp.gmail.com` | **nothing is ever sent**; Payload logs the recipient and subject instead |
+| `SMTP_PORT` | `587` | defaults to 587 |
+| `SMTP_USER` | the mailbox that authenticates | sent without authentication, which most relays refuse |
+| `SMTP_PASS` | an **app password**, never the account password | as above |
+| `EMAIL_FROM_ADDRESS` | the address mail comes from | falls back to `SMTP_USER` |
+| `EMAIL_FROM_NAME` | `Samenleving en Zingeving` | falls back to that anyway |
+| `EMAIL_NOTIFY_ADDRESS` | optional | falls back to the e-mail address in Instellingen |
+| `MOLLIE_API_KEY` | live key, once the bank account exists | the donation page stays in its disabled state |
+| `MOLLIE_WEBHOOK_URL` | `https://samenzin.org/api/mollie/webhook` | a payment is never marked paid |
+
+Nothing on this list breaks the site by being absent: each one degrades to the
+behaviour in the third column. `CRON_SECRET` and the `SMTP_*` group are the two
+that fail *silently*, which is why they are worth checking rather than assuming.
+
+**Never set `DEMO_MEMBER_PASSWORD` in Vercel.** It belongs to `pnpm seed`, which
+never runs there, and it creates accounts that can sign in.
 
 ### Preview
 
@@ -326,17 +343,30 @@ Every pull request. Same variables, with these differences:
 | Variable | Value |
 |---|---|
 | `DATABASE_URI` | Neon **`dev`** branch, pooled string |
-| `PAYLOAD_SECRET` | A **different** random string from production |
-| `PREVIEW_SECRET` | A different random string again |
-| `NEXT_PUBLIC_SERVER_URL` | Leave unset |
-| `R2_*` | Identical to production |
+| `PAYLOAD_SECRET` | a **different** random string from production |
+| `PREVIEW_SECRET` | a different random string again |
+| `NEXT_PUBLIC_SERVER_URL` | leave unset — see below |
+| `CRON_SECRET` | optional; set it only to test the endpoint on a preview |
+| `R2_*` | identical to production |
+| `SMTP_*` and `EMAIL_*` | the same as production, if you want to test mail |
+| `MOLLIE_API_KEY` | a **test** key, never the live one |
 
-`NEXT_PUBLIC_SERVER_URL` is left unset on Preview because every preview gets a
-different hostname, so there is nothing sensible to pin. It only affects the
-sitemap and canonical tags, which do not matter on a preview.
+`NEXT_PUBLIC_SERVER_URL` stays unset on Preview because every preview
+deployment has a different hostname and there is nothing stable to pin. It used
+to be said that this only affected the sitemap and canonical tags; that stopped
+being true when the site began sending e-mail, because a password-reset link
+built from `http://localhost:3000` is a dead link for whoever receives it.
+
+So `getSiteUrl()` falls back to `VERCEL_URL`, the deployment's own hostname,
+which Vercel sets at runtime. Links in a preview's mail therefore point at that
+preview. They go through Vercel's deployment protection, so they only open for
+somebody signed in to the Vercel team — which is right for a preview.
+
+Set `NEXT_PUBLIC_SERVER_URL` on Preview only if you have given the preview a
+stable alias and want links to use it.
 
 The database must be the `dev` branch. Migrations run during the build, so a
-pull request pointed at production would migrate live data.
+preview pointed at production would migrate live data.
 
 ### Where the values come from
 
@@ -349,6 +379,12 @@ pull request pointed at production would migrate live data.
   **Object Read & Write**, scoped to `samenzin-media` only.
 - **R2 public address**: the bucket's Settings → Public access. Either switch on
   the `r2.dev` URL or attach a custom domain such as `media.samenzin.org`.
+- **A random secret**: `openssl rand -hex 32`. Use a fresh one for each
+  variable and each environment; they are unrelated and sharing one means a
+  leak in one place is a leak in all of them.
+- **An app password for Gmail or Google Workspace**: Google Account → Security
+  → 2-Step Verification → App passwords. The account password will not work for
+  SMTP and should never be used here.
 
 ### When a deploy fails
 
