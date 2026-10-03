@@ -2,6 +2,7 @@ import React from 'react'
 import type { AdminViewServerProps } from 'payload'
 
 import { INTEREST_OPTIONS, labelFor } from '@/fields/volunteering'
+import { TIME_ZONE } from '@/lib/dates'
 
 import '../dashboard.css'
 
@@ -25,9 +26,22 @@ const euro = new Intl.NumberFormat('nl-NL', {
   maximumFractionDigits: 0,
 })
 
-const monthName = new Intl.DateTimeFormat('nl-NL', { month: 'short' })
-const monthYear = new Intl.DateTimeFormat('nl-NL', { month: 'long', year: 'numeric' })
-const dayMonth = new Intl.DateTimeFormat('nl-NL', { day: '2-digit', month: '2-digit' })
+/*
+ * Pinned to the foundation's timezone, like every other formatter in this
+ * project; see TIME_ZONE in src/lib/dates.ts for why. These three shapes are
+ * only wanted here, which is why they are built here rather than exported.
+ */
+const monthName = new Intl.DateTimeFormat('nl-NL', { month: 'short', timeZone: TIME_ZONE })
+const monthYear = new Intl.DateTimeFormat('nl-NL', {
+  month: 'long',
+  year: 'numeric',
+  timeZone: TIME_ZONE,
+})
+const dayMonth = new Intl.DateTimeFormat('nl-NL', {
+  day: '2-digit',
+  month: '2-digit',
+  timeZone: TIME_ZONE,
+})
 
 const MONTHS_ON_CHART = 8
 
