@@ -164,6 +164,28 @@ export const Projects: CollectionConfig = {
       label: 'Tekst',
     },
     {
+      /*
+       * The short labelled lines the board's texts end with — "Voor wie:",
+       * "Agenda:", "Meedoen:". They are the answers a reader actually came
+       * for, and as trailing paragraphs they disappear into the prose. Held
+       * apart so the page can put them where they can be found.
+       */
+      name: 'details',
+      type: 'array',
+      localized: true,
+      label: 'Praktische gegevens',
+      labels: { singular: 'Gegeven', plural: 'Praktische gegevens' },
+      maxRows: 6,
+      admin: {
+        description:
+          'Bijvoorbeeld "Voor wie" met daarachter voor wie het project bedoeld is. Wordt als een apart kader naast de tekst getoond.',
+      },
+      fields: [
+        { name: 'label', type: 'text', required: true, label: 'Kop' },
+        { name: 'text', type: 'textarea', required: true, label: 'Tekst' },
+      ],
+    },
+    {
       name: 'facts',
       type: 'array',
       localized: true,

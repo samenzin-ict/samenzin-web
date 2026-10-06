@@ -153,6 +153,33 @@
     margin-bottom: 0;
   }
 
+  /*
+   * The opening paragraph of a project, set larger than the rest.
+   *
+   * A project page is one long column of body text otherwise, and a reader
+   * scanning the overview needs somewhere for the eye to land. This is the
+   * cheapest way to give the page a beginning; see
+   * docs/design/06-projecten-overzicht-en-detail.png.
+   */
+  .rich-text-lead > p:first-child {
+    font-size: 1.125rem;
+    line-height: 1.65;
+    color: var(--primary);
+  }
+
+  /*
+   * A bold run that opens a list item — "**Aanvullend, niet vervangend.** Wij
+   * verwachten…" — is the lead of that item, so it gets the heading face. The
+   * board's texts lean on this pattern and it is what makes a list of five
+   * long bullets scannable.
+   */
+  .rich-text li > strong:first-child,
+  .rich-text li > b:first-child {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--primary);
+  }
+
   .rich-text a {
     color: var(--accent);
     text-decoration: underline;
