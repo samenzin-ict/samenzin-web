@@ -28,7 +28,8 @@
     "baseline:prod": "bash scripts/neon.sh production baseline",
     "prune:expired": "cross-env NODE_OPTIONS=--no-deprecation payload run scripts/prune-expired.ts",
     "load:legal": "bash scripts/load.sh load-legal.ts",
-    "load:over-ons": "bash scripts/load.sh --uploads load-over-ons.ts"
+    "load:over-ons": "bash scripts/load.sh --uploads load-over-ons.ts",
+    "load:projecten": "bash scripts/load.sh load-projecten.ts"
   },
   "dependencies": {
     "@mollie/api-client": "4.6.0",

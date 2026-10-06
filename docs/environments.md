@@ -564,9 +564,10 @@ production admin panel.
 
 ### Pages written in Word
 
-Three pages are too long to retype into the admin panel and are revised as Word
-files instead: the privacyverklaring, the cookiebeleid and Over ons. Each has a
-converter that reads `docs/*.docx` and a loader that publishes the result.
+Some pages are too long to retype into the admin panel and are revised as Word
+files instead: the privacyverklaring, the cookiebeleid, Over ons and the seven
+projects. Each has a converter that reads `docs/*.docx` and a loader that
+publishes the result.
 
 ```bash
 python3 scripts/convert-legal.py        # -> .devseed/legal.json
@@ -575,12 +576,20 @@ pnpm load:legal production
 python3 scripts/crop-portraits.py       # -> .devseed/portraits/*.jpg
 python3 scripts/convert-over-ons.py     # -> .devseed/over-ons.json
 pnpm load:over-ons production
+
+python3 scripts/convert-projecten.py    # -> .devseed/projecten.json
+pnpm load:projecten production
 ```
 
-Both loaders take `local`, `dev` or `production` and print the host before they
-write anything. `load:over-ons` uploads the board's portraits, so it also
+Every loader takes `local`, `dev` or `production` and prints the host before it
+writes anything. `load:over-ons` uploads the board's portraits, so it also
 refuses to start without the R2 variables: without them the images would be
 written to your laptop and every portrait on the deployment would be broken.
+
+`load:projecten` matches a project by its slug and never deletes one. A project
+that exists in the database but not in the Word file is listed at the end and
+left alone, because a script cannot tell demo content from something a
+volunteer wrote that morning. Remove those in the admin panel.
 
 Neither the Word files nor `.devseed/` are in the repository. They carry the
 board members' names, faces and the foundation's postal address, and CLAUDE.md

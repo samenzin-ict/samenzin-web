@@ -120,8 +120,12 @@ export const nl = {
 
   // Projecten (ROADMAP 2.2)
   projectsTitle: 'Projecten',
-  projectsIntro: 'Onze initiatieven',
+  // Used for the page description and the Open Graph tags; the text a visitor
+  // reads comes from the CMS page with the slug 'projecten'.
+  projectsIntro: 'De projecten van Stichting Samenleving en Zingeving: taal, studieondersteuning, bezinning, publicaties en ontmoeting.',
   projectsEmpty: 'Er zijn nog geen projecten gepubliceerd.',
+  projectStatusRunning: 'Loopt',
+  projectStatusPreparing: 'In voorbereiding',
   projectsReadMore: 'Lees meer',
   projectFundingRaised: 'opgehaald',
   projectFundingOf: 'van',

@@ -215,8 +215,9 @@ await payload.updateGlobal({
 
 console.log(`  updated ${updatedMembers.length} board members${everyPortrait ? ' with portraits' : ''}`)
 
+// The Over ons converter writes plain strings, so the marker is in one of them.
 const body = document.body.map((block) =>
-  block.type !== 'ul' && block.text.includes(ANBI_MARKER)
+  block.type !== 'ul' && typeof block.text === 'string' && block.text.includes(ANBI_MARKER)
     ? { ...block, text: block.text.replace(ANBI_MARKER, anbiSentence(anbi.anbiStatus)) }
     : block,
 )

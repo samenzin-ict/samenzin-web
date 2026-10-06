@@ -144,6 +144,17 @@ database stopped, which is the situation in GitHub Actions.
   it, `crop-portraits.py` cuts the photographs to one shape. Neither the documents nor
   `.devseed/` are in git; they carry real names and faces. See `docs/environments.md`.
 
+- **Projecten: seven, each labelled.** Every project carries a `phase` — **Loopt** or
+  **In voorbereiding** — shown as a badge on the card and on the project page. A young
+  foundation is read by fondsen and gemeenten, and telling running work apart from a plan
+  is what keeps a plan from being read as a promise. `studentenhuisvesting` is the case
+  this exists for.
+- Projects are ordered by an `order` field the board sets, not by when somebody typed
+  them in. The sequence is editorial: what runs comes first.
+- `/projecten` now renders the blocks of the CMS page with slug `projecten` above the
+  grid, the same way `/contact` and `/doneren` render theirs. That is where the
+  introduction lives.
+
 ## In progress
 
 - Nothing half-done. The session ended on a clean tree, lint, types and build all
@@ -530,6 +541,12 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
   block reads the same rows. Do not add a second list anywhere. `scripts/load-over-ons.ts`
   refuses to load a biography that opens with a different spelling than that record,
   which is what keeps the spelling the same across the site.
+- A project's running/planned label is the field `phase`, not `status`. Payload's drafts
+  already own `status` (`_status` holds draft or published) and a second one collides with
+  its enum type in Postgres. The first generated migration failed on exactly that.
+- `pnpm load:projecten` never deletes a project. It lists the ones in the database that
+  are not in the Word file and leaves them; demo projects from an older seed have
+  different slugs from the new titles, so they have to be removed by hand once.
 - The sentence Over ons makes about the ANBI application is generated from `anbiStatus`,
   not stored in the page. When the beschikking arrives, change the status under
   ANBI-gegevens and re-run `pnpm load:over-ons production`; both pages then agree.

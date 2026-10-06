@@ -8,6 +8,7 @@ import { CalendarDays, MapPin, Users } from 'lucide-react'
 import { RichTextContent } from '@/components/RichTextContent'
 import { Container } from '@/components/layout/Container'
 import { FundingProgress } from '@/components/projects/FundingProgress'
+import { ProjectStatus } from '@/components/projects/ProjectStatus'
 import { Button } from '@/components/ui/button'
 import { getMessages } from '@/i18n'
 import { getPaidForProject, totalRaised } from '@/lib/funding'
@@ -93,6 +94,13 @@ export default async function ProjectPage({ params }: Params) {
 
       <Container className="py-10 md:py-14">
         <h1 className="font-heading text-3xl sm:text-4xl">{project.title}</h1>
+
+        <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <ProjectStatus phase={project.phase} />
+          {project.phaseNote ? (
+            <span className="text-sm text-muted-foreground">{project.phaseNote}</span>
+          ) : null}
+        </p>
 
         <div className="mt-8 grid gap-10 md:grid-cols-3">
           <div className="md:col-span-2">
