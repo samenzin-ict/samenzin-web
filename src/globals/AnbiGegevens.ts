@@ -236,11 +236,40 @@ export const AnbiGegevens: GlobalConfig = {
               labels: { singular: 'Bestuurslid', plural: 'Bestuursleden' },
               admin: {
                 description:
-                  'Alleen naam en functie. Woonadres, telefoonnummer en geboortedatum zijn niet verplicht en horen hier niet.',
+                  'Naam en functie staan op deze ANBI-pagina. Foto en biografie staan alleen op Over ons. Woonadres, telefoonnummer en geboortedatum zijn niet verplicht en horen hier niet.',
               },
+              /*
+               * One row per bestuurslid, for both pages. The ANBI page shows
+               * the name and the role, because the Belastingdienst asks for
+               * those; Over ons shows the photo and the biography as well.
+               *
+               * They live together so that a name is spelled in one place. Two
+               * lists would be two spellings within a year, and the one on the
+               * ANBI page is the one that has to match the statutes.
+               */
               fields: [
                 { name: 'role', type: 'text', required: true, localized: true, label: 'Functie' },
                 { name: 'name', type: 'text', required: true, label: 'Naam' },
+                {
+                  name: 'photo',
+                  type: 'upload',
+                  relationTo: 'media',
+                  label: 'Foto',
+                  admin: {
+                    description:
+                      'Alleen voor Over ons. Portret, staand 4:5, van borst tot boven het hoofd. Vul hem voor alle bestuursleden of voor geen enkele: Over ons toont de foto\u2019s alleen als ze er voor iedereen zijn, omdat een half gevulde rij er slechter uitziet dan een rij zonder foto\u2019s. Een herkenbare foto vraagt toestemming van de betrokkene.',
+                  },
+                },
+                {
+                  name: 'bio',
+                  type: 'richText',
+                  localized: true,
+                  label: 'Biografie',
+                  admin: {
+                    description:
+                      'Alleen voor Over ons. Een paar alinea\u2019s: wat iemand doet, waarom hij of zij zich inzet, en waarvoor hij of zij binnen de stichting verantwoordelijk is.',
+                  },
+                },
               ],
             },
             {

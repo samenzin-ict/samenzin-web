@@ -1,4 +1,5 @@
 import { AgendaBlock } from '@/components/blocks/AgendaBlock'
+import { BoardBlock } from '@/components/blocks/BoardBlock'
 import { CallToActionBlock } from '@/components/blocks/CallToActionBlock'
 import { FeaturedItemsBlock } from '@/components/blocks/FeaturedItemsBlock'
 import { HeroBlock } from '@/components/blocks/HeroBlock'
@@ -43,6 +44,9 @@ function RenderBlock({ block }: { block: Block }) {
           limit={block.limit}
         />
       )
+
+    case 'board':
+      return <BoardBlock heading={block.heading} intro={block.intro} />
 
     case 'callToAction':
       return <CallToActionBlock heading={block.heading} text={block.text} links={block.links} />

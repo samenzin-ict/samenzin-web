@@ -19,6 +19,7 @@ import * as migration_20261003_142915_volunteer_status from './20261003_142915_v
 import * as migration_20261003_144340_donation_project from './20261003_144340_donation_project';
 import * as migration_20261003_144849_retention_members_donations from './20261003_144849_retention_members_donations';
 import * as migration_20261003_224944_certificates from './20261003_224944_certificates';
+import * as migration_20261006_112509_board_photo_and_bio from './20261006_112509_board_photo_and_bio';
 
 export const migrations = [
   {
@@ -124,6 +125,11 @@ export const migrations = [
   {
     up: migration_20261003_224944_certificates.up,
     down: migration_20261003_224944_certificates.down,
-    name: '20261003_224944_certificates'
+    name: '20261003_224944_certificates',
+  },
+  {
+    up: migration_20261006_112509_board_photo_and_bio.up,
+    down: migration_20261006_112509_board_photo_and_bio.down,
+    name: '20261006_112509_board_photo_and_bio'
   },
 ];

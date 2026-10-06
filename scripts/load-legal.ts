@@ -22,14 +22,12 @@ import { fileURLToPath } from 'url'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 
+import { toLexical, type TextBlock } from './lexical'
+
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const SOURCE = path.resolve(dirname, '..', '.devseed', 'legal.json')
 
-type Block =
-  | { type: 'p' | 'h2' | 'h3'; text: string }
-  | { type: 'ul'; items: string[] }
-
-type Document = { title: string; blocks: Block[] }
+type Document = { title: string; blocks: TextBlock[] }
 
 if (!fs.existsSync(SOURCE)) {
   console.error(`No ${path.relative(process.cwd(), SOURCE)}.`)
@@ -39,60 +37,6 @@ if (!fs.existsSync(SOURCE)) {
 }
 
 const documents = JSON.parse(fs.readFileSync(SOURCE, 'utf8')) as Record<string, Document>
-
-/** Lexical's shape for a run of plain text. */
-const textNode = (text: string) => ({
-  type: 'text',
-  text,
-  mode: 'normal',
-  style: '',
-  detail: 0,
-  format: 0,
-  version: 1,
-})
-
-const container = (type: string, children: unknown[], extra: Record<string, unknown> = {}) => ({
-  type,
-  children,
-  direction: 'ltr' as const,
-  format: '' as const,
-  indent: 0,
-  version: 1,
-  ...extra,
-})
-
-/**
- * The blocks as Lexical's editor state. Built as a plain object, the same way
- * the seed builds its rich text: Payload's field type wants an index signature
- * that the exported SerializedEditorState does not carry, and casting to it
- * only moves the problem.
- */
-const toLexical = (blocks: Block[]) => ({
-  root: {
-    type: 'root',
-    format: '' as const,
-    indent: 0,
-    version: 1,
-    direction: 'ltr' as const,
-    children: blocks.map((block) => {
-      if (block.type === 'ul') {
-        return container(
-          'list',
-          block.items.map((item, index) =>
-            container('listitem', [textNode(item)], { value: index + 1 }),
-          ),
-          { listType: 'bullet', start: 1, tag: 'ul' },
-        )
-      }
-
-      if (block.type === 'h2' || block.type === 'h3') {
-        return container('heading', [textNode(block.text)], { tag: block.type })
-      }
-
-      return container('paragraph', [textNode(block.text)], { textFormat: 0, textStyle: '' })
-    }),
-  },
-})
 
 const payload = await getPayload({ config })
 

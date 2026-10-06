@@ -43,7 +43,7 @@ Ordered by how much the foundation needs it and how much it depends on the item 
 | 2.2 | Projecten | `/projecten`, `/projecten/<slug>` | Content | Funding progress bar per `06-projecten-*.png` |
 | 2.3 | Nieuws & artikelen | `/nieuws`, `/nieuws/<slug>` | Content | Author, publication date, tags |
 | 2.4 | Agenda / evenementen | `/agenda`, `/agenda/<slug>` | Programma | Replaces the hand-typed homepage block; filters need a real collection |
-| 2.5 | Team | `/over-ons` section | Mensen | Board already exists in `AnbiGegevens`; reuse it, do not duplicate names |
+| 2.5 | Team | `/over-ons` section | Mensen | **Done.** A `board` block reads the members from `AnbiGegevens`, so a name is spelled in one place. Portraits are all-or-nothing |
 | 2.6 | Vrijwilligers: intake form | `/vrijwilligers`, `/vrijwilliger-worden` | Mensen | **Personal data.** Register entry and retention rule required first |
 | 2.7 | Vacatures, with CV upload | `/vacatures`, `/vacatures/<slug>` | Mensen | **Personal data**, and CVs are sensitive. Storage and deletion decided before building |
 | 2.8 | Per-commission permissions | — | Systeem | **Done,** both halves. An editor changes what their commission owns and sees no other commission's drafts |

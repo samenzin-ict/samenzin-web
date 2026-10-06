@@ -562,6 +562,41 @@ machine. Delete it when you are done and never commit a dump.
 There is no `db:push`. To get content into production, someone edits it in the
 production admin panel.
 
+### Pages written in Word
+
+Three pages are too long to retype into the admin panel and are revised as Word
+files instead: the privacyverklaring, the cookiebeleid and Over ons. Each has a
+converter that reads `docs/*.docx` and a loader that publishes the result.
+
+```bash
+python3 scripts/convert-legal.py        # -> .devseed/legal.json
+pnpm load:legal production
+
+python3 scripts/crop-portraits.py       # -> .devseed/portraits/*.jpg
+python3 scripts/convert-over-ons.py     # -> .devseed/over-ons.json
+pnpm load:over-ons production
+```
+
+Both loaders take `local`, `dev` or `production` and print the host before they
+write anything. `load:over-ons` uploads the board's portraits, so it also
+refuses to start without the R2 variables: without them the images would be
+written to your laptop and every portrait on the deployment would be broken.
+
+Neither the Word files nor `.devseed/` are in the repository. They carry the
+board members' names, faces and the foundation's postal address, and CLAUDE.md
+rule 2 keeps those out of git. Keep them locally and share them through the ICT
+commission's own channel.
+
+Two things the Over ons loader does on purpose:
+
+- It never writes a name. The board's names live in the ANBI record, because
+  the Belastingdienst requires them there, and both /anbi and /over-ons read
+  that one list. A biography that opens with a different spelling than the ANBI
+  record stops the load and nothing is written.
+- It writes the sentence about the ANBI application from `anbiStatus` rather
+  than from the Word file. Change the status when the beschikking arrives and
+  both pages follow; leave it in the text and one of them will be forgotten.
+
 ### Neon branching
 
 Reset the `dev` branch from `production` in the Neon dashboard whenever dev data

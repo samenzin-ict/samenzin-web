@@ -1,4 +1,5 @@
 export { Agenda } from './Agenda'
+export { Board } from './Board'
 export { CallToAction } from './CallToAction'
 export { FeaturedItems } from './FeaturedItems'
 export { Hero } from './Hero'
