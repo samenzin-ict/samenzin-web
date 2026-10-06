@@ -11,10 +11,10 @@ import type { Messages } from '@/i18n'
  * The organisation name comes from SiteSettings like everywhere else; the
  * mockup's wordmark is a placeholder (CLAUDE.md, "Design").
  *
- * The mockup also shows tabs for taken, cursussen and evenementen. Those are
- * ROADMAP 3.4 and 3.5 and are not built, so they are not shown: a tab that
- * leads nowhere is worse than one that is not there yet. PortalNav takes a
- * list, so adding them later is one entry each.
+ * `print:hidden` keeps all of it off a printed page. The only thing worth
+ * printing in Mijn omgeving is a certificate (ROADMAP 3.6), and it should come
+ * out as a document rather than as a screenshot of a website with tabs and a
+ * sign-out link across the top.
  */
 export function PortalHeader({
   messages,
@@ -26,7 +26,7 @@ export function PortalHeader({
   memberName: string
 }) {
   return (
-    <header className="border-b border-border bg-card">
+    <header className="border-b border-border bg-card print:hidden">
       <Container className="flex flex-wrap items-center justify-between gap-4 py-4">
         <Link href="/" className="font-heading text-lg text-primary">
           {organisationName}

@@ -34,7 +34,7 @@ export default async function ProtectedPortalLayout({
         memberName={member.name}
       />
 
-      <main id="inhoud" className="flex-1 py-8 md:py-12">
+      <main id="inhoud" className="flex-1 py-8 md:py-12 print:py-0">
         <Container className="space-y-8">{children}</Container>
       </main>
     </>

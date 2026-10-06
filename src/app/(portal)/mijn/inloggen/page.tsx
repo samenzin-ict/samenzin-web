@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 import { Container } from '@/components/layout/Container'
@@ -38,6 +39,15 @@ export default async function LoginPage() {
           </div>
 
           <LoginForm messages={messages} />
+
+          <p className="text-sm">
+            <Link
+              href="/mijn/wachtwoord-vergeten"
+              className="text-accent underline underline-offset-4"
+            >
+              {messages.portalLoginForgot}
+            </Link>
+          </p>
 
           <p className="text-sm">{messages.portalLoginNoAccount}</p>
         </div>

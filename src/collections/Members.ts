@@ -2,9 +2,19 @@ import type { CollectionConfig } from 'payload'
 
 import { isAdmin, isAdminFieldLevel, isAdminOrSelfMember } from '@/access'
 import { COMMISSION_OPTIONS } from '@/fields/commissions'
+import { memberResetUrl, resetPasswordEmail } from '@/lib/email/auth'
 
 /** How long a member stays signed in before having to log in again. */
 export const TOKEN_EXPIRATION_SECONDS = 60 * 60 * 24 * 7
+
+/**
+ * How long an ended membership is kept.
+ *
+ * Two years, which is what the published privacyverklaring promises: "zolang
+ * uw account bestaat en daarna 2 jaar". Change this and the statement has to
+ * change with it.
+ */
+export const RETENTION_MONTHS_AFTER_END = 24
 
 /**
  * Members of the foundation, with their own login. ROADMAP 3.2.
@@ -24,9 +34,12 @@ export const TOKEN_EXPIRATION_SECONDS = 60 * 60 * 24 * 7
  * administrator. There is no public sign-up: membership is granted, not
  * claimed.
  *
- * Until an email adapter exists there is no "forgotten password" and no way to
- * invite somebody. An administrator sets the password here and passes it on
- * themselves. That is recorded as a launch blocker in PROGRESS.md.
+ * A member sets their own password and always has. Approving an application
+ * sends them a link to do it with, and the login page offers "wachtwoord
+ * vergeten", both of which land on /mijn/wachtwoord-instellen. An
+ * administrator never sees or sets a member's password; the random one the
+ * account is created with exists only so the account cannot be claimed by
+ * somebody who guesses the address.
  */
 export const Members: CollectionConfig = {
   slug: 'members',
@@ -44,8 +57,21 @@ export const Members: CollectionConfig = {
      */
     maxLoginAttempts: 5,
     lockTime: 15 * 60 * 1000,
-    // Email verification needs an email adapter. There is none yet.
+    /*
+     * No address verification. A member does not sign themselves up: the board
+     * approves an application and the account is created from the address the
+     * applicant gave. Setting a password already proves they can read mail at
+     * that address, so a separate verification step would ask the same
+     * question twice.
+     */
     verify: false,
+    /*
+     * The Dutch reset mail, instead of Payload's English default. Expiry is
+     * deliberately left at Payload's one hour: a per-collection value would
+     * also override the 24 hours that the welcome message asks for, because
+     * the collection setting wins over the per-call one.
+     */
+    forgotPassword: resetPasswordEmail(memberResetUrl),
   },
   access: {
     create: isAdmin,
@@ -56,47 +82,98 @@ export const Members: CollectionConfig = {
   hooks: {
     beforeDelete: [
       /**
-       * Deleting a member takes their registered hours with them.
+       * Deleting a member takes everything that belongs to them with it.
        *
-       * Not a nicety. `volunteer_hours.member_id` is NOT NULL with an
-       * ON DELETE SET NULL constraint, so without this Postgres refuses the
-       * delete and the admin panel shows a raw "Failed query" with nothing an
-       * administrator could act on.
+       * Not a nicety. Every one of these tables has `member_id integer NOT
+       * NULL` with an ON DELETE SET NULL constraint, which is a combination
+       * Postgres cannot satisfy: it refuses the delete and the admin panel
+       * shows a raw "Failed query: delete from members..." with nothing an
+       * administrator could act on. Verified on a fresh database with one row
+       * in each of the four.
        *
-       * Removing the hours is also the honest reading of what deleting a
-       * member means. Ending a membership is `status: beeindigd`; deleting the
-       * record is for an erasure request, and hours tied to a named person are
-       * that person's data too.
+       * This used to cover registered hours only, so the panel broke the
+       * moment a member had a task, an enrolment or a registration — which is
+       * to say on the first erasure request for anybody who used the portal.
+       *
+       * Removing the rows is also the honest reading of what deleting a member
+       * means. Ending a membership is `status: beeindigd`; deleting the record
+       * is for an erasure request, and hours, tasks and attendance tied to a
+       * named person are that person's data too.
        *
        * The cost is that the board loses those hours from its totals. If that
        * turns out to matter more than simplicity, the alternative is to keep
        * the rows and blank the member, which preserves the aggregate without
-       * naming anyone. Recorded in PROGRESS.md.
+       * naming anyone — and would need the NOT NULL dropped first. Recorded in
+       * PROGRESS.md.
        */
       async ({ id, req }) => {
-        const { docs } = await req.payload.find({
-          collection: 'volunteer-hours',
-          where: { member: { equals: id } },
-          limit: 1000,
-          depth: 0,
-          overrideAccess: true,
-          req,
-        })
+        /*
+         * Order matters only in that it does not: none of these reference each
+         * other. They are listed with the most valuable last so a failure
+         * part-way through loses the least.
+         */
+        const owned = [
+          'event-registrations',
+          'course-enrolments',
+          'member-tasks',
+          'volunteer-hours',
+        ] as const
 
-        for (const entry of docs) {
-          await req.payload.delete({
-            collection: 'volunteer-hours',
-            id: entry.id,
+        for (const collection of owned) {
+          const { docs } = await req.payload.find({
+            collection,
+            where: { member: { equals: id } },
+            limit: 1000,
+            depth: 0,
             overrideAccess: true,
             req,
           })
+
+          for (const row of docs) {
+            await req.payload.delete({ collection, id: row.id, overrideAccess: true, req })
+          }
+
+          if (docs.length > 0) {
+            req.payload.logger.info(
+              `Deleted ${docs.length} ${collection} row(s) belonging to member ${id}`,
+            )
+          }
+        }
+      },
+    ],
+    beforeChange: [
+      /**
+       * The clock on an ended membership.
+       *
+       * The privacyverklaring promises a member's data is kept "zolang uw
+       * account bestaat en daarna 2 jaar". Nothing acted on that: the status
+       * went to "beeindigd" and the record stayed for ever.
+       *
+       * "The account ends" is read as the status becoming beeindigd, which is
+       * the only signal the model has and the only one an administrator
+       * controls. Two years from that moment, `pnpm prune:expired` and the
+       * daily cron job delete the member, which takes their hours, tasks,
+       * enrolments and registrations with them.
+       *
+       * Reinstating a member clears the date, so somebody who comes back is
+       * not quietly removed on the old schedule.
+       */
+      ({ data, originalDoc }) => {
+        const status = data?.status ?? originalDoc?.status
+
+        if (status === 'beeindigd') {
+          // Only on the transition, so an administrator editing a telephone
+          // number on an ended member does not push the date two years out.
+          if (originalDoc?.status === 'beeindigd' && originalDoc?.deleteAfter) return data
+
+          const deleteAfter = new Date()
+          deleteAfter.setMonth(deleteAfter.getMonth() + RETENTION_MONTHS_AFTER_END)
+
+          return { ...data, deleteAfter: deleteAfter.toISOString() }
         }
 
-        if (docs.length > 0) {
-          req.payload.logger.info(
-            `Deleted ${docs.length} hour entr${docs.length === 1 ? 'y' : 'ies'} belonging to member ${id}`,
-          )
-        }
+        // Active again, or still active: no clock.
+        return { ...data, deleteAfter: null }
       },
     ],
   },
@@ -105,7 +182,7 @@ export const Members: CollectionConfig = {
     defaultColumns: ['name', 'email', 'status', 'memberSince'],
     group: 'Mensen',
     description:
-      'Leden met een eigen inlog voor Mijn omgeving. Leden kunnen niet in dit beheerpaneel. Zolang er geen e-mail is ingesteld, stelt een beheerder hier het wachtwoord in en geeft dat zelf door. Let op: een lid verwijderen wist ook de uren die dit lid heeft ingevoerd. Wilt u het lidmaatschap alleen beëindigen, zet de status dan op Beëindigd.',
+      'Leden met een eigen inlog voor Mijn omgeving. Leden kunnen niet in dit beheerpaneel. Een lid stelt zijn eigen wachtwoord in via de link die het bij goedkeuring krijgt, of via "Wachtwoord vergeten" op de inlogpagina. Let op: een lid verwijderen wist ook de uren die dit lid heeft ingevoerd. Wilt u het lidmaatschap alleen beëindigen, zet de status dan op Beëindigd.',
   },
   fields: [
     { name: 'name', type: 'text', required: true, label: 'Naam', maxLength: 200 },
@@ -177,6 +254,17 @@ export const Members: CollectionConfig = {
         { name: 'postalCode', type: 'text', label: 'Postcode', maxLength: 20 },
         { name: 'city', type: 'text', label: 'Plaats', maxLength: 100 },
       ],
+    },
+    {
+      name: 'deleteAfter',
+      type: 'date',
+      label: 'Opruimen na',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        date: { pickerAppearance: 'dayOnly', displayFormat: 'd MMMM yyyy' },
+        description: `Wordt gevuld zodra u de status op Beëindigd zet: ${RETENTION_MONTHS_AFTER_END / 12} jaar daarna wordt het lid verwijderd, met de uren, taken, inschrijvingen en aanmeldingen. Zet u de status terug op Actief, dan vervalt de datum.`,
+      },
     },
   ],
 }

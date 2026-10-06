@@ -3,7 +3,8 @@ import type { Metadata } from 'next'
 import { RichTextContent } from '@/components/RichTextContent'
 import { Container } from '@/components/layout/Container'
 import { Notice } from '@/components/ui/notice'
-import { defaultLocale, getMessages } from '@/i18n'
+import { getMessages } from '@/i18n'
+import { formatLongDate } from '@/lib/dates'
 import { getAnbiGegevens, getSiteSettings } from '@/lib/payload'
 import type { Media } from '@/payload-types'
 
@@ -79,14 +80,6 @@ function SubSection({ title, children }: { title: string; children: React.ReactN
   )
 }
 
-const dateFormatter = new Intl.DateTimeFormat(defaultLocale, {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-})
-
-const formatDate = (value?: string | null) => (value ? dateFormatter.format(new Date(value)) : null)
-
 export default async function AnbiPage() {
   const anbi = await getAnbiGegevens()
   const messages = getMessages()
@@ -101,10 +94,10 @@ export default async function AnbiPage() {
         term: messages.anbiRsin,
         value:
           anbi.rsin && anbi.anbiStatus === 'toegekend' && anbi.anbiGrantedOn
-            ? `${anbi.rsin} — ${messages.anbiGranted} ${formatDate(anbi.anbiGrantedOn)}`
+            ? `${anbi.rsin} — ${messages.anbiGranted} ${formatLongDate(anbi.anbiGrantedOn)}`
             : anbi.rsin,
       },
-      { term: messages.anbiFoundedOn, value: formatDate(anbi.foundedOn) },
+      { term: messages.anbiFoundedOn, value: formatLongDate(anbi.foundedOn) },
       { term: messages.anbiSeat, value: anbi.statutorySeat },
       { term: messages.anbiOperatingArea, value: anbi.operatingArea },
       { term: messages.anbiAddress, value: anbi.contact?.address },
@@ -292,7 +285,7 @@ export default async function AnbiPage() {
         {anbi.updatedAt ? (
           <p className="border-t border-border pt-6 text-sm">
             {messages.anbiLastUpdated}:{' '}
-            <time dateTime={anbi.updatedAt}>{formatDate(anbi.updatedAt)}</time>
+            <time dateTime={anbi.updatedAt}>{formatLongDate(anbi.updatedAt)}</time>
           </p>
         ) : null}
       </div>

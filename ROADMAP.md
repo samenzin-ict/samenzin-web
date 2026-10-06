@@ -46,7 +46,7 @@ Ordered by how much the foundation needs it and how much it depends on the item 
 | 2.5 | Team | `/over-ons` section | Mensen | Board already exists in `AnbiGegevens`; reuse it, do not duplicate names |
 | 2.6 | Vrijwilligers: intake form | `/vrijwilligers`, `/vrijwilliger-worden` | Mensen | **Personal data.** Register entry and retention rule required first |
 | 2.7 | Vacatures, with CV upload | `/vacatures`, `/vacatures/<slug>` | Mensen | **Personal data**, and CVs are sensitive. Storage and deletion decided before building |
-| 2.8 | Per-commission permissions | — | Systeem | Editors scoped to their own commission's content |
+| 2.8 | Per-commission permissions | — | Systeem | **Done,** both halves. An editor changes what their commission owns and sees no other commission's drafts |
 
 ## Phase 3 — Member portal
 
@@ -59,9 +59,9 @@ for the phase as a whole.
 | 3.1 | Lid worden: application and approval | `/lid-worden` | **Done.** **Personal data.** Approval is a human decision, not automatic |
 | 3.2 | Member login and member area | `/mijn` | **Done.** Separate `Members` collection with its own login, never Payload users |
 | 3.3 | Recurring SEPA contributions | — | **Payments and mandates.** Mollie recurring; a signed mandate has legal weight |
-| 3.4 | Cursussen: catalogue and enrolment | `/cursussen`, `/cursussen/<slug>` | Catalogue **done**; enrolment still open |
+| 3.4 | Cursussen: catalogue and enrolment | `/cursussen`, `/cursussen/<slug>` | **Done.** A member enrols themselves and may withdraw while progress is zero |
 | 3.5 | Hour registration for volunteers | `/mijn/uren` | **Done.** No approval step; only members can register, see PROGRESS.md |
-| 3.6 | Certificates | `/mijn/certificaten` | Depends on 3.4 enrolment, which is not built |
+| 3.6 | Certificates | `/mijn/certificaten` | **Done.** A print-styled page the browser saves as pdf; no certificate is stored, because the enrolment is the evidence |
 
 ### What a member is (decided, 24 September 2026)
 

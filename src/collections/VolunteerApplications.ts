@@ -1,6 +1,8 @@
 import type { CollectionConfig } from 'payload'
 
 import { isVolunteerCoordinator } from '@/access'
+import { getEmailMessages } from '@/i18n'
+import { sendMail } from '@/lib/email'
 import {
   AVAILABILITY_OPTIONS,
   CITY_OPTIONS,
@@ -31,6 +33,12 @@ export const RETENTION_MONTHS = 6
  * - Closed to the API. The public form writes through a server action that
  *   validates first and then overrides access.
  *
+ * `status` is the one place an application's state lives. There used to be a
+ * `handled` checkbox beside it, from before the status field existed; it ended
+ * up meaning "goedgekeurd or afgewezen" and nothing read it, so it was two
+ * sources of truth for one fact. Removed while no real application existed
+ * yet, because dropping a column once they do is a migration that loses data.
+ *
  * Retention is six months, agreed with the maintainer. `deleteAfter` is filled
  * in when the application arrives and is shown in the list, so an overdue
  * record is visible rather than theoretical. Deleting is not automatic; run
@@ -54,7 +62,7 @@ export const VolunteerApplications: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'email', 'city', 'interests', 'vogStatus', 'handled'],
+    defaultColumns: ['name', 'email', 'city', 'status', 'vogStatus', 'createdAt'],
     group: 'Mensen',
     description:
       'Aanmeldingen van mensen die vrijwilliger willen worden. Deze bevatten persoonsgegevens: verwijder ze zodra ze zijn afgehandeld, en in elk geval voor de datum in de kolom "Opruimen na".',
@@ -72,6 +80,34 @@ export const VolunteerApplications: CollectionConfig = {
         deleteAfter.setMonth(deleteAfter.getMonth() + RETENTION_MONTHS)
 
         return { ...data, deleteAfter: deleteAfter.toISOString() }
+      },
+    ],
+    afterChange: [
+      /**
+       * Tells the applicant what was decided.
+       *
+       * Only on the two statuses that are a decision. "In gesprek" is an
+       * internal note about where the coordinator has got to, and sending mail
+       * for it would be noise.
+       *
+       * Fires on a change of status and not on every save, so correcting a
+       * typo in somebody's telephone number does not tell them again that they
+       * were turned down.
+       */
+      async ({ doc, previousDoc, operation, req }) => {
+        if (operation !== 'update') return
+        if (doc.status === previousDoc?.status) return
+        if (doc.status !== 'goedgekeurd' && doc.status !== 'afgewezen') return
+
+        const email = getEmailMessages()
+
+        await sendMail(req.payload, {
+          to: doc.email,
+          template:
+            doc.status === 'goedgekeurd'
+              ? email.volunteerApproved({ name: doc.name })
+              : email.volunteerRejected({ name: doc.name }),
+        })
       },
     ],
   },
@@ -173,15 +209,25 @@ export const VolunteerApplications: CollectionConfig = {
       },
     },
     {
-      name: 'handled',
-      type: 'checkbox',
-      defaultValue: false,
-      label: 'Afgehandeld',
+      name: 'status',
+      type: 'select',
+      required: true,
+      defaultValue: 'aangemeld',
+      index: true,
+      label: 'Status',
+      options: [
+        { label: 'Aangemeld', value: 'aangemeld' },
+        { label: 'In gesprek', value: 'in-gesprek' },
+        { label: 'Goedgekeurd', value: 'goedgekeurd' },
+        { label: 'Afgewezen', value: 'afgewezen' },
+      ],
       admin: {
         position: 'sidebar',
-        description: 'Vink aan zodra er contact is geweest.',
+        description:
+          'Let op: bij Goedgekeurd en Afgewezen krijgt de aanmelder automatisch bericht. Aangemeld en In gesprek sturen niets.',
       },
     },
+
     {
       name: 'deleteAfter',
       type: 'date',

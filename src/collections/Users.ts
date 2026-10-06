@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { isAdmin, isAdminFieldLevel, isAdminOrEditor, isAdminOrSelf } from '@/access'
 import { COMMISSION_OPTIONS } from '@/fields/commissions'
+import { adminResetUrl, resetPasswordEmail } from '@/lib/email/auth'
 
 /**
  * Admin panel accounts.
@@ -24,7 +25,14 @@ export const Users: CollectionConfig = {
     singular: 'Gebruiker',
     plural: 'Gebruikers & rollen',
   },
-  auth: true,
+  auth: {
+    /*
+     * The Dutch reset mail, instead of Payload's English default. Board
+     * members and volunteers read this; the panel itself is already in Dutch.
+     * The link goes to Payload's own reset screen inside the panel.
+     */
+    forgotPassword: resetPasswordEmail(adminResetUrl),
+  },
   access: {
     // Who may open the admin panel at all.
     admin: isAdminOrEditor,

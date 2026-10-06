@@ -10,7 +10,8 @@ import { Container } from '@/components/layout/Container'
 import { FundingProgress } from '@/components/projects/FundingProgress'
 import { Button } from '@/components/ui/button'
 import { getMessages } from '@/i18n'
-import { getProjectBySlug, getSiteSettings } from '@/lib/payload'
+import { getPaidForProject, totalRaised } from '@/lib/funding'
+import { getPayloadClient, getProjectBySlug, getSiteSettings } from '@/lib/payload'
 import type { Media } from '@/payload-types'
 
 export const dynamic = 'force-dynamic'
@@ -60,6 +61,16 @@ export default async function ProjectPage({ params }: Params) {
   if (!project) notFound()
 
   const messages = getMessages()
+
+  /*
+   * What the project has raised: the amount an editor typed in for gifts that
+   * arrived away from the website, plus the paid donations earmarked for it.
+   * Only paid ones count — an "open" donation is somebody who reached Mollie
+   * and may never have finished.
+   */
+  const raised = project.funding?.goal
+    ? totalRaised(project, await getPaidForProject(await getPayloadClient(), project.id))
+    : 0
   const media = typeof project.image === 'object' ? (project.image as Media | null) : null
   const facts = project.facts ?? []
   const cta = project.callToAction
@@ -94,10 +105,17 @@ export default async function ProjectPage({ params }: Params) {
           */}
           {project.funding?.goal ? (
             <aside className="h-fit space-y-4 rounded-lg border border-border bg-card p-5">
-              <FundingProgress goal={project.funding.goal} raised={project.funding.raised} />
+              {/*
+                The amount shown is what an editor typed in for gifts that came
+                in away from the website, plus the paid donations earmarked for
+                this project. See src/lib/funding.ts.
+              */}
+              <FundingProgress goal={project.funding.goal} raised={raised} />
 
               <Button asChild variant="cta" className="w-full">
-                <Link href="/doneren">{messages.projectDonate}</Link>
+                <Link href={`/doneren?project=${encodeURIComponent(project.slug)}`}>
+                  {messages.projectDonate}
+                </Link>
               </Button>
             </aside>
           ) : null}

@@ -39,17 +39,20 @@ export async function GET(request: Request): Promise<Response> {
   const results = await pruneExpired(payload)
 
   const failed = results.filter((result) => result.error)
-  const deleted = results.reduce((total, result) => total + result.deleted, 0)
+  const affected = results.reduce((total, result) => total + result.affected, 0)
 
   for (const result of results) {
     if (result.error) {
       payload.logger.error(`Retention: ${result.collection} failed — ${result.error}`)
-    } else if (result.deleted > 0) {
-      payload.logger.info(`Retention: deleted ${result.deleted} from ${result.collection}`)
+    } else if (result.affected > 0) {
+      // Says which it was, because for donations it is a name coming off a
+      // row that stays, not a row going away.
+      const verb = result.action === 'delete' ? 'deleted' : 'anonymised'
+      payload.logger.info(`Retention: ${verb} ${result.affected} in ${result.collection}`)
     }
   }
 
   // A non-2xx makes the failure visible in the Vercel cron log instead of
-  // looking like a successful run that quietly deleted nothing.
-  return Response.json({ deleted, results }, { status: failed.length > 0 ? 500 : 200 })
+  // looking like a successful run that quietly did nothing.
+  return Response.json({ affected, results }, { status: failed.length > 0 ? 500 : 200 })
 }

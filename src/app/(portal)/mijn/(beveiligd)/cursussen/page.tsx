@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 import { CourseProgressList } from '@/components/portal/CourseProgressList'
 import { getMessages } from '@/i18n'
@@ -24,6 +25,15 @@ export default async function PortalCoursesPage() {
     <section className="space-y-6">
       <h1 className="font-heading text-3xl sm:text-4xl">{messages.portalCoursesTitle}</h1>
       <CourseProgressList messages={messages} enrolments={enrolments} />
+
+      <p>
+        <Link
+          href="/mijn/certificaten"
+          className="text-accent underline underline-offset-4"
+        >
+          {messages.portalCertificatesLink}
+        </Link>
+      </p>
     </section>
   )
 }

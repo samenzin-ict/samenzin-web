@@ -463,10 +463,13 @@ export interface Project {
       }[]
     | null;
   /**
-   * Laat het doelbedrag leeg om de voortgangsbalk te verbergen. De bedragen worden met de hand bijgehouden; zij komen niet automatisch uit de donaties.
+   * Laat het doelbedrag leeg om de voortgangsbalk te verbergen. Giften die via de website binnenkomen en op dit project zijn gekozen, worden automatisch opgeteld; vul hieronder alleen in wat daarbuiten is binnengekomen.
    */
   funding?: {
     goal?: number | null;
+    /**
+     * Overboekingen, collectes en toezeggingen. Giften via de website komen hier automatisch bovenop, dus tel die hier niet bij op.
+     */
     raised?: number | null;
   };
   /**
@@ -609,11 +612,11 @@ export interface Event {
     amount?: number | null;
   };
   /**
-   * Aantal personen. Optioneel.
+   * Aantal personen. Vult u dit in, dan rekent de website zelf uit hoeveel plaatsen er nog vrij zijn en sluit de aanmelding zodra het vol is.
    */
   capacity?: number | null;
   /**
-   * Wordt met de hand bijgehouden; de website neemt geen aanmeldingen aan. Laat leeg om dit niet te tonen.
+   * Alleen nodig als u geen capaciteit invult, bijvoorbeeld bij een evenement waarvoor elders wordt aangemeld. Vult u wel een capaciteit in, dan wordt dit veld genegeerd en rekent de website zelf. Laat leeg om geen aantal te tonen.
    */
   spotsAvailable?: number | null;
   /**
@@ -775,9 +778,9 @@ export interface VolunteerApplication {
    */
   vogStatus?: ('niet-gestart' | 'loopt' | 'ok' | 'niet-nodig') | null;
   /**
-   * Vink aan zodra er contact is geweest.
+   * Let op: bij Goedgekeurd en Afgewezen krijgt de aanmelder automatisch bericht. Aangemeld en In gesprek sturen niets.
    */
-  handled?: boolean | null;
+  status: 'aangemeld' | 'in-gesprek' | 'goedgekeurd' | 'afgewezen';
   /**
    * Automatisch ingevuld: 6 maanden na binnenkomst.
    */
@@ -816,7 +819,7 @@ export interface VolunteerHour {
   createdAt: string;
 }
 /**
- * Leden met een eigen inlog voor Mijn omgeving. Leden kunnen niet in dit beheerpaneel. Zolang er geen e-mail is ingesteld, stelt een beheerder hier het wachtwoord in en geeft dat zelf door. Let op: een lid verwijderen wist ook de uren die dit lid heeft ingevoerd. Wilt u het lidmaatschap alleen beëindigen, zet de status dan op Beëindigd.
+ * Leden met een eigen inlog voor Mijn omgeving. Leden kunnen niet in dit beheerpaneel. Een lid stelt zijn eigen wachtwoord in via de link die het bij goedkeuring krijgt, of via "Wachtwoord vergeten" op de inlogpagina. Let op: een lid verwijderen wist ook de uren die dit lid heeft ingevoerd. Wilt u het lidmaatschap alleen beëindigen, zet de status dan op Beëindigd.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "members".
@@ -846,6 +849,10 @@ export interface Member {
   street?: string | null;
   postalCode?: string | null;
   city?: string | null;
+  /**
+   * Wordt gevuld zodra u de status op Beëindigd zet: 2 jaar daarna wordt het lid verwijderd, met de uren, taken, inschrijvingen en aanmeldingen. Zet u de status terug op Actief, dan vervalt de datum.
+   */
+  deleteAfter?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -866,7 +873,7 @@ export interface Member {
   collection: 'members';
 }
 /**
- * Taken die vrijwilligers in Mijn omgeving zien en kunnen afvinken.
+ * Taken die vrijwilligers in Mijn omgeving zien en kunnen afvinken. Het lid krijgt bericht zodra u een taak aan hem toewijst.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "member-tasks".
@@ -894,7 +901,7 @@ export interface MemberTask {
   createdAt: string;
 }
 /**
- * Wie welke cursus volgt, en hoe ver. Zichtbaar voor het lid zelf.
+ * Wie welke cursus volgt, en hoe ver. Zichtbaar voor het lid zelf. Leden schrijven zich zelf in via de cursuspagina en kunnen zich weer uitschrijven zolang de voortgang nul is.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "course-enrolments".
@@ -904,11 +911,15 @@ export interface CourseEnrolment {
   member: number | Member;
   course: number | Course;
   progress: number;
+  /**
+   * Wordt zelf gevuld zodra de voortgang 100% is. Vanaf dat moment kan het lid een certificaat downloaden.
+   */
+  completedAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
- * Aanmeldingen van leden voor evenementen. Door een beheerder ingevoerd.
+ * Aanmeldingen van leden voor evenementen. Leden melden zich zelf aan via de evenementpagina en kunnen zich weer afmelden tot u ze als aanwezig hebt aangevinkt.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "event-registrations".
@@ -986,7 +997,7 @@ export interface MembershipApplication {
    */
   motivation?: string | null;
   /**
-   * De aanvrager krijgt hiervan geen automatisch bericht. Neem zelf contact op.
+   * Let op: de aanvrager krijgt hiervan automatisch bericht. Bij Goedgekeurd ontvangt hij een welkomstmail met een link om zelf een wachtwoord in te stellen; bij Afgewezen een kort bericht.
    */
   status: 'aangevraagd' | 'goedgekeurd' | 'afgewezen';
   /**
@@ -1023,7 +1034,7 @@ export interface ContactSubmission {
   createdAt: string;
 }
 /**
- * Donaties die via de website zijn gestart. Deze records bevatten persoonsgegevens en zijn niet openbaar.
+ * Donaties die via de website zijn gestart. Deze records bevatten persoonsgegevens en zijn niet openbaar. Naam en e-mailadres worden automatisch weggehaald zodra de wettelijke bewaartermijn is verstreken; het bedrag blijft bewaard.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "donations".
@@ -1040,7 +1051,11 @@ export interface Donation {
    */
   status: 'open' | 'pending' | 'paid' | 'canceled' | 'expired' | 'failed';
   /**
-   * Waar de gever de gift aan wilde besteden. Leeg betekent algemeen.
+   * Het project waarvoor de gever heeft gekozen. Leeg betekent een algemene gift. Betaalde giften worden bij het opgehaalde bedrag van het project geteld.
+   */
+  project?: (number | null) | Project;
+  /**
+   * Waar de gever de gift aan wilde besteden, zoals het project toen heette. Leeg betekent algemeen.
    */
   fund?: string | null;
   /**
@@ -1056,6 +1071,10 @@ export interface Donation {
    */
   donorEmail?: string | null;
   paidAt?: string | null;
+  /**
+   * Automatisch ingevuld: 7 jaar na het einde van het jaar waarin de gift is gedaan, zoals de wet voorschrijft. Op die datum worden naam en e-mailadres weggehaald; het bedrag, de datum en het Mollie-kenmerk blijven staan voor de boekhouding.
+   */
+  deleteAfter?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1551,7 +1570,7 @@ export interface VolunteerApplicationsSelect<T extends boolean = true> {
   interest?: T;
   message?: T;
   vogStatus?: T;
-  handled?: T;
+  status?: T;
   deleteAfter?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1591,6 +1610,7 @@ export interface CourseEnrolmentsSelect<T extends boolean = true> {
   member?: T;
   course?: T;
   progress?: T;
+  completedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1649,6 +1669,7 @@ export interface MembersSelect<T extends boolean = true> {
   street?: T;
   postalCode?: T;
   city?: T;
+  deleteAfter?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1687,11 +1708,13 @@ export interface DonationsSelect<T extends boolean = true> {
   molliePaymentId?: T;
   amount?: T;
   status?: T;
+  project?: T;
   fund?: T;
   anonymous?: T;
   donorName?: T;
   donorEmail?: T;
   paidAt?: T;
+  deleteAfter?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1849,6 +1872,20 @@ export interface SiteSetting {
       }[]
     | null;
   copyright?: string | null;
+  certificate?: {
+    /**
+     * De zin onder de naam van het lid. Laat leeg voor de standaardtekst.
+     */
+    statement?: string | null;
+    /**
+     * Komt onder de ondertekeningslijn. Optioneel.
+     */
+    signatoryName?: string | null;
+    /**
+     * Bijvoorbeeld "Voorzitter". Optioneel.
+     */
+    signatoryRole?: string | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -2177,6 +2214,13 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         id?: T;
       };
   copyright?: T;
+  certificate?:
+    | T
+    | {
+        statement?: T;
+        signatoryName?: T;
+        signatoryRole?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

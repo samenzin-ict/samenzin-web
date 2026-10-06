@@ -25,6 +25,7 @@ import { Pages } from './collections/Pages'
 import { Projects } from './collections/Projects'
 import { Users } from './collections/Users'
 import { VolunteerApplications } from './collections/VolunteerApplications'
+import { getEmailAdapter } from './lib/email/adapter'
 import { AnbiGegevens, SiteSettings } from './globals'
 
 const filename = fileURLToPath(import.meta.url)
@@ -156,6 +157,12 @@ export default buildConfig({
     Users,
   ],
   globals: [SiteSettings, AnbiGegevens],
+  /*
+   * How mail is sent. Undefined when SMTP is not configured, which makes
+   * Payload log the recipient and the subject instead of sending; see
+   * src/lib/email/adapter.ts, which is the only file that names a provider.
+   */
+  email: getEmailAdapter(),
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { isAdminOrEditor, isEditorOfCommission, isPublishedOrAuthenticated } from '@/access'
+import { isAdminOrEditor, isEditorOfCommission, isPublishedOrOwnCommission } from '@/access'
 import { commissionField } from '@/fields/commissions'
 import { formatSlug } from '@/fields/slug'
 
@@ -23,7 +23,7 @@ export const Courses: CollectionConfig = {
     plural: 'Cursussen',
   },
   access: {
-    read: isPublishedOrAuthenticated,
+    read: isPublishedOrOwnCommission,
     create: isAdminOrEditor,
     update: isEditorOfCommission,
     delete: isEditorOfCommission,

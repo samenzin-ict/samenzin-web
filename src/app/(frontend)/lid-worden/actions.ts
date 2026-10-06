@@ -3,7 +3,8 @@
 import { headers } from 'next/headers'
 
 import { HONEYPOT_FIELD } from '@/app/(frontend)/contact/honeypot'
-import { getMessages } from '@/i18n'
+import { getEmailMessages, getMessages } from '@/i18n'
+import { adminUrlFor, sendMail, sendNotification } from '@/lib/email'
 import { getPayloadClient } from '@/lib/payload'
 import { checkRateLimit, pruneRateLimits } from '@/lib/rate-limit'
 
@@ -37,8 +38,9 @@ const getCallerIdentifier = async (): Promise<string> => {
  * visitor anything about what failed internally.
  *
  * It never grants a membership. The record is created with status
- * "aangevraagd" and the board decides; nothing here emails anybody, because
- * the project has no email adapter yet.
+ * "aangevraagd" and the board decides. The applicant gets a confirmation that
+ * the aanvraag arrived and nothing more: the decision mail is sent when the
+ * board actually makes one, from the collection's own hook.
  */
 export async function submitMembershipForm(
   _previous: MembershipFormState,
@@ -73,8 +75,10 @@ export async function submitMembershipForm(
     return { status: 'error', errors, values }
   }
 
+  let applicationId: number | string
+
   try {
-    await payload.create({
+    const application = await payload.create({
       collection: 'membership-applications',
       // Validated above; the collection is closed to the API on purpose.
       overrideAccess: true,
@@ -86,10 +90,31 @@ export async function submitMembershipForm(
         status: 'aangevraagd',
       },
     })
+
+    applicationId = application.id
   } catch (error) {
     console.error('Membership application failed', error)
     return { status: 'error', errors: { form: messages.membershipErrorGeneric }, values }
   }
+
+  // After the record is stored, and never instead of storing it. sendMail
+  // does not throw, so a mail server that is down costs a confirmation rather
+  // than the application.
+  const email = getEmailMessages()
+
+  await sendMail(payload, {
+    to: values.email,
+    template: email.membershipConfirmation({ name: values.name }),
+  })
+
+  await sendNotification(
+    payload,
+    email.membershipNotification({
+      name: values.name,
+      email: values.email,
+      url: adminUrlFor('membership-applications', applicationId),
+    }),
+  )
 
   await pruneRateLimits(payload, 'membership')
 

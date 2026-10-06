@@ -19,6 +19,14 @@ on:
   push:
     branches: [main, dev]
   pull_request:
+  # Lets a deploy be re-run from the Actions tab without an empty commit.
+  #
+  # Needed because Vercel reads environment variables when a build runs, not
+  # when they are saved: setting SMTP_HOST or CRON_SECRET does nothing until
+  # something redeploys. Run it against `dev` for the Preview and `main` for
+  # Production — the branch it runs on still decides the target, exactly as a
+  # push does.
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -85,7 +93,18 @@ jobs:
     # Nothing is deployed unless the checks pass. The container image is not a
     # gate: it exists for self-hosting parity and is not what Vercel runs.
     needs: check
-    if: github.event_name == 'push'
+    #
+    # A manual run deploys too, which is the point of workflow_dispatch: Vercel
+    # reads environment variables when a build runs, so setting one does
+    # nothing until something redeploys.
+    #
+    # The branch guard is what keeps that safe. A push only ever happens on main
+    # or dev, but a manual run can be started against any branch, and without
+    # this one started on a feature branch would deploy it to the Preview and
+    # migrate Neon dev. A pull request still never deploys.
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      && (github.ref_name == 'main' || github.ref_name == 'dev')
     runs-on: ubuntu-latest
 
     # Named so that branch protection or a required reviewer can be added in
@@ -204,6 +223,19 @@ jobs:
       # production host is the one misconfiguration that would let a test deploy
       # write to the live site, and nothing else would reveal it. Only the host
       # is printed; the user, password and database name are cut off.
+      # Checks the connection string's shape before anything tries to use it,
+      # and says which database the deployment is about to migrate.
+      #
+      # The shape check earns its keep. A DATABASE_URI that is missing, blank or
+      # not a URL otherwise surfaces three steps later as
+      # "getaddrinfo EAI_AGAIN <fragment>" from inside pg, which reads like a
+      # network fault and sends you looking at Neon. It is almost always the
+      # variable in Vercel.
+      #
+      # The commonest cause is marking DATABASE_URI as **Sensitive** in Vercel.
+      # A sensitive variable cannot be read back, so `vercel pull` cannot write
+      # its value into the env file this build uses. Our deploys build on this
+      # runner, not on Vercel, so sensitive variables do not reach them at all.
       - name: Show which database this deployment uses
         run: |
           file=".vercel/.env.${{ steps.target.outputs.environment }}.local"
@@ -211,9 +243,31 @@ jobs:
             echo "No $file; cannot tell which database this is." >&2
             exit 0
           fi
-          host=$(grep -m1 '^DATABASE_URI=' "$file" \
-            | sed 's/^DATABASE_URI=//; s/^"//; s/"$//' \
-            | sed 's|.*@||; s|/.*||; s|:.*||')
+
+          uri=$(grep -m1 '^DATABASE_URI=' "$file" \
+            | sed 's/^DATABASE_URI=//; s/^"//; s/"$//')
+
+          if [ -z "$uri" ]; then
+            echo "::error::DATABASE_URI is empty or missing for the ${{ steps.target.outputs.environment }} environment."
+            echo "Set it in Vercel > Settings > Environment Variables, ticked for" >&2
+            echo "${{ steps.target.outputs.environment }}, and make sure it is NOT marked Sensitive:" >&2
+            echo "a sensitive variable cannot be read back, so this build never receives it." >&2
+            exit 1
+          fi
+
+          case "$uri" in
+            postgres://*@*|postgresql://*@*) ;;
+            *)
+              echo "::error::DATABASE_URI for ${{ steps.target.outputs.environment }} is not a PostgreSQL connection string."
+              echo "Expected postgresql://user:password@host/database?sslmode=require" >&2
+              echo "The value is not printed here, because it holds a password. Check it in" >&2
+              echo "Vercel; the usual causes are a half-pasted string, a stray newline, or" >&2
+              echo "the variable being marked Sensitive, which this build cannot read." >&2
+              exit 1
+              ;;
+          esac
+
+          host=$(printf '%s' "$uri" | sed 's|.*@||; s|/.*||; s|:.*||')
           echo "Target:   ${{ steps.target.outputs.environment }}"
           echo "Database: ${host:-<not set>}"
           {

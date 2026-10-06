@@ -2,6 +2,10 @@ import type { CollectionConfig } from 'payload'
 
 import { isAdmin, isAdminFieldLevel, isMemberUser, isOwnRecordOrCoordinator } from '@/access'
 import { COMMISSION_OPTIONS } from '@/fields/commissions'
+import { formatLongDate } from '@/lib/dates'
+import { getEmailMessages } from '@/i18n'
+import { sendMail } from '@/lib/email'
+import { getSiteUrl } from '@/lib/site-url'
 
 /**
  * Tasks assigned to a member, the "Mijn taken" list of
@@ -33,7 +37,8 @@ export const MemberTasks: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'member', 'dueAt', 'done'],
     group: 'Mensen',
-    description: 'Taken die vrijwilligers in Mijn omgeving zien en kunnen afvinken.',
+    description:
+      'Taken die vrijwilligers in Mijn omgeving zien en kunnen afvinken. Het lid krijgt bericht zodra u een taak aan hem toewijst.',
   },
   defaultSort: 'dueAt',
   timestamps: true,
@@ -42,6 +47,60 @@ export const MemberTasks: CollectionConfig = {
       // Same rule as registered hours: a member's write is always about
       // themselves, whatever the form said.
       ({ data, req }) => (isMemberUser(req.user) ? { ...data, member: req.user.id } : data),
+    ],
+    afterChange: [
+      /**
+       * Tells a member that a task is waiting for them.
+       *
+       * Sent when the task is created, and again if it is later handed to
+       * somebody else, because the new owner has not heard about it either.
+       * Not sent when the title, the deadline or anything else changes: a
+       * coordinator tidying up wording should not post to everybody.
+       *
+       * Never sent for a task a member created, which is only possible for an
+       * administrator who is also a member in their own right; nobody needs
+       * mail about something they just typed in.
+       */
+      async ({ doc, previousDoc, operation, req }) => {
+        const assignedTo = typeof doc.member === 'object' ? doc.member?.id : doc.member
+        const previous =
+          typeof previousDoc?.member === 'object' ? previousDoc?.member?.id : previousDoc?.member
+
+        if (operation === 'update' && assignedTo === previous) return
+        if (!assignedTo) return
+        if (isMemberUser(req.user) && req.user.id === assignedTo) return
+
+        /*
+         * The relationship may arrive as an id or as the whole document,
+         * depending on the depth the caller asked for, so the member is read
+         * back rather than assumed. One query on an event that happens a
+         * handful of times a week.
+         */
+        const member = await req.payload
+          .findByID({
+            collection: 'members',
+            id: assignedTo,
+            depth: 0,
+            overrideAccess: true,
+            req,
+          })
+          .catch(() => null)
+
+        // An ended member keeps their tasks in the panel but is not written
+        // to; they can no longer sign in to act on one.
+        if (!member?.email || member.status !== 'actief') return
+
+        await sendMail(req.payload, {
+          to: member.email,
+          template: getEmailMessages().taskAssigned({
+            name: member.name,
+            title: doc.title,
+            description: doc.description,
+            dueDate: formatLongDate(doc.dueAt),
+            url: `${getSiteUrl()}/mijn`,
+          }),
+        })
+      },
     ],
   },
   fields: [

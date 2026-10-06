@@ -10,7 +10,7 @@ import { getSiteUrl } from '@/lib/site-url'
 export type DonationFormState = {
   status: 'idle' | 'error'
   errors?: Partial<Record<'amount' | 'name' | 'email' | 'form', string>>
-  values?: { amount: string; name: string; email: string; anonymous: boolean; fund: string }
+  values?: { amount: string; name: string; email: string; anonymous: boolean; project: string }
 }
 
 const readField = (formData: FormData, key: string): string => {
@@ -41,7 +41,7 @@ export async function startDonation(
     amount: readField(formData, 'amount'),
     name: readField(formData, 'name'),
     email: readField(formData, 'email'),
-    fund: readField(formData, 'fund'),
+    project: readField(formData, 'project'),
     anonymous,
   }
 
@@ -69,23 +69,40 @@ export async function startDonation(
     return { status: 'error', errors, values }
   }
 
+  const payload = await getPayloadClient()
+
+  /*
+   * Which project the gift is for, resolved from the id the form posted.
+   *
+   * Looked up rather than trusted: the id comes from a select that anybody can
+   * edit, and an unpublished or deleted project must not become a destination.
+   * `overrideAccess: false` is what enforces that — the same rule that governs
+   * the public project pages. An unrecognised id falls back to a general gift
+   * rather than refusing the donation.
+   */
+  const projectId = Number(values.project)
+  const project =
+    Number.isInteger(projectId) && projectId > 0
+      ? await payload
+          .findByID({ collection: 'projects', id: projectId, depth: 0, overrideAccess: false })
+          .catch(() => null)
+      : null
+
   const siteUrl = getSiteUrl()
   let checkoutUrl: string
 
   try {
     const payment = await mollie.payments.create({
       amount: { currency: 'EUR', value: formatAmount(amount) },
-      description: values.fund
-        ? `${messages.donateDescription} — ${values.fund}`
+      description: project
+        ? `${messages.donateDescription} — ${project.title}`
         : messages.donateDescription,
       redirectUrl: `${siteUrl}/doneren/bedankt`,
       // Mollie cannot reach a laptop, so local runs simply get no callback and
       // the record stays "open" until someone reconciles it.
       webhookUrl: process.env.MOLLIE_WEBHOOK_URL?.trim() || undefined,
-      metadata: { fund: values.fund || null },
+      metadata: { project: project?.slug ?? null },
     })
-
-    const payload = await getPayloadClient()
 
     await payload.create({
       collection: 'donations',
@@ -94,7 +111,9 @@ export async function startDonation(
         molliePaymentId: payment.id,
         amount,
         status: 'open',
-        fund: values.fund || null,
+        project: project?.id ?? null,
+        // The title as it reads now, so a later rename cannot rewrite history.
+        fund: project?.title ?? null,
         anonymous,
         donorName: anonymous ? null : values.name,
         donorEmail: anonymous ? null : values.email,

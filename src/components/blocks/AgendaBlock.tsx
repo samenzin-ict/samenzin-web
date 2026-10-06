@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 import { Container } from '@/components/layout/Container'
-import { defaultLocale } from '@/i18n'
+import { formatDayBlock, formatDayMonth } from '@/lib/dates'
 import { getEvents } from '@/lib/payload'
 
 type Item = {
@@ -15,12 +15,11 @@ type Item = {
 
 /*
  * The date block on the left of each row in the mockup: day number over the
- * abbreviated month. Formatted in the site locale rather than the server's, so
- * the month reads "sep" and not "Sep" in whatever the container happens to be
- * set to.
+ * abbreviated month. Formatted by src/lib/dates.ts rather than here, which
+ * fixes both the locale and the timezone: the month reads "sep" and not "Sep"
+ * whatever the container is set to, and an evening event does not slide to the
+ * day before on a server running in UTC.
  */
-const dayFormatter = new Intl.DateTimeFormat(defaultLocale, { day: 'numeric' })
-const monthFormatter = new Intl.DateTimeFormat(defaultLocale, { month: 'short' })
 
 /**
  * The agenda list from the homepage mockup.
@@ -64,7 +63,7 @@ export async function AgendaBlock({
 
       <ul className="mt-6 grid gap-4 md:grid-cols-2">
         {rows.map((item) => {
-          const date = new Date(item.date)
+          const block = formatDayBlock(item.date)
 
           return (
             <li
@@ -80,8 +79,8 @@ export async function AgendaBlock({
                 aria-hidden
                 className="flex size-14 shrink-0 flex-col items-center justify-center rounded-md bg-primary text-primary-foreground"
               >
-                <span className="font-heading text-lg leading-none">{dayFormatter.format(date)}</span>
-                <span className="text-xs uppercase">{monthFormatter.format(date)}</span>
+                <span className="font-heading text-lg leading-none">{block.day}</span>
+                <span className="text-xs uppercase">{block.month}</span>
               </div>
 
               <div className="min-w-0 flex-1">
@@ -95,12 +94,7 @@ export async function AgendaBlock({
                   )}
                 </h3>
                 <p className="text-sm">
-                  <time dateTime={item.date}>
-                    {new Intl.DateTimeFormat(defaultLocale, {
-                      day: 'numeric',
-                      month: 'long',
-                    }).format(date)}
-                  </time>
+                  <time dateTime={item.date}>{formatDayMonth(item.date)}</time>
                   {item.location ? ` · ${item.location}` : ''}
                 </p>
               </div>

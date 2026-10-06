@@ -103,11 +103,46 @@ if [[ "$DATABASE_URI" == *localhost* || "$DATABASE_URI" == *127.0.0.1* ]]; then
   exit 1
 fi
 
+# Invented people — members with a login, aanmeldingen, aanvragen, berichten —
+# go to dev and never to production.
+#
+# A fake member is an account that can sign in to the deployment. Fake
+# aanmeldingen and berichten land in the list a volunteer works through, where
+# they look exactly like real ones until somebody opens one and replies to an
+# address at example.org. On dev, behind Vercel's deployment protection and
+# holding nothing real, they are what makes the preview worth testing.
+if [[ "$BRANCH" == "dev" ]]; then
+  SEED_DEMO_PEOPLE=true
+  if [[ -z "${DEMO_MEMBER_PASSWORD:-}" ]]; then
+    cat >&2 <<MSG
+
+DEMO_MEMBER_PASSWORD is not set, so the demo members will be skipped and
+Mijn omgeving on the preview will have nobody to log in as.
+
+Set it in your shell first, for example:
+
+  DEMO_MEMBER_PASSWORD='kies-iets-lang-en-verzonnen' pnpm fill:remote dev
+
+It is never written to a file in this repository (CLAUDE.md, rule 1).
+MSG
+  fi
+else
+  SEED_DEMO_PEOPLE=false
+  # Unset rather than passed through, so a value left in the shell from a dev
+  # run cannot create logins on the live site.
+  unset DEMO_MEMBER_PASSWORD
+fi
+export SEED_DEMO_PEOPLE
+
 echo
 echo "  Target database : $HOST"
 echo "  Target bucket   : $R2_BUCKET"
+echo "  Verzonnen mensen: $SEED_DEMO_PEOPLE"
 echo
 echo "  This overwrites the site settings, the pages and the ANBI record there."
+if [[ "$SEED_DEMO_PEOPLE" == "true" ]]; then
+  echo "  It also writes invented members, aanmeldingen and berichten."
+fi
 read -r -p "  Continue? [y/N] " reply
 [[ "$reply" == "y" || "$reply" == "Y" ]] || exit 1
 

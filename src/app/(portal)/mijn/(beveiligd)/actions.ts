@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
 import { getMessages } from '@/i18n'
-import { clearMemberSession, getMember } from '@/lib/member-auth'
+import { clearMemberSession, getMember, MIN_PASSWORD_LENGTH } from '@/lib/member-auth'
 import { getPayloadClient } from '@/lib/payload'
 
 export type TaskToggleState = { status: 'idle' | 'error'; error?: string }
@@ -23,7 +23,6 @@ const readSecret = (formData: FormData, key: string): string => {
   return typeof value === 'string' ? value : ''
 }
 
-const MIN_PASSWORD_LENGTH = 12
 
 /** Signs the member out and revokes the session server-side. */
 export async function logout(): Promise<void> {

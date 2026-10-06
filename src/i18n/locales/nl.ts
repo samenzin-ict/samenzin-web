@@ -163,6 +163,24 @@ export const nl = {
   eventsPeople: 'personen',
   eventsPrice: 'Prijs',
   eventsSpotsLeft: 'plaatsen beschikbaar',
+  // Aanmelden voor een evenement, voor leden.
+  eventsRegisterSelf: 'Aanmelden',
+  eventsRegistering: 'Bezig met aanmelden\u2026',
+  eventsRegistered: 'U bent aangemeld voor dit evenement.',
+  eventsRegisterError:
+    'Uw aanmelding kon niet worden verwerkt. Probeer het later opnieuw.',
+  eventsRegisterFull: 'Dit evenement is volgeboekt.',
+  eventsRegisterClosed: 'Dit evenement is al begonnen; aanmelden kan niet meer.',
+  eventsCancel: 'Afmelden',
+  eventsCancelling: 'Bezig met afmelden\u2026',
+  eventsCancelled: 'U bent afgemeld. Uw plaats is weer vrij.',
+  eventsCancelError:
+    'U kunt zich niet meer afmelden. Neem contact met ons op als dit niet klopt.',
+  eventsAttended: 'U was hierbij aanwezig.',
+  eventsRegisterLoginTitle: 'Aanmelden kan als lid',
+  eventsRegisterLoginBody:
+    'Aanmelden voor een evenement gaat via Mijn omgeving. Log in met uw ledenaccount, of neem contact met ons op als u nog geen account heeft.',
+  eventsRegisterLogin: 'Inloggen',
   eventsBackToOverview: 'Terug naar de agenda',
 
   // Vrijwilligers (ROADMAP 2.6)
@@ -256,6 +274,24 @@ export const nl = {
   coursesStartsRolling: 'Doorlopend',
   coursesPrice: 'Deelname',
   coursesRegister: 'Aanmelden',
+  // Inschrijven voor een cursus, voor leden. ROADMAP 3.4.
+  coursesEnrol: 'Inschrijven',
+  coursesEnrolling: 'Bezig met inschrijven\u2026',
+  coursesEnrolled: 'U bent ingeschreven voor deze cursus.',
+  coursesEnrolError:
+    'Uw inschrijving kon niet worden verwerkt. Probeer het later opnieuw.',
+  coursesWithdraw: 'Uitschrijven',
+  coursesWithdrawing: 'Bezig met uitschrijven\u2026',
+  coursesWithdrawn: 'U bent uitgeschreven voor deze cursus.',
+  coursesWithdrawError:
+    'U kunt zich niet meer uitschrijven. Neem contact met ons op als dit niet klopt.',
+  coursesEnrolStarted:
+    'U volgt deze cursus al. Uitschrijven kan niet meer; neem contact met ons op als u wilt stoppen.',
+  coursesEnrolLoginTitle: 'Inschrijven kan als lid',
+  coursesEnrolLoginBody:
+    'Inschrijven voor een cursus gaat via Mijn omgeving. Log in met uw ledenaccount, of neem contact met ons op als u nog geen account heeft.',
+  coursesEnrolLogin: 'Inloggen',
+  coursesEnrolProgress: 'Uw voortgang',
   coursesBackToOverview: 'Alle cursussen',
 
   // Mijn omgeving (ROADMAP 3.2)
@@ -277,8 +313,9 @@ export const nl = {
     'Dit account is tijdelijk geblokkeerd na te veel mislukte pogingen. Probeer het over een kwartier opnieuw.',
   portalLoginTooMany:
     'U heeft kort achter elkaar te vaak geprobeerd in te loggen. Wacht een paar minuten en probeer het opnieuw.',
+  portalLoginForgot: 'Wachtwoord vergeten?',
   portalLoginNoAccount:
-    'Wachtwoord vergeten? Neem contact met ons op; wij kunnen een nieuw wachtwoord voor u instellen.',
+    'Heeft u nog geen account? Lidmaatschap wordt door het bestuur toegekend. Neem contact met ons op als u denkt dat u wel een account zou moeten hebben.',
   portalOverviewIntro:
     'Hier vindt u uw uren, uw lidmaatschap en uw gegevens. In een volgende fase komen hier ook uw taken, cursussen en evenementen bij.',
   portalDetailsTitle: 'Mijn gegevens',
@@ -394,6 +431,65 @@ export const nl = {
   portalHoursTableCommission: 'Commissie',
   portalHoursTableActions: 'Acties',
 
+  // Wachtwoord vergeten, en de pagina waar een lid er een instelt.
+  portalForgotTitle: 'Wachtwoord vergeten',
+  portalForgotIntro:
+    'Vul het e-mailadres in waarmee u bij ons bekend bent. Wij sturen u een link waarmee u een nieuw wachtwoord instelt.',
+  portalForgotEmailLabel: 'E-mailadres',
+  portalForgotSubmit: 'Stuur mij een link',
+  portalForgotSubmitting: 'Bezig met versturen\u2026',
+  /*
+   * Hetzelfde antwoord of het adres bestaat of niet. Anders kan iedereen
+   * uitproberen welke adressen lid zijn, en dat is precies wat een
+   * ledenregister niet mag verklappen.
+   */
+  portalForgotSent:
+    'Als dit adres bij ons bekend is, ontvangt u binnen enkele minuten een e-mail met een link. Kijk ook in uw map met ongewenste e-mail.',
+  portalForgotTooMany:
+    'Er zijn te veel aanvragen gedaan. Wacht tien minuten en probeer het dan opnieuw.',
+  portalForgotBackToLogin: 'Terug naar inloggen',
+
+  portalResetTitle: 'Wachtwoord instellen',
+  portalResetIntro: 'Kies een wachtwoord waarmee u inlogt op Mijn omgeving.',
+  portalResetSubmit: 'Wachtwoord instellen',
+  portalResetSubmitting: 'Bezig met instellen\u2026',
+  portalResetSuccess: 'Uw wachtwoord is ingesteld. U kunt nu inloggen.',
+  portalResetInvalidTitle: 'Deze link werkt niet meer',
+  portalResetInvalidBody:
+    'De link is verlopen of al gebruikt. Vraag op de pagina "Wachtwoord vergeten" een nieuwe link aan.',
+  portalResetErrorToken:
+    'Deze link is verlopen of al gebruikt. Vraag een nieuwe link aan.',
+  portalResetError:
+    'Uw wachtwoord kon niet worden ingesteld. Probeer het later opnieuw.',
+  portalResetToLogin: 'Naar inloggen',
+  portalResetRequestNew: 'Nieuwe link aanvragen',
+
+  // Certificaten, ROADMAP 3.6.
+  portalCertificatesTitle: 'Mijn certificaten',
+  portalCertificatesIntro:
+    'Van elke cursus die u heeft afgerond kunt u hier een certificaat opvragen.',
+  portalCertificatesEmpty:
+    'U heeft nog geen cursus afgerond. Zodra een cursus op 100% staat, verschijnt het certificaat hier.',
+  portalCertificatesLink: 'Naar mijn certificaten',
+  portalCertificateView: 'Certificaat bekijken',
+  portalCertificateCompletedOn: 'Afgerond op',
+  // Het certificaat zelf.
+  certificateHeading: 'Certificaat van deelname',
+  certificateAwardedTo: 'Dit certificaat is toegekend aan',
+  /*
+   * De standaardverklaring. Het bestuur kan deze overschrijven in
+   * Instellingen > Certificaten; die tekst gaat voor op deze.
+   */
+  certificateStatementDefault:
+    'heeft met goed gevolg de cursus hieronder afgerond en wordt daarvoor van harte gefeliciteerd.',
+  certificateCourseLabel: 'Cursus',
+  certificateDateLabel: 'Datum',
+  certificateDurationLabel: 'Studielast',
+  certificateSignature: 'Namens het bestuur',
+  certificatePrint: 'Opslaan of afdrukken',
+  certificatePrintHint:
+    'Kies in het afdrukvenster "Opslaan als pdf" om het certificaat als bestand te bewaren.',
+  certificateBackToList: 'Terug naar mijn certificaten',
 
   previewBannerTitle: 'U bekijkt een voorbeeld',
   previewBannerBody:

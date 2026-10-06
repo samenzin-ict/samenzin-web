@@ -4,7 +4,13 @@ import Link from 'next/link'
 import type { Messages } from '@/i18n'
 import type { CourseEnrolment } from '@/payload-types'
 
-/** The "Mijn cursussen" row of docs/design/08: a card each, with a progress bar. */
+/**
+ * The "Mijn cursussen" row of docs/design/08: a card each, with a progress bar.
+ *
+ * A finished course also offers its certificate (ROADMAP 3.6). That link is
+ * here rather than behind a fifth tab, which is where Mijn uren already set the
+ * precedent: the mockup draws four tabs and this belongs to the course anyway.
+ */
 export function CourseProgressList({
   messages,
   enrolments,
@@ -73,6 +79,20 @@ export function CourseProgressList({
                 {progress}%
               </span>
             </div>
+
+            {/*
+              Offered only once the course is actually finished. `completedAt`
+              is the test rather than the percentage, because it is the date the
+              certificate carries: no date, nothing to put on it.
+            */}
+            {enrolment.completedAt ? (
+              <Link
+                href={`/mijn/certificaten/${enrolment.id}`}
+                className="text-sm text-accent underline underline-offset-4"
+              >
+                {messages.portalCertificateView}
+              </Link>
+            ) : null}
           </li>
         )
       })}

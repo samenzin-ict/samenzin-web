@@ -25,6 +25,17 @@ import { getPayloadClient } from '@/lib/payload'
 export const MEMBER_COOKIE = 'samenzin-member-token'
 
 /**
+ * The shortest password a member may choose.
+ *
+ * Twelve, and length is the only rule. Forcing a capital, a digit and a
+ * symbol into eight characters produces "Welkom01!" and a sticky note;
+ * twelve characters of anything is harder to guess and easier to remember.
+ * Shared by the change-password form and the reset page so the two cannot
+ * disagree about what is allowed.
+ */
+export const MIN_PASSWORD_LENGTH = 12
+
+/**
  * Payload's JWT strategy reads `Authorization: JWT <token>` and resolves the
  * collection from the token itself, so a members token can only ever produce a
  * members user. Verified in dist/auth/extractJWT.js; `jwtOrder` puts the header
