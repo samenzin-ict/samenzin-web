@@ -33,7 +33,14 @@ function RenderBlock({ block }: { block: Block }) {
       return <RichTextBlock content={block.content} />
 
     case 'featuredItems':
-      return <FeaturedItemsBlock heading={block.heading} items={block.items} />
+      return (
+        <FeaturedItemsBlock
+          heading={block.heading}
+          items={block.items}
+          source={block.source}
+          limit={block.limit}
+        />
+      )
 
     case 'agenda':
       return (

@@ -253,6 +253,11 @@ export interface Page {
              * Bijvoorbeeld: Onze projecten.
              */
             heading: string;
+            /**
+             * Automatisch toont de projecten in de volgorde van de projectenpagina. Zo hoeft de homepagina niet apart bijgewerkt te worden als een project verandert.
+             */
+            source?: ('projects' | 'manual') | null;
+            limit?: number | null;
             items?:
               | {
                   title: string;
@@ -1346,6 +1351,8 @@ export interface PagesSelect<T extends boolean = true> {
           | T
           | {
               heading?: T;
+              source?: T;
+              limit?: T;
               items?:
                 | T
                 | {
