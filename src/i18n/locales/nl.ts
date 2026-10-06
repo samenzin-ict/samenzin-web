@@ -124,6 +124,7 @@ export const nl = {
   // reads comes from the CMS page with the slug 'projecten'.
   projectsIntro: 'De projecten van Stichting Samenleving en Zingeving: taal, studieondersteuning, bezinning, publicaties en ontmoeting.',
   projectsEmpty: 'Er zijn nog geen projecten gepubliceerd.',
+  featuredReadMore: 'Lees meer',
   projectStatusRunning: 'Loopt',
   projectStatusPreparing: 'In voorbereiding',
   projectsReadMore: 'Lees meer',

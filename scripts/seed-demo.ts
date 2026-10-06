@@ -365,6 +365,13 @@ const pages = [
       {
         blockType: 'featuredItems' as const,
         heading: 'Onze projecten',
+        /*
+         * The cards are the projects themselves. The hand-typed list below is
+         * kept so a fresh install shows what the manual option looks like, and
+         * so switching the block over has something to switch to.
+         */
+        source: 'projects' as const,
+        limit: 3,
         items: [
           {
             title: 'Taalmaatje',
