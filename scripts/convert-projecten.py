@@ -114,6 +114,32 @@ def inline(paragraph: dict) -> object:
     return [run for run in runs if run["text"]]
 
 
+def detail_of(paragraph: dict) -> dict | None:
+    """A labelled line — "**Voor wie:** iedereen die…" — as a label and a text.
+
+    These are the answers a reader came for, and left in the prose they read as
+    another paragraph. The document marks them unmistakably: an ordinary
+    paragraph that opens with a bold run ending in a colon. The bullets under
+    "Zo werken wij" open with a bold run too, but theirs ends in a full stop and
+    they are list items, so neither is mistaken for the other.
+    """
+    if paragraph["item"]:
+        return None
+
+    first = paragraph["runs"][0]
+
+    if not first["bold"] or not first["text"].strip().endswith(":"):
+        return None
+
+    label = first["text"].strip().rstrip(":").strip()
+    text = "".join(run["text"] for run in paragraph["runs"][1:]).strip()
+
+    if not label or not text:
+        return None
+
+    return {"label": label, "text": text}
+
+
 def to_blocks(paragraphs_in: list[dict]) -> list[dict]:
     """Paragraphs and bullets, with runs of list items collected into one list."""
     blocks: list[dict] = []
@@ -202,6 +228,9 @@ def main() -> int:
 
             body.append(paragraph)
 
+        details = [detail for detail in map(detail_of, body) if detail]
+        body = [paragraph for paragraph in body if detail_of(paragraph) is None]
+
         for label, value in (("Kaarttekst", card), ("Status", phase)):
             if not value:
                 print(f"  {title}: no {label} line", file=sys.stderr)
@@ -215,6 +244,7 @@ def main() -> int:
                 "phase": phase,
                 "note": note,
                 "body": to_blocks(body),
+                "details": details,
             }
         )
 
@@ -231,7 +261,8 @@ def main() -> int:
     print(f"  {len(intro)} intro blocks, {len(projects)} projects, {len(closing)} closing blocks (not published)")
 
     for project in projects:
-        print(f"    {project['order']}. {project['title']} — {project['phase']}")
+        print(f"    {project['order']}. {project['title']} — {project['phase']}"
+              f" — {len(project['body'])} blocks, {len(project['details'])} details")
 
     return 0
 

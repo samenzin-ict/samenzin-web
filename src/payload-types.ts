@@ -475,6 +475,16 @@ export interface Project {
     [k: string]: unknown;
   } | null;
   /**
+   * Bijvoorbeeld "Voor wie" met daarachter voor wie het project bedoeld is. Wordt als een apart kader naast de tekst getoond.
+   */
+  details?:
+    | {
+        label: string;
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * De rij met feiten onder de tekst. Bijvoorbeeld: 8 weken per traject.
    */
   facts?:
@@ -1419,6 +1429,13 @@ export interface ProjectsSelect<T extends boolean = true> {
   excerpt?: T;
   image?: T;
   body?: T;
+  details?:
+    | T
+    | {
+        label?: T;
+        text?: T;
+        id?: T;
+      };
   facts?:
     | T
     | {
