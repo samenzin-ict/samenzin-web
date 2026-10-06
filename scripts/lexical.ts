@@ -13,20 +13,36 @@
  * not carry, and casting to it only moves the problem.
  */
 
-export type TextBlock =
-  | { type: 'p' | 'h2' | 'h3'; text: string }
-  | { type: 'ul'; items: string[] }
+/**
+ * A stretch of text within a paragraph. The board's documents lean on a bold
+ * opening — "**Voor wie:** iedereen die…" — and losing it turns a scannable
+ * page into a wall, so a block's text may be a list of runs rather than one
+ * string.
+ */
+export type Run = { text: string; bold?: boolean }
 
-/** Lexical's shape for a run of plain text. */
-const textNode = (text: string) => ({
+/** Either plain text, or text with some of it emphasised. */
+export type Inline = string | Run[]
+
+export type TextBlock =
+  | { type: 'p' | 'h2' | 'h3'; text: Inline }
+  | { type: 'ul'; items: Inline[] }
+
+/** Lexical's bitfield for character formatting; 1 is bold. */
+const BOLD = 1
+
+const textNode = (run: Run) => ({
   type: 'text',
-  text,
+  text: run.text,
   mode: 'normal',
   style: '',
   detail: 0,
-  format: 0,
+  format: run.bold ? BOLD : 0,
   version: 1,
 })
+
+const inlineNodes = (inline: Inline) =>
+  typeof inline === 'string' ? [textNode({ text: inline })] : inline.map(textNode)
 
 const container = (type: string, children: unknown[], extra: Record<string, unknown> = {}) => ({
   type,
@@ -42,16 +58,18 @@ const node = (block: TextBlock) => {
   if (block.type === 'ul') {
     return container(
       'list',
-      block.items.map((item, index) => container('listitem', [textNode(item)], { value: index + 1 })),
+      block.items.map((item, index) =>
+        container('listitem', inlineNodes(item), { value: index + 1 }),
+      ),
       { listType: 'bullet', start: 1, tag: 'ul' },
     )
   }
 
   if (block.type === 'h2' || block.type === 'h3') {
-    return container('heading', [textNode(block.text)], { tag: block.type })
+    return container('heading', inlineNodes(block.text), { tag: block.type })
   }
 
-  return container('paragraph', [textNode(block.text)], { textFormat: 0, textStyle: '' })
+  return container('paragraph', inlineNodes(block.text), { textFormat: 0, textStyle: '' })
 }
 
 /** A list of blocks as Lexical's editor state. */

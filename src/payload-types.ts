@@ -440,6 +440,18 @@ export interface Project {
    */
   category?: string | null;
   /**
+   * Wordt als label op de kaart en op de projectpagina getoond. Zet dit op "In voorbereiding" zolang er nog niets draait, ook als het plan vast staat.
+   */
+  phase: 'loopt' | 'in-voorbereiding';
+  /**
+   * Optioneel, bijvoorbeeld "eerste uitgave in voorbereiding". Staat alleen op de projectpagina, niet op de kaart: een kaarttekst blijft één regel.
+   */
+  phaseNote?: string | null;
+  /**
+   * Bepaalt de plaats in het overzicht; lager staat vooraan. Leeg laten zet het project achteraan. De volgorde is inhoudelijk — wat loopt staat voorop — dus laat dit niet aan toeval over.
+   */
+  order?: number | null;
+  /**
    * Een of twee zinnen. Wordt getoond op de kaart in het overzicht.
    */
   excerpt?: string | null;
@@ -1401,6 +1413,9 @@ export interface ProjectsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   category?: T;
+  phase?: T;
+  phaseNote?: T;
+  order?: T;
   excerpt?: T;
   image?: T;
   body?: T;

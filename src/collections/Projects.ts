@@ -91,6 +91,55 @@ export const Projects: CollectionConfig = {
       },
     },
     {
+      /*
+       * Running work and plans are told apart on the card itself.
+       *
+       * A young foundation is read closely by fondsen and by gemeenten, and the
+       * question behind that reading is always the same: is this happening, or
+       * is it an intention? Saying so plainly earns more trust than leaving a
+       * plan to look like a service, and it is also the honest answer.
+       *
+       * Called `phase` and not `status` because Payload's drafts already own
+       * that name: `_status` holds draft or published, and a second `status`
+       * here collides with its enum type in Postgres.
+       */
+      name: 'phase',
+      type: 'select',
+      required: true,
+      defaultValue: 'loopt',
+      label: 'Status',
+      options: [
+        { label: 'Loopt', value: 'loopt' },
+        { label: 'In voorbereiding', value: 'in-voorbereiding' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description:
+          'Wordt als label op de kaart en op de projectpagina getoond. Zet dit op "In voorbereiding" zolang er nog niets draait, ook als het plan vast staat.',
+      },
+    },
+    {
+      name: 'phaseNote',
+      type: 'text',
+      localized: true,
+      label: 'Toelichting bij de status',
+      admin: {
+        position: 'sidebar',
+        description:
+          'Optioneel, bijvoorbeeld "eerste uitgave in voorbereiding". Staat alleen op de projectpagina, niet op de kaart: een kaarttekst blijft één regel.',
+      },
+    },
+    {
+      name: 'order',
+      type: 'number',
+      label: 'Volgorde',
+      admin: {
+        position: 'sidebar',
+        description:
+          'Bepaalt de plaats in het overzicht; lager staat vooraan. Leeg laten zet het project achteraan. De volgorde is inhoudelijk — wat loopt staat voorop — dus laat dit niet aan toeval over.',
+      },
+    },
+    {
       name: 'excerpt',
       type: 'textarea',
       localized: true,

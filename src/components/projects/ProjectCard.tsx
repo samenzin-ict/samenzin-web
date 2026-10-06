@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
+import { ProjectStatus } from '@/components/projects/ProjectStatus'
 import type { Media, Project } from '@/payload-types'
 
 /**
@@ -36,11 +37,15 @@ export function ProjectCard({ project }: { project: Project }) {
 
         {project.excerpt ? <p className="flex-1 text-sm">{project.excerpt}</p> : null}
 
-        {project.category ? (
-          <span className="mt-1 self-start rounded-full bg-muted px-3 py-1 text-xs font-medium text-primary">
-            {project.category}
-          </span>
-        ) : null}
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          <ProjectStatus phase={project.phase} />
+
+          {project.category ? (
+            <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-primary">
+              {project.category}
+            </span>
+          ) : null}
+        </div>
       </div>
     </li>
   )

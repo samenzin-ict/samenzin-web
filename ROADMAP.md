@@ -40,7 +40,7 @@ Ordered by how much the foundation needs it and how much it depends on the item 
 | # | Feature | Routes | Admin group | Notes |
 |---|---|---|---|---|
 | 2.1 | Editorial workflow: drafts, preview, published state | — | all content | Everything below is safer with it, so it comes first |
-| 2.2 | Projecten | `/projecten`, `/projecten/<slug>` | Content | Funding progress bar per `06-projecten-*.png` |
+| 2.2 | Projecten | `/projecten`, `/projecten/<slug>` | Content | Funding progress bar per `06-projecten-*.png`. Seven projects, each labelled **Loopt** or **In voorbereiding**, in an order the board sets |
 | 2.3 | Nieuws & artikelen | `/nieuws`, `/nieuws/<slug>` | Content | Author, publication date, tags |
 | 2.4 | Agenda / evenementen | `/agenda`, `/agenda/<slug>` | Programma | Replaces the hand-typed homepage block; filters need a real collection |
 | 2.5 | Team | `/over-ons` section | Mensen | **Done.** A `board` block reads the members from `AnbiGegevens`, so a name is spelled in one place. Portraits are all-or-nothing |

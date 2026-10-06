@@ -89,11 +89,14 @@ export const getProjects = cache(async (locale: Locale = defaultLocale, draft = 
     draft,
     overrideAccess: draft,
     /*
-     * Oldest first, so the overview keeps the order the projects were added
-     * in, which is the order docs/design/06 shows. Newest-first would shuffle
-     * the grid every time somebody adds a project.
+     * The board's order first, then oldest first for anything without one.
+     *
+     * The sequence is editorial — running work before plans — so it cannot be
+     * left to the order somebody happened to type the projects in. Postgres
+     * sorts NULL last on an ascending sort, which is what the field's
+     * description promises: a project with no number lands at the back.
      */
-    sort: 'createdAt',
+    sort: ['order', 'createdAt'],
   })
 
   return docs
