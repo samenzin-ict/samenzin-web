@@ -302,6 +302,16 @@ export interface Page {
           }
         | {
             heading: string;
+            /**
+             * Een of twee zinnen boven de bestuursleden. Optioneel.
+             */
+            intro?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'board';
+          }
+        | {
+            heading: string;
             text?: string | null;
             links?:
               | {
@@ -1346,6 +1356,14 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        board?:
+          | T
+          | {
+              heading?: T;
+              intro?: T;
+              id?: T;
+              blockName?: T;
+            };
         callToAction?:
           | T
           | {
@@ -2061,12 +2079,34 @@ export interface AnbiGegeven {
     [k: string]: unknown;
   } | null;
   /**
-   * Alleen naam en functie. Woonadres, telefoonnummer en geboortedatum zijn niet verplicht en horen hier niet.
+   * Naam en functie staan op deze ANBI-pagina. Foto en biografie staan alleen op Over ons. Woonadres, telefoonnummer en geboortedatum zijn niet verplicht en horen hier niet.
    */
   boardMembers?:
     | {
         role: string;
         name: string;
+        /**
+         * Alleen voor Over ons. Portret, staand 4:5, van borst tot boven het hoofd. Vul hem voor alle bestuursleden of voor geen enkele: Over ons toont de foto’s alleen als ze er voor iedereen zijn, omdat een half gevulde rij er slechter uitziet dan een rij zonder foto’s. Een herkenbare foto vraagt toestemming van de betrokkene.
+         */
+        photo?: (number | null) | Media;
+        /**
+         * Alleen voor Over ons. Een paar alinea’s: wat iemand doet, waarom hij of zij zich inzet, en waarvoor hij of zij binnen de stichting verantwoordelijk is.
+         */
+        bio?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
         id?: string | null;
       }[]
     | null;
@@ -2260,6 +2300,8 @@ export interface AnbiGegevensSelect<T extends boolean = true> {
     | {
         role?: T;
         name?: T;
+        photo?: T;
+        bio?: T;
         id?: T;
       };
   boardComposition?: T;

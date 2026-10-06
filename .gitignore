@@ -60,6 +60,15 @@ node_modules/
 /docs/*.docx
 /docs/*.doc
 /docs/*.pdf
+# Photographs of named people are personal data too, and a recognisable portrait
+# needs the subject's permission. The board members' portraits are source files
+# for scripts/crop-portraits.py; the published versions live in R2.
+# docs/design/ holds mockups and keeps its own images.
+/docs/*.jpg
+/docs/*.jpeg
+/docs/*.png
+/docs/*.webp
+/docs/*.heic
 # LibreOffice and Word leave lock files next to an open document.
 /docs/.~lock.*
 /docs/~$*

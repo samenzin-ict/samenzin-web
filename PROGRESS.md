@@ -10,8 +10,8 @@ Keep it short. This is a status board, not a diary.
 ## Current state
 
 **Phase:** 3 — Member portal. 3.1, 3.2, 3.4, 3.5 and 3.6 are done; 3.3 (SEPA) waits on
-the bank account. Phases 1 and 2 are complete apart from 2.5 (team section) and 2.7
-(vacancies), which the maintainer chose to skip.
+the bank account. Phases 1 and 2 are complete apart from 2.7 (vacancies), which the
+maintainer chose to skip.
 **Deployment:** Vercel, Neon PostgreSQL (branches `production` and `dev`) and Cloudflare
 R2 for media, replacing the EU VPS plan. See `docs/environments.md`.
 **Status:** All six phase 1 routes are built, the initial migration exists and the
@@ -134,6 +134,15 @@ Verified on a rebuilt database: `pnpm dev` runs, `/admin` loads, the first user 
 and becomes an administrator, the public routes render from the CMS, and `pnpm build`,
 `pnpm lint` and `pnpm typecheck` all pass. The production build also succeeds with the
 database stopped, which is the situation in GitHub Actions.
+
+- **ROADMAP 2.5 — the bestuur on `/over-ons`.** A `board` block with a portrait, a role
+  and a biography each. It stores no names: it reads them from `AnbiGegevens`, which the
+  ANBI page already publishes, so the two pages cannot disagree about a spelling.
+  Portraits are all or nothing — the block shows none unless every member has one.
+- Over ons, the privacyverklaring and the cookiebeleid are written in Word and loaded:
+  `convert-*.py` reads `docs/*.docx`, `pnpm load:legal` and `pnpm load:over-ons` publish
+  it, `crop-portraits.py` cuts the photographs to one shape. Neither the documents nor
+  `.devseed/` are in git; they carry real names and faces. See `docs/environments.md`.
 
 ## In progress
 
@@ -516,3 +525,15 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 - After changing a collection or a global, run `pnpm payload migrate:create` and commit
   the result. Development pushes the schema automatically, so it is easy to forget and
   only notice on deploy.
+- The board members' names live in **one** place: `boardMembers` under ANBI-gegevens.
+  `/anbi` publishes them because the Belastingdienst requires it, and the Over ons board
+  block reads the same rows. Do not add a second list anywhere. `scripts/load-over-ons.ts`
+  refuses to load a biography that opens with a different spelling than that record,
+  which is what keeps the spelling the same across the site.
+- The sentence Over ons makes about the ANBI application is generated from `anbiStatus`,
+  not stored in the page. When the beschikking arrives, change the status under
+  ANBI-gegevens and re-run `pnpm load:over-ons production`; both pages then agree.
+- The board's portraits are published at 480x600 (4:5). That is twice the width the card
+  shows, and as large as the smallest of the three source photographs allows without
+  enlarging it. `scripts/crop-portraits.py` refuses a crop that is the wrong ratio or too
+  small, so the set cannot drift apart silently.

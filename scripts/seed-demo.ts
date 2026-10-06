@@ -278,10 +278,37 @@ if (isLocalDatabase || process.env.SEED_INCLUDE_ANBI === 'true') {
       policyAssets: richText('Voorbeeldtekst. Hier staat hoe het vermogen wordt beheerd en besteed.'),
       policyPlanOnRequest: 'Voorbeeldtekst. Het volledige beleidsplan sturen wij op verzoek toe.',
       remunerationPolicy: richText('Voorbeeldtekst. Bestuursleden ontvangen geen beloning.'),
+      /*
+       * No photographs, deliberately. A demo portrait would be a stock face of
+       * somebody who never agreed to appear on this website, and the Over ons
+       * block falls back to name cards when a photograph is missing, so this
+       * is also the state most environments are in and the one worth seeing.
+       */
       boardMembers: [
-        { role: 'Voorzitter', name: 'A. Voorbeeld' },
-        { role: 'Secretaris', name: 'B. Voorbeeld' },
-        { role: 'Penningmeester', name: 'C. Voorbeeld' },
+        {
+          role: 'Voorzitter',
+          name: 'A. Voorbeeld',
+          bio: richText(
+            'Voorbeeldtekst. Hier staat wat dit bestuurslid doet en waarom zij zich inzet.',
+            'Voorbeeldtekst. En hier waarvoor zij binnen de stichting verantwoordelijk is.',
+          ),
+        },
+        {
+          role: 'Secretaris',
+          name: 'B. Voorbeeld',
+          bio: richText(
+            'Voorbeeldtekst. Hier staat wat dit bestuurslid doet en waarom hij zich inzet.',
+            'Voorbeeldtekst. En hier waarvoor hij binnen de stichting verantwoordelijk is.',
+          ),
+        },
+        {
+          role: 'Penningmeester',
+          name: 'C. Voorbeeld',
+          bio: richText(
+            'Voorbeeldtekst. Hier staat wat dit bestuurslid doet en waarom zij zich inzet.',
+            'Voorbeeldtekst. En hier waarvoor zij binnen de stichting verantwoordelijk is.',
+          ),
+        },
       ],
       boardComposition: richText('Voorbeeldtekst over de adviesraad en de commissies.'),
       reportingNotice:
@@ -393,6 +420,17 @@ const pages = [
           'Voorbeeldtekst. De stichting brengt mensen samen rond taal, bezinning en ontmoeting.',
           'Voorbeeldtekst. Deze pagina wordt door het bestuur gevuld met de werkelijke tekst.',
         ),
+      },
+      /*
+       * The real page is written by the board and loaded with
+       * `pnpm load:over-ons`; this is only here so the block is on a page
+       * somewhere in a fresh install. It carries no names: those come from the
+       * ANBI record above.
+       */
+      {
+        blockType: 'board' as const,
+        heading: 'Het bestuur',
+        intro: 'Voorbeeldtekst. Een jonge stichting wordt beoordeeld op de mensen die haar dragen.',
       },
     ],
   },
