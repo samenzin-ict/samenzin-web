@@ -3,7 +3,9 @@ import { BoardBlock } from '@/components/blocks/BoardBlock'
 import { CallToActionBlock } from '@/components/blocks/CallToActionBlock'
 import { FeaturedItemsBlock } from '@/components/blocks/FeaturedItemsBlock'
 import { HeroBlock } from '@/components/blocks/HeroBlock'
+import { HighlightsBlock } from '@/components/blocks/HighlightsBlock'
 import { RichTextBlock } from '@/components/blocks/RichTextBlock'
+import { SectionBlock } from '@/components/blocks/SectionBlock'
 import type { Page } from '@/payload-types'
 
 type Block = NonNullable<Page['body']>[number]
@@ -31,6 +33,28 @@ function RenderBlock({ block }: { block: Block }) {
 
     case 'richText':
       return <RichTextBlock content={block.content} />
+
+    case 'section':
+      return (
+        <SectionBlock
+          heading={block.heading}
+          content={block.content}
+          layout={block.layout}
+          tone={block.tone}
+        />
+      )
+
+    case 'highlights':
+      return (
+        <HighlightsBlock
+          heading={block.heading}
+          intro={block.intro}
+          items={block.items}
+          outro={block.outro}
+          layout={block.layout}
+          tone={block.tone}
+        />
+      )
 
     case 'featuredItems':
       return (

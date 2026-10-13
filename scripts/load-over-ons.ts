@@ -13,6 +13,10 @@
  * members' names and faces, and CLAUDE.md rule 2 keeps real names out of git.
  * The privacyverklaring is handled the same way; see scripts/load-legal.ts.
  *
+ * The page is built from blocks the converter has already shaped: running text
+ * as sections, named points as rows or cards. See scripts/convert-over-ons.py
+ * for how it tells them apart.
+ *
  * Two things this deliberately does not store on the page.
  *
  * The names. They stay in the ANBI record, where they already were, and the
@@ -41,15 +45,25 @@ const PORTRAITS = path.resolve(dirname, '..', '.devseed', 'portraits')
 const SLUG = 'over-ons'
 const ANBI_MARKER = '{{anbiStatus}}'
 
+type Point = { title: string; text: string }
+
+type SourceBlock =
+  | { kind: 'section'; heading: string; body: TextBlock[]; layout: 'rail' | 'lead'; tone: 'plain' | 'soft' }
+  | {
+      kind: 'highlights'
+      heading: string
+      intro: string
+      items: Point[]
+      outro: string
+      layout: 'cards' | 'rows'
+      tone: 'plain' | 'soft' | 'strong'
+    }
+  | { kind: 'board'; heading: string; intro: string }
+
 type Document = {
   title: string
-  body: TextBlock[]
-  board: {
-    heading: string
-    intro: string
-    biographies: Record<string, string[]>
-  }
-  closing: TextBlock[]
+  blocks: SourceBlock[]
+  biographies: Record<string, string[]>
 }
 
 if (!fs.existsSync(SOURCE)) {
@@ -74,30 +88,15 @@ const anbiSentence = (status: string): string =>
     : 'De ANBI-status is aangevraagd en nog niet toegekend.'
 
 /**
- * May this biography open with this name?
+ * Does this biography open with the member's full name, as the ANBI page has it?
  *
- * Only if the name it opens with is the one on the ANBI page, or a shortening
- * of it from the front: "Ahmet Emre" for "Ahmet Emre Yönder" is a person being
- * called by their first names, while "Halil Baykan" for "Halil İbrahim Baykan"
- * is a second spelling of a name. The first is normal Dutch prose; the second
- * is the thing that leaves a website naming the same person two ways.
- *
- * Leading capitalised words are taken as the name. A biography that opens with
- * anything else is not making a claim about the spelling and is left alone.
+ * The board wants each person named in full where they are introduced, so a
+ * first name on its own is refused along with a misspelling: "Ahmet Emre" for
+ * "Ahmet Emre Yönder" stops the load just as "Halil Baykan" for "Halil İbrahim
+ * Baykan" does. One spelling, and the whole of it.
  */
-const nameIsConsistent = (biography: string, canonical: string): boolean => {
-  const leading = biography.match(/^(\p{Lu}[\p{L}'’-]*(?:\s+\p{Lu}[\p{L}'’-]*)*)/u)
-
-  if (!leading) return true
-
-  const written = leading[1].split(/\s+/)
-  const expected = canonical.split(/\s+/)
-
-  // Not a name at all, just a sentence that happens to start with a capital.
-  if (written.length === 1 && written[0] !== expected[0]) return true
-
-  return written.every((word, index) => expected[index] === word)
-}
+const opensWithFullName = (biography: string, canonical: string): boolean =>
+  biography.startsWith(`${canonical} `)
 
 const payload = await getPayload({ config })
 
@@ -110,66 +109,33 @@ if (members.length === 0) {
   process.exit(1)
 }
 
-/*
- * Portraits are all-or-nothing, the same rule the page renders by. Uploading
- * two of three would leave the page showing none of them and two unused files
- * in the bucket.
- */
 const portraitFor = (role: string) => path.join(PORTRAITS, `${role.toLowerCase()}.jpg`)
-const everyPortrait = members.every((member) => fs.existsSync(portraitFor(member.role)))
-
-if (!everyPortrait) {
-  console.log('  Not every board member has a portrait in .devseed/portraits/,')
-  console.log('  so no photographs are loaded and the page shows name cards.')
-}
 
 /**
- * Uploads a portrait, or reuses the one that is already there.
+ * Attaches a portrait to a member who has none yet.
  *
- * The file is only sent again when it differs in size from the one on record.
- * Re-uploading an identical image is not free: Payload treats the name as
- * taken, stores the new one as portrait-1.jpg, and leaves the old file and its
- * generated sizes behind in the bucket. Running this twice should cost nothing
- * and change nothing, because it will be run twice.
+ * A photograph that is already attached is left alone, whatever is on this
+ * machine. Somebody replacing a portrait in the admin panel is the normal way
+ * for it to change, and a loader that put last month's crop back every time
+ * the text was revised would undo that without a word.
  */
-const uploadPortrait = async (role: string, name: string): Promise<number> => {
-  const file = portraitFor(role)
-  const alt = `Portret van ${name}`
+const portraitIfMissing = async (
+  member: (typeof members)[number],
+): Promise<typeof member.photo> => {
+  if (member.photo) return member.photo
 
-  const existing = await payload.find({
-    collection: 'media',
-    where: { filename: { equals: path.basename(file) } },
-    limit: 1,
-    depth: 0,
-    overrideAccess: true,
-  })
+  const file = portraitFor(member.role)
 
-  const current = existing.docs[0]
-
-  if (current) {
-    const changed = current.filesize !== fs.statSync(file).size
-
-    const updated = await payload.update({
-      collection: 'media',
-      id: current.id,
-      data: { alt },
-      ...(changed ? { filePath: file } : {}),
-      overrideAccess: true,
-    })
-
-    console.log(`  ${role}: ${changed ? 'replaced' : 'unchanged'} ${updated.filename}`)
-
-    return updated.id
-  }
+  if (!fs.existsSync(file)) return member.photo
 
   const created = await payload.create({
     collection: 'media',
-    data: { alt },
+    data: { alt: `Portret van ${member.name}` },
     filePath: file,
     overrideAccess: true,
   })
 
-  console.log(`  ${role}: uploaded ${created.filename}`)
+  console.log(`  ${member.role}: uploaded ${created.filename}`)
 
   return created.id
 }
@@ -178,8 +144,7 @@ const updatedMembers = []
 let refused = false
 
 for (const member of members) {
-  const role = member.role.toLowerCase()
-  const biography = document.board.biographies[role]
+  const biography = document.biographies[member.role.toLowerCase()]
 
   if (!biography) {
     console.error(`  No biography for "${member.role}" in the Word file.`)
@@ -187,10 +152,11 @@ for (const member of members) {
     continue
   }
 
-  if (!nameIsConsistent(biography[0], member.name)) {
-    console.error(`  "${member.role}": the biography opens with a different spelling than the`)
-    console.error(`  ANBI record, which says "${member.name}". Fix it in the Word file,`)
-    console.error('  re-run the converter, and run this again.')
+  if (!opensWithFullName(biography[0], member.name)) {
+    console.error(`  "${member.role}": the biography has to open with the full name as the`)
+    console.error(`  ANBI record has it, "${member.name}". It opens with:`)
+    console.error(`    ${biography[0].slice(0, 60)}…`)
+    console.error('  Fix it in the Word file, re-run the converter, and run this again.')
     refused = true
     continue
   }
@@ -198,7 +164,7 @@ for (const member of members) {
   updatedMembers.push({
     ...member,
     bio: paragraphsToLexical(biography),
-    photo: everyPortrait ? await uploadPortrait(role, member.name) : member.photo,
+    photo: await portraitIfMissing(member),
   })
 }
 
@@ -213,29 +179,65 @@ await payload.updateGlobal({
   overrideAccess: true,
 })
 
-console.log(`  updated ${updatedMembers.length} board members${everyPortrait ? ' with portraits' : ''}`)
+console.log(`  updated ${updatedMembers.length} biographies`)
 
-// The Over ons converter writes plain strings, so the marker is in one of them.
-const body = document.body.map((block) =>
-  block.type !== 'ul' && typeof block.text === 'string' && block.text.includes(ANBI_MARKER)
-    ? { ...block, text: block.text.replace(ANBI_MARKER, anbiSentence(anbi.anbiStatus)) }
-    : block,
-)
+const withAnbi = (text: string): string =>
+  text.replace(ANBI_MARKER, anbiSentence(anbi.anbiStatus))
 
-const data = {
-  title: document.title,
-  slug: SLUG,
-  _status: 'published' as const,
-  body: [
-    { blockType: 'richText' as const, content: toLexical(body) },
-    {
-      blockType: 'board' as const,
-      heading: document.board.heading,
-      intro: document.board.intro,
-    },
-    { blockType: 'richText' as const, content: toLexical(document.closing) },
-  ],
-}
+/*
+ * Where a named point leads. Only the closing call to action links anywhere:
+ * its three points are things to do, and each has a page where it is done.
+ *
+ * The points under "Wat wij doen" are deliberately not linked to projects.
+ * Three of the five share a name with one and two do not, and a list in which
+ * some rows are links and others are not reads as a list with two rows broken.
+ */
+const WAYS_TO_HELP: [RegExp, string][] = [
+  [/vrijwilliger/i, '/vrijwilligers'],
+  [/financieel|gift|doneer/i, '/doneren'],
+  [/samen|organisatie/i, '/contact'],
+]
+
+const urlFor = (point: Point, tone: string): string | undefined =>
+  tone === 'strong' ? WAYS_TO_HELP.find(([pattern]) => pattern.test(point.title))?.[1] : undefined
+
+const body = document.blocks.map((block) => {
+  if (block.kind === 'board') {
+    return { blockType: 'board' as const, heading: block.heading, intro: block.intro }
+  }
+
+  if (block.kind === 'section') {
+    return {
+      blockType: 'section' as const,
+      heading: block.heading,
+      layout: block.layout,
+      tone: block.tone,
+      content: toLexical(
+        block.body.map((paragraph) =>
+          paragraph.type !== 'ul' && typeof paragraph.text === 'string'
+            ? { ...paragraph, text: withAnbi(paragraph.text) }
+            : paragraph,
+        ),
+      ),
+    }
+  }
+
+  return {
+    blockType: 'highlights' as const,
+    heading: block.heading,
+    intro: block.intro || undefined,
+    outro: block.outro || undefined,
+    layout: block.layout,
+    tone: block.tone,
+    items: block.items.map((point) => ({
+      title: point.title,
+      text: withAnbi(point.text),
+      url: urlFor(point, block.tone),
+    })),
+  }
+})
+
+const data = { title: document.title, slug: SLUG, _status: 'published' as const, body }
 
 const existing = await payload.find({
   collection: 'pages',
@@ -246,10 +248,10 @@ const existing = await payload.find({
 
 if (existing.docs[0]) {
   await payload.update({ collection: 'pages', id: existing.docs[0].id, data, overrideAccess: true })
-  console.log(`  updated /${SLUG} — ${body.length} text blocks and the board`)
+  console.log(`  updated /${SLUG} — ${body.length} blocks`)
 } else {
   await payload.create({ collection: 'pages', data, overrideAccess: true })
-  console.log(`  created /${SLUG} — ${body.length} text blocks and the board`)
+  console.log(`  created /${SLUG} — ${body.length} blocks`)
 }
 
 console.log('Done.')

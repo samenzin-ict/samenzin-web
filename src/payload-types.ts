@@ -249,6 +249,68 @@ export interface Page {
             blockType: 'richText';
           }
         | {
+            heading: string;
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            /**
+             * Gebruik "Opening" voor de eerste sectie van een pagina, en hooguit één keer: twee openingen op een pagina heffen elkaar op.
+             */
+            layout?: ('rail' | 'lead') | null;
+            /**
+             * Wissel af om de secties van elkaar te scheiden.
+             */
+            tone?: ('plain' | 'soft') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'section';
+          }
+        | {
+            heading: string;
+            /**
+             * Een of twee zinnen onder de kop. Optioneel.
+             */
+            intro?: string | null;
+            items?:
+              | {
+                  title: string;
+                  text?: string | null;
+                  /**
+                   * Optioneel. Maakt van de titel een link, bijvoorbeeld naar /doneren.
+                   */
+                  url?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Een alinea onder de punten. Optioneel.
+             */
+            outro?: string | null;
+            /**
+             * Kaarten voor korte punten, rijen voor punten met een langere uitleg.
+             */
+            layout?: ('cards' | 'rows') | null;
+            /**
+             * De groene band is voor de afsluitende oproep van een pagina.
+             */
+            tone?: ('plain' | 'soft' | 'strong') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'highlights';
+          }
+        | {
             /**
              * Bijvoorbeeld: Onze projecten.
              */
@@ -1344,6 +1406,35 @@ export interface PagesSelect<T extends boolean = true> {
           | T
           | {
               content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        section?:
+          | T
+          | {
+              heading?: T;
+              content?: T;
+              layout?: T;
+              tone?: T;
+              id?: T;
+              blockName?: T;
+            };
+        highlights?:
+          | T
+          | {
+              heading?: T;
+              intro?: T;
+              items?:
+                | T
+                | {
+                    title?: T;
+                    text?: T;
+                    url?: T;
+                    id?: T;
+                  };
+              outro?: T;
+              layout?: T;
+              tone?: T;
               id?: T;
               blockName?: T;
             };
