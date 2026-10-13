@@ -23,6 +23,7 @@ import * as migration_20261006_112509_board_photo_and_bio from './20261006_11250
 import * as migration_20261006_181750_project_phase_and_order from './20261006_181750_project_phase_and_order';
 import * as migration_20261006_184500_project_details from './20261006_184500_project_details';
 import * as migration_20261006_190940_featured_items_source from './20261006_190940_featured_items_source';
+import * as migration_20261013_183731_page_sections_and_highlights from './20261013_183731_page_sections_and_highlights';
 
 export const migrations = [
   {
@@ -148,6 +149,11 @@ export const migrations = [
   {
     up: migration_20261006_190940_featured_items_source.up,
     down: migration_20261006_190940_featured_items_source.down,
-    name: '20261006_190940_featured_items_source'
+    name: '20261006_190940_featured_items_source',
+  },
+  {
+    up: migration_20261013_183731_page_sections_and_highlights.up,
+    down: migration_20261013_183731_page_sections_and_highlights.down,
+    name: '20261013_183731_page_sections_and_highlights'
   },
 ];

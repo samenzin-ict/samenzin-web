@@ -155,6 +155,12 @@ database stopped, which is the situation in GitHub Actions.
   grid, the same way `/contact` and `/doneren` render theirs. That is where the
   introduction lives.
 
+- **Over ons is laid out, not just filled.** Two page blocks carry it: `section` (heading
+  in a rail beside the text, or a large opening statement) and `highlights` (named points
+  as rows or cards, with an optional green closing band). The board is one person per row
+  so a biography gets a readable measure. The converter decides which block a section
+  becomes from the Word file itself: paragraphs that open with a bold name are points.
+
 ## In progress
 
 - Nothing half-done. The session ended on a clean tree, lint, types and build all
@@ -547,6 +553,14 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 - `pnpm load:projecten` never deletes a project. It lists the ones in the database that
   are not in the Word file and leaves them; demo projects from an older seed have
   different slugs from the new titles, so they have to be removed by hand once.
+- A biography on Over ons has to open with the member's **full** name exactly as the ANBI
+  record has it; `pnpm load:over-ons` refuses anything shorter. The board asked for full
+  names wherever a person is introduced.
+- `pnpm load:over-ons` never replaces a portrait that is already attached. Photographs are
+  changed in the admin panel; the loader only fills in one that is missing.
+- Payload wraps rendered rich text in `<div class="payload-richtext">`, so a CSS child
+  selector on `.rich-text` (`> p`) matches nothing. Use descendant selectors. This cost a
+  silently unstyled opening paragraph on the project pages.
 - The sentence Over ons makes about the ANBI application is generated from `anbiStatus`,
   not stored in the page. When the beschikking arrives, change the status under
   ANBI-gegevens and re-run `pnpm load:over-ons production`; both pages then agree.

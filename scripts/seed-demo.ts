@@ -420,20 +420,44 @@ const pages = [
     ...PUBLISHED,
     title: 'Over ons',
     slug: 'over-ons',
+    /*
+     * The real page is written by the board and loaded with
+     * `pnpm load:over-ons`. This stands in for it with one of each block the
+     * real page uses, so a fresh install shows what they look like. It carries
+     * no names: the board block reads those from the ANBI record above.
+     */
     body: [
       {
-        blockType: 'richText' as const,
+        blockType: 'section' as const,
+        heading: 'Wie wij zijn',
+        layout: 'lead' as const,
+        tone: 'plain' as const,
         content: richText(
           'Voorbeeldtekst. De stichting brengt mensen samen rond taal, bezinning en ontmoeting.',
           'Voorbeeldtekst. Deze pagina wordt door het bestuur gevuld met de werkelijke tekst.',
         ),
       },
-      /*
-       * The real page is written by the board and loaded with
-       * `pnpm load:over-ons`; this is only here so the block is on a page
-       * somewhere in a fresh install. It carries no names: those come from the
-       * ANBI record above.
-       */
+      {
+        blockType: 'section' as const,
+        heading: 'Hoe het begon',
+        layout: 'rail' as const,
+        tone: 'soft' as const,
+        content: richText(
+          'Voorbeeldtekst. Hier staat in een paar alinea’s hoe de stichting is ontstaan.',
+          'Voorbeeldtekst. Een tweede alinea, zodat de opmaak te beoordelen is.',
+        ),
+      },
+      {
+        blockType: 'highlights' as const,
+        heading: 'Hoe wij werken',
+        layout: 'cards' as const,
+        tone: 'plain' as const,
+        items: [
+          { title: 'Voorbeeldpunt een', text: 'Voorbeeldtekst. Een korte uitleg bij dit punt.' },
+          { title: 'Voorbeeldpunt twee', text: 'Voorbeeldtekst. Een korte uitleg bij dit punt.' },
+          { title: 'Voorbeeldpunt drie', text: 'Voorbeeldtekst. Een korte uitleg bij dit punt.' },
+        ],
+      },
       {
         blockType: 'board' as const,
         heading: 'Het bestuur',

@@ -1,7 +1,16 @@
 import type { CollectionConfig } from 'payload'
 
 import { isAdminOrEditor, isEditorOfCommission, isPublishedOrOwnCommission } from '@/access'
-import { Agenda, Board, CallToAction, FeaturedItems, Hero, RichText } from '@/blocks'
+import {
+  Agenda,
+  Board,
+  CallToAction,
+  FeaturedItems,
+  Hero,
+  Highlights,
+  RichText,
+  Section,
+} from '@/blocks'
 import { commissionField } from '@/fields/commissions'
 import { formatSlug } from '@/fields/slug'
 
@@ -115,7 +124,7 @@ export const Pages: CollectionConfig = {
         singular: 'Blok',
         plural: 'Blokken',
       },
-      blocks: [Hero, RichText, FeaturedItems, Agenda, Board, CallToAction],
+      blocks: [Hero, RichText, Section, Highlights, FeaturedItems, Agenda, Board, CallToAction],
       admin: {
         description: 'Bouw de pagina op uit blokken. Sleep om de volgorde te wijzigen.',
       },
