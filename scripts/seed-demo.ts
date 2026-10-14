@@ -430,7 +430,6 @@ const pages = [
       {
         blockType: 'section' as const,
         heading: 'Wie wij zijn',
-        layout: 'lead' as const,
         tone: 'plain' as const,
         content: richText(
           'Voorbeeldtekst. De stichting brengt mensen samen rond taal, bezinning en ontmoeting.',
@@ -440,7 +439,6 @@ const pages = [
       {
         blockType: 'section' as const,
         heading: 'Hoe het begon',
-        layout: 'rail' as const,
         tone: 'soft' as const,
         content: richText(
           'Voorbeeldtekst. Hier staat in een paar alinea’s hoe de stichting is ontstaan.',

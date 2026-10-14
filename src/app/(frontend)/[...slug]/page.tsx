@@ -6,6 +6,7 @@ import { RenderBlocks } from '@/components/blocks/RenderBlocks'
 import { Container } from '@/components/layout/Container'
 import { buildPageMetadata } from '@/lib/metadata'
 import { getPageBySlug, getSiteSettings } from '@/lib/payload'
+import { cn } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,6 +57,13 @@ export default async function ContentPage({ params }: Params) {
 
   const hasHero = page.body?.[0]?.blockType === 'hero'
 
+  /*
+   * Sections, highlights and the bestuur sit in one centred column. When the
+   * page opens with one of them, the title joins that column; otherwise it
+   * would start further left than everything under it.
+   */
+  const centred = ['section', 'highlights', 'board'].includes(page.body?.[0]?.blockType ?? '')
+
   return (
     <>
       {/*
@@ -64,7 +72,9 @@ export default async function ContentPage({ params }: Params) {
       */}
       {!hasHero ? (
         <Container className="pt-10 md:pt-14">
-          <h1 className="font-heading text-3xl sm:text-4xl">{page.title}</h1>
+          <h1 className={cn('font-heading text-3xl sm:text-4xl', centred && 'mx-auto max-w-3xl')}>
+            {page.title}
+          </h1>
         </Container>
       ) : null}
 

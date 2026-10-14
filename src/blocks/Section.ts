@@ -1,8 +1,7 @@
 import type { Block } from 'payload'
 
 /**
- * A titled section of running text: the heading in a column of its own, the
- * text beside it.
+ * A titled section of running text: a heading over a column of prose.
  *
  * The plain text block is one column of prose, which is right for a privacy
  * statement and wrong for a page like Over ons, where five sections in a row
@@ -19,7 +18,7 @@ export const Section: Block = {
     singular: 'Sectie',
     plural: 'Secties',
   },
-  imageAltText: 'Een sectie met de kop links en de tekst rechts.',
+  imageAltText: 'Een sectie met een kop boven de tekst.',
   fields: [
     {
       name: 'heading',
@@ -32,20 +31,6 @@ export const Section: Block = {
       type: 'richText',
       required: true,
       label: 'Tekst',
-    },
-    {
-      name: 'layout',
-      type: 'select',
-      defaultValue: 'rail',
-      label: 'Opmaak',
-      options: [
-        { label: 'Kop links, tekst rechts', value: 'rail' },
-        { label: 'Opening: grote eerste alinea', value: 'lead' },
-      ],
-      admin: {
-        description:
-          'Gebruik "Opening" voor de eerste sectie van een pagina, en hooguit één keer: twee openingen op een pagina heffen elkaar op.',
-      },
     },
     {
       name: 'tone',

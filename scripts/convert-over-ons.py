@@ -66,12 +66,13 @@ ALL_HEADINGS = SECTIONS + [BOARD_SECTION, CLOSING_SECTION]
 ROLES = ["voorzitter", "secretaris", "penningmeester"]
 
 # How each section is drawn. A section missing from this table gets the
-# defaults: heading beside the text, or cards, on the plain background.
+# defaults: running text, or cards, on the plain background. The white bands
+# alternate with the crème page to separate the text sections; the two card
+# sections stay on crème, where white cards stand out as cards.
 PRESENTATION = {
-    "Wie wij zijn": {"layout": "lead"},
-    "Waar wij voor staan": {"tone": "soft"},
-    "Wat wij doen": {"layout": "rows"},
-    "Hoe wij werken": {"layout": "cards", "tone": "soft"},
+    "Hoe het begon": {"tone": "soft"},
+    "Wat wij doen": {"layout": "rows", "tone": "soft"},
+    "Hoe wij werken": {"layout": "cards"},
     "Meedoen": {"layout": "cards", "tone": "strong"},
 }
 
@@ -169,7 +170,6 @@ def to_block(heading: str, found: list[dict]) -> dict:
             {"type": "p", "text": ANBI_SENTENCE.sub(f" {ANBI_MARKER}", paragraph["text"])}
             for paragraph in found
         ],
-        "layout": look.get("layout", "rail"),
         "tone": look.get("tone", "plain"),
     }
 
@@ -266,7 +266,7 @@ def main() -> int:
         detail = (
             f"{len(block['items'])} points, {block['layout']}, {block['tone']}"
             if block["kind"] == "highlights"
-            else f"{len(block['body'])} paragraphs, {block['layout']}, {block['tone']}"
+            else f"{len(block['body'])} paragraphs, {block['tone']}"
             if block["kind"] == "section"
             else f"{len(biographies)} biographies"
         )

@@ -266,10 +266,6 @@ export interface Page {
               [k: string]: unknown;
             };
             /**
-             * Gebruik "Opening" voor de eerste sectie van een pagina, en hooguit één keer: twee openingen op een pagina heffen elkaar op.
-             */
-            layout?: ('rail' | 'lead') | null;
-            /**
              * Wissel af om de secties van elkaar te scheiden.
              */
             tone?: ('plain' | 'soft') | null;
@@ -1414,7 +1410,6 @@ export interface PagesSelect<T extends boolean = true> {
           | {
               heading?: T;
               content?: T;
-              layout?: T;
               tone?: T;
               id?: T;
               blockName?: T;

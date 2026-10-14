@@ -39,7 +39,6 @@ function RenderBlock({ block }: { block: Block }) {
         <SectionBlock
           heading={block.heading}
           content={block.content}
-          layout={block.layout}
           tone={block.tone}
         />
       )
