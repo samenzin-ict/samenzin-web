@@ -5,6 +5,7 @@ import { headers } from 'next/headers'
 import { HONEYPOT_FIELD } from '@/app/(frontend)/contact/honeypot'
 import { getEmailMessages, getMessages } from '@/i18n'
 import { adminUrlFor, sendMail, sendNotification } from '@/lib/email'
+import { MEMBERSHIP_APPLICATIONS_OPEN } from '@/lib/membership'
 import { getPayloadClient } from '@/lib/payload'
 import { checkRateLimit, pruneRateLimits } from '@/lib/rate-limit'
 
@@ -47,6 +48,11 @@ export async function submitMembershipForm(
   formData: FormData,
 ): Promise<MembershipFormState> {
   const messages = getMessages()
+
+  // A server action stays callable after its page is gone; close it here too.
+  if (!MEMBERSHIP_APPLICATIONS_OPEN) {
+    return { status: 'error', errors: { form: messages.membershipErrorGeneric } }
+  }
 
   const values = {
     name: readField(formData, 'name'),

@@ -98,15 +98,7 @@ export const FeaturedItems: Block = {
           type: 'text',
           label: 'Adres',
           admin: {
-            description: 'Waar de link onder de kaart naartoe gaat. Laat leeg voor geen link.',
-          },
-        },
-        {
-          name: 'linkLabel',
-          type: 'text',
-          label: 'Tekst van de link',
-          admin: {
-            description: 'Bijvoorbeeld: Lees meer.',
+            description: 'Waar de kaart naartoe gaat als je op de titel klikt. Laat leeg voor geen link.',
           },
         },
       ],

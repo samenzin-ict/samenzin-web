@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 
+import { MEMBERSHIP_APPLICATIONS_OPEN } from '@/lib/membership'
 import { getAllPageSlugs, getArticles, getCourses, getEvents, getProjects } from '@/lib/payload'
 import { getSiteUrl } from '@/lib/site-url'
 
@@ -34,12 +35,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Routes that are not Pages documents and would otherwise be missed.
   entries.push({ url: `${siteUrl}/anbi`, priority: 0.8 })
   entries.push({ url: `${siteUrl}/projecten`, priority: 0.7 })
-  entries.push({ url: `${siteUrl}/nieuws`, priority: 0.7 })
+  // Left out while empty, as the menu leaves them out.
+  if (articles.length > 0) entries.push({ url: `${siteUrl}/nieuws`, priority: 0.7 })
   entries.push({ url: `${siteUrl}/agenda`, priority: 0.7 })
-  entries.push({ url: `${siteUrl}/cursussen`, priority: 0.7 })
+  if (courses.length > 0) entries.push({ url: `${siteUrl}/cursussen`, priority: 0.7 })
   // Both were missing: they are real public routes, not Pages documents.
   entries.push({ url: `${siteUrl}/vrijwilligers`, priority: 0.6 })
-  entries.push({ url: `${siteUrl}/lid-worden`, priority: 0.6 })
+  if (MEMBERSHIP_APPLICATIONS_OPEN) entries.push({ url: `${siteUrl}/lid-worden`, priority: 0.6 })
 
   for (const project of projects) {
     entries.push({

@@ -1,11 +1,13 @@
 import Link from 'next/link'
 
 import { Container } from '@/components/layout/Container'
+import { DesktopNav } from '@/components/layout/DesktopNav'
 import { Logo } from '@/components/layout/Logo'
 import { MobileMenu } from '@/components/layout/MobileMenu'
 import { Button } from '@/components/ui/button'
 import { getMessages } from '@/i18n'
 import { getMember } from '@/lib/member-auth'
+import { getNavigation } from '@/lib/navigation'
 import { getSiteSettings } from '@/lib/payload'
 
 /**
@@ -23,29 +25,22 @@ export async function Header() {
   const [settings, member] = await Promise.all([getSiteSettings(), getMember()])
   const messages = getMessages()
 
-  const navigation = settings.mainNavigation ?? []
+  const navigation = await getNavigation(settings.mainNavigation ?? [])
   const cta = settings.headerCta
 
   return (
     <header className="relative border-b border-border bg-card">
       <Container>
+        {/*
+          Logo on the left, the donate button on the right, the menu centred in
+          what is left. The bar switches to the full menu at lg rather than md:
+          the foundation's name is long, and at md five items and the button
+          beside it would wrap.
+        */}
         <div className="flex min-h-16 items-center justify-between gap-4 py-3">
           <Logo settings={settings} />
 
-          <nav aria-label={messages.mainNavigationLabel} className="hidden md:block">
-            <ul className="flex items-center gap-6">
-              {navigation.map((item) => (
-                <li key={item.id ?? item.url}>
-                  <Link
-                    href={item.url}
-                    className="text-foreground hover:text-primary hover:underline"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <DesktopNav items={navigation} label={messages.mainNavigationLabel} />
 
           <div className="flex items-center gap-1 sm:gap-2">
             {/*
@@ -58,7 +53,7 @@ export async function Header() {
             */}
             <Link
               href={member ? '/mijn' : '/mijn/inloggen'}
-              className="hidden min-h-11 items-center px-3 text-foreground hover:text-primary hover:underline sm:flex"
+              className="hidden min-h-11 items-center px-3 text-sm text-muted-foreground hover:text-primary hover:underline lg:flex"
             >
               {member ? messages.headerMyAccount : messages.headerLogin}
             </Link>

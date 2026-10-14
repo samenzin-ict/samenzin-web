@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 type BlockLinkStyle = 'cta' | 'primary' | 'outline'
 
@@ -34,6 +35,7 @@ export function BlockLinks({
   links,
   onCta = false,
   onDark = false,
+  raised = false,
 }: {
   links?: BlockLinkData[] | null
   onCta?: boolean
@@ -44,6 +46,11 @@ export function BlockLinks({
    * instead.
    */
   onDark?: boolean
+  /*
+   * Set when the buttons sit directly on a photograph. A shadow lifts them
+   * off it, so they read as buttons rather than as part of the picture.
+   */
+  raised?: boolean
 }) {
   if (!links || links.length === 0) return null
 
@@ -54,11 +61,12 @@ export function BlockLinks({
           key={link.id ?? link.url}
           asChild
           variant={variantForStyle[onCta && link.style === 'cta' ? 'primary' : link.style]}
-          className={
-            onDark && link.style === 'outline'
-              ? 'border-primary-foreground bg-transparent text-primary-foreground hover:bg-primary-foreground/10'
-              : undefined
-          }
+          className={cn(
+            onDark &&
+              link.style === 'outline' &&
+              'border-primary-foreground bg-transparent text-primary-foreground hover:bg-primary-foreground/10',
+            raised && 'shadow-md',
+          )}
         >
           <Link href={link.url}>{link.label}</Link>
         </Button>

@@ -332,3 +332,25 @@ export const getAllPageSlugs = cache(async (locale: Locale = defaultLocale) => {
 
   return docs
 })
+
+/**
+ * Whether a listing has anything a visitor may see, for hiding an empty
+ * /nieuws or /cursussen from the menu.
+ *
+ * Asks for one document without depth rather than reusing getArticles or
+ * getCourses: this runs in the header, on every page.
+ */
+export const hasPublished = cache(async (collection: 'articles' | 'courses') => {
+  const payload = await getPayloadClient()
+
+  const { totalDocs } = await payload.find({
+    collection,
+    depth: 0,
+    limit: 1,
+    pagination: true,
+    // The same access rules as the listing itself, so drafts do not count.
+    overrideAccess: false,
+  })
+
+  return totalDocs > 0
+})

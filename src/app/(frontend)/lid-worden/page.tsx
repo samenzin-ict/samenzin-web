@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
+import { notFound } from 'next/navigation'
 
 import { RenderBlocks } from '@/components/blocks/RenderBlocks'
 import { Container } from '@/components/layout/Container'
 import { MembershipForm } from '@/components/membership/MembershipForm'
 import { getMessages } from '@/i18n'
 import { buildPageMetadata } from '@/lib/metadata'
+import { MEMBERSHIP_APPLICATIONS_OPEN } from '@/lib/membership'
 import { getPageBySlug, getSiteSettings } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
@@ -40,6 +42,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function MembershipPage() {
+  if (!MEMBERSHIP_APPLICATIONS_OPEN) notFound()
+
   const { isEnabled: isDraft } = await draftMode()
   const page = await getPageBySlug(MEMBERSHIP_SLUG, undefined, isDraft)
   const messages = getMessages()

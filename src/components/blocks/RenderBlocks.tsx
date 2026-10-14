@@ -27,6 +27,7 @@ function RenderBlock({ block }: { block: Block }) {
           intro={block.intro}
           links={block.links}
           image={block.image}
+          textInImage={block.textInImage}
           stats={block.stats}
         />
       )

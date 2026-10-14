@@ -139,9 +139,14 @@ export const SiteSettings: GlobalConfig = {
                 singular: 'Menu-item',
                 plural: 'Menu-items',
               },
+              /*
+               * Five is what fits beside the logo and the donate button on a
+               * laptop without wrapping. More belongs in a submenu.
+               */
+              maxRows: 6,
               admin: {
                 description:
-                  'De links bovenaan elke pagina, in deze volgorde. Sleep om de volgorde te wijzigen.',
+                  'De links bovenaan elke pagina, in deze volgorde. Houd het bij vijf; zet wat bij elkaar hoort in een submenu. Een link naar /nieuws of /cursussen wordt vanzelf verborgen zolang daar niets gepubliceerd is.',
               },
               fields: [
                 {
@@ -153,11 +158,37 @@ export const SiteSettings: GlobalConfig = {
                 {
                   name: 'url',
                   type: 'text',
-                  required: true,
                   label: 'Adres',
                   admin: {
-                    description: 'Een pad op deze website, zoals /over-ons.',
+                    description:
+                      'Een pad op deze website, zoals /over-ons. Mag leeg blijven als dit item een submenu heeft.',
                   },
+                  validate: (
+                    value: string | null | undefined,
+                    { siblingData }: { siblingData: { children?: unknown[] | null } },
+                  ) =>
+                    Boolean(value) || (siblingData.children?.length ?? 0) > 0
+                      ? true
+                      : 'Vul een adres in, of voeg een submenu toe.',
+                },
+                {
+                  name: 'children',
+                  type: 'array',
+                  label: 'Submenu',
+                  labels: {
+                    singular: 'Link in submenu',
+                    plural: 'Links in submenu',
+                  },
+                  maxRows: 6,
+                  admin: {
+                    description:
+                      'Optioneel. Met een submenu opent dit item een uitklaplijst; het adres hierboven wordt dan niet gebruikt.',
+                    initCollapsed: true,
+                  },
+                  fields: [
+                    { name: 'label', type: 'text', required: true, label: 'Tekst van de link' },
+                    { name: 'url', type: 'text', required: true, label: 'Adres' },
+                  ],
                 },
               ],
             },

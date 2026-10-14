@@ -6,10 +6,8 @@ import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 
 import type { Messages } from '@/i18n'
-import type { SiteSetting } from '@/payload-types'
+import type { NavItem, NavLink } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
-
-type NavigationItem = NonNullable<SiteSetting['mainNavigation']>[number]
 
 /**
  * The navigation for small screens.
@@ -22,12 +20,16 @@ type NavigationItem = NonNullable<SiteSetting['mainNavigation']>[number]
  * the panel it controls, Escape closes the panel and returns focus to the
  * button that opened it, and the page behind the panel cannot be scrolled
  * while it is open.
+ *
+ * A submenu of the desktop bar is shown here open, as a small heading over its
+ * links: on a phone a second tap to reveal three links costs more than the
+ * room they take.
  */
 export function MobileMenu({
   items,
   messages,
 }: {
-  items: NavigationItem[]
+  items: NavItem[]
   messages: Messages
 }) {
   const panelId = useId()
@@ -68,7 +70,7 @@ export function MobileMenu({
   if (items.length === 0) return null
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <button
         ref={buttonRef}
         type="button"
@@ -88,27 +90,46 @@ export function MobileMenu({
       >
         <nav aria-label={messages.mainNavigationLabel}>
           <ul className="flex flex-col py-2">
-            {items.map((item) => {
-              const isCurrent = pathname === item.url
-
-              return (
-                <li key={item.id ?? item.url}>
-                  <Link
-                    href={item.url}
-                    aria-current={isCurrent ? 'page' : undefined}
-                    className={cn(
-                      'flex min-h-11 items-center px-4 py-3 text-base text-foreground',
-                      isCurrent && 'font-semibold text-primary',
-                    )}
-                  >
+            {items.map((item) =>
+              'children' in item ? (
+                <li key={item.id} className="pt-2">
+                  <p className="px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                     {item.label}
-                  </Link>
+                  </p>
+                  <ul>
+                    {item.children.map((link) => (
+                      <li key={link.id}>
+                        <MenuLink link={link} pathname={pathname} />
+                      </li>
+                    ))}
+                  </ul>
                 </li>
-              )
-            })}
+              ) : (
+                <li key={item.id}>
+                  <MenuLink link={item} pathname={pathname} />
+                </li>
+              ),
+            )}
           </ul>
         </nav>
       </div>
     </div>
+  )
+}
+
+function MenuLink({ link, pathname }: { link: NavLink; pathname: string }) {
+  const isCurrent = pathname === link.url
+
+  return (
+    <Link
+      href={link.url}
+      aria-current={isCurrent ? 'page' : undefined}
+      className={cn(
+        'flex min-h-11 items-center px-4 py-3 text-base text-foreground',
+        isCurrent && 'font-semibold text-primary',
+      )}
+    >
+      {link.label}
+    </Link>
   )
 }

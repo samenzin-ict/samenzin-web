@@ -165,6 +165,18 @@ database stopped, which is the situation in GitHub Actions.
   block a section becomes from the Word file itself: paragraphs that open with a bold
   name are points.
 
+- **Homepage and menu, 2026-10-14.** The hero image fills the banner; with "De kop en
+  de tekst staan al in de afbeelding" ticked the text is not set over it again (it stays
+  for screen readers) and the buttons sit on the image under its text, positioned in cqw
+  so they land on the same spot at every width. The project cards lost "Lees meer": the
+  title is the one link, stretched over the card. The main menu has submenus
+  (`mainNavigation[].children`), is defined in `scripts/navigation.ts`, and hides
+  `/nieuws` and `/cursussen` while nothing is published there (`src/lib/navigation.ts`).
+  **Membership is no longer requested through the site:** `MEMBERSHIP_APPLICATIONS_OPEN`
+  in `src/lib/membership.ts` makes `/lid-worden` a 404 and closes its action; the form
+  and collection are kept. `pnpm apply:menu-and-homepage` applied all of it to an
+  existing database.
+
 ## In progress
 
 - Nothing half-done. The session ended on a clean tree, lint, types and build all
