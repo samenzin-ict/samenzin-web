@@ -6,8 +6,8 @@ import { linkArray } from '@/fields/link'
  * The banner at the top of a page.
  *
  * Modelled on the homepage in docs/design/02-homepage-desktop.png: a heading,
- * a short introduction, up to two buttons, a decorative image, and the band of
- * figures underneath it.
+ * a short introduction, up to two buttons, an image filling the banner behind
+ * them, and the band of figures underneath it.
  *
  * Everything is optional except the heading, so the same block works for the
  * homepage and for a plain page that only needs a title. The colours are not
@@ -43,7 +43,19 @@ export const Hero: Block = {
       relationTo: 'media',
       label: 'Afbeelding',
       admin: {
-        description: 'Optioneel. Wordt naast of achter de tekst getoond.',
+        description:
+          'Optioneel. Vult de hele banner, achter de tekst. Breed beeld, ongeveer 5 bij 2, met het onderwerp rechts: links komt de tekst.',
+      },
+    },
+    {
+      name: 'textInImage',
+      type: 'checkbox',
+      defaultValue: false,
+      label: 'De kop en de tekst staan al in de afbeelding',
+      admin: {
+        condition: (_, siblingData) => Boolean(siblingData?.image),
+        description:
+          'Dan worden ze niet nog eens over de afbeelding gezet; schermlezers en zoekmachines krijgen ze nog wel. Zet de tekst in de afbeelding links, op ongeveer een twaalfde van de rand: de knoppen komen er recht onder.',
       },
     },
     {

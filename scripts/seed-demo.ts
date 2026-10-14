@@ -18,6 +18,8 @@ import { fileURLToPath } from 'url'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 
+import { MAIN_NAVIGATION } from './navigation'
+
 /*
  * No e-mail, whatever the environment says.
  *
@@ -177,18 +179,7 @@ await payload.updateGlobal({
       { label: 'Schiedam', street: 'Voorbeeldlaan 2', postalCode: '3100 BB', city: 'Schiedam' },
       { label: 'Rotterdam', street: 'Voorbeeldkade 3', postalCode: '3000 CC', city: 'Rotterdam' },
     ],
-    // The menu of docs/design/02, plus Lid worden: becoming a member was
-    // reachable only from the footer, which is too well hidden for something
-    // the foundation actually wants people to do.
-    mainNavigation: [
-      { label: 'Over ons', url: '/over-ons' },
-      { label: 'Projecten', url: '/projecten' },
-      { label: 'Agenda', url: '/agenda' },
-      { label: 'Cursussen', url: '/cursussen' },
-      { label: 'Nieuws', url: '/nieuws' },
-      { label: 'Lid worden', url: '/lid-worden' },
-      { label: 'Contact', url: '/contact' },
-    ],
+    mainNavigation: MAIN_NAVIGATION,
     headerCta: { label: 'Doneer', url: '/doneren' },
     socialLinks: [
       { platform: 'facebook', url: 'https://example.org/facebook' },
@@ -209,7 +200,6 @@ await payload.updateGlobal({
         links: [
           { label: 'Doneren', url: '/doneren' },
           { label: 'Vrijwilliger worden', url: '/vrijwilligers' },
-          { label: 'Lid worden', url: '/lid-worden' },
           { label: 'Contact', url: '/contact' },
         ],
       },
@@ -353,13 +343,7 @@ const pages = [
         image: heroImage,
         links: [
           { label: 'Steun ons werk', url: '/doneren', style: 'cta' as const },
-          { label: 'Word vrijwilliger', url: '/contact', style: 'outline' as const },
-        ],
-        stats: [
-          { value: '6', label: 'Projecten' },
-          { value: '40+', label: 'Vrijwilligers' },
-          { label: 'ANBI in aanvraag' },
-          { label: 'Tilburg · Schiedam · Rotterdam' },
+          { label: 'Word vrijwilliger', url: '/vrijwilligers', style: 'outline' as const },
         ],
       },
       {
@@ -378,21 +362,18 @@ const pages = [
             description: 'Help een ander de taal te leren.',
             image: taalmaatje,
             url: '/projecten/taalmaatje',
-            linkLabel: 'Lees meer',
           },
           {
             title: 'Retraites',
             description: 'Tijd voor bezinning en rust.',
             image: retraites,
             url: '/projecten/retraites',
-            linkLabel: 'Lees meer',
           },
           {
             title: 'Studentenhuisvesting',
             description: 'Begeleiding bij wonen voor studenten.',
             image: huisvesting,
             url: '/projecten/studentenhuisvesting',
-            linkLabel: 'Lees meer',
           },
         ],
       },

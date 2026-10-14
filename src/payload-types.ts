@@ -208,9 +208,13 @@ export interface Page {
                 }[]
               | null;
             /**
-             * Optioneel. Wordt naast of achter de tekst getoond.
+             * Optioneel. Vult de hele banner, achter de tekst. Breed beeld, ongeveer 5 bij 2, met het onderwerp rechts: links komt de tekst.
              */
             image?: (number | null) | Media;
+            /**
+             * Dan worden ze niet nog eens over de afbeelding gezet; schermlezers en zoekmachines krijgen ze nog wel. Zet de tekst in de afbeelding links, op ongeveer een twaalfde van de rand: de knoppen komen er recht onder.
+             */
+            textInImage?: boolean | null;
             /**
              * De balk onder de banner. Laat leeg om de balk te verbergen. Bijvoorbeeld: 40+ vrijwilligers.
              */
@@ -322,13 +326,9 @@ export interface Page {
                   description?: string | null;
                   image?: (number | null) | Media;
                   /**
-                   * Waar de link onder de kaart naartoe gaat. Laat leeg voor geen link.
+                   * Waar de kaart naartoe gaat als je op de titel klikt. Laat leeg voor geen link.
                    */
                   url?: string | null;
-                  /**
-                   * Bijvoorbeeld: Lees meer.
-                   */
-                  linkLabel?: string | null;
                   id?: string | null;
                 }[]
               | null;
@@ -1388,6 +1388,7 @@ export interface PagesSelect<T extends boolean = true> {
                     id?: T;
                   };
               image?: T;
+              textInImage?: T;
               stats?:
                 | T
                 | {
@@ -1446,7 +1447,6 @@ export interface PagesSelect<T extends boolean = true> {
                     description?: T;
                     image?: T;
                     url?: T;
-                    linkLabel?: T;
                     id?: T;
                   };
               id?: T;
@@ -1968,15 +1968,25 @@ export interface SiteSetting {
       }[]
     | null;
   /**
-   * De links bovenaan elke pagina, in deze volgorde. Sleep om de volgorde te wijzigen.
+   * De links bovenaan elke pagina, in deze volgorde. Houd het bij vijf; zet wat bij elkaar hoort in een submenu. Een link naar /nieuws of /cursussen wordt vanzelf verborgen zolang daar niets gepubliceerd is.
    */
   mainNavigation?:
     | {
         label: string;
         /**
-         * Een pad op deze website, zoals /over-ons.
+         * Een pad op deze website, zoals /over-ons. Mag leeg blijven als dit item een submenu heeft.
          */
-        url: string;
+        url?: string | null;
+        /**
+         * Optioneel. Met een submenu opent dit item een uitklaplijst; het adres hierboven wordt dan niet gebruikt.
+         */
+        children?:
+          | {
+              label: string;
+              url: string;
+              id?: string | null;
+            }[]
+          | null;
         id?: string | null;
       }[]
     | null;
@@ -2349,6 +2359,13 @@ export interface SiteSettingsSelect<T extends boolean = true> {
     | {
         label?: T;
         url?: T;
+        children?:
+          | T
+          | {
+              label?: T;
+              url?: T;
+              id?: T;
+            };
         id?: T;
       };
   headerCta?:

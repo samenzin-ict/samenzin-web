@@ -3,8 +3,8 @@ import Link from 'next/link'
 
 import { ProjectStatus } from '@/components/projects/ProjectStatus'
 import { Container } from '@/components/layout/Container'
-import { getMessages } from '@/i18n'
 import { getProjects } from '@/lib/payload'
+import { cn } from '@/lib/utils'
 import type { Media, Project } from '@/payload-types'
 
 type Item = {
@@ -12,14 +12,13 @@ type Item = {
   description?: string | null
   image?: (number | null) | Media
   url?: string | null
-  linkLabel?: string | null
   phase?: Project['phase'] | null
   id?: string | null
 }
 
 /**
  * The card grid from the homepage mockup: white cards with soft corners on the
- * crème background, an image, a title, a short text and a link.
+ * crème background, an image, a title and a short text.
  *
  * Mobile first: one column, two from sm, three from lg.
  *
@@ -38,8 +37,6 @@ export async function FeaturedItemsBlock({
   source?: 'projects' | 'manual' | null
   limit?: number | null
 }) {
-  const messages = getMessages()
-
   const cards: Item[] =
     source === 'projects'
       ? (await getProjects()).slice(0, limit ?? 3).map((project) => ({
@@ -48,7 +45,6 @@ export async function FeaturedItemsBlock({
           description: project.excerpt,
           image: project.image,
           url: `/projecten/${project.slug}`,
-          linkLabel: messages.featuredReadMore,
           phase: project.phase,
         }))
       : (items ?? [])
@@ -66,7 +62,16 @@ export async function FeaturedItemsBlock({
           return (
             <li
               key={item.id ?? item.title}
-              className="flex flex-col rounded-lg border border-border bg-card p-3"
+              /*
+               * The whole card is clickable, through the one link on its title
+               * stretched over it. A separate "Lees meer" under the title did
+               * the same thing twice; a screen reader now hears one link per
+               * card, named after the project.
+               */
+              className={cn(
+                'relative flex flex-col rounded-lg border border-border bg-card p-3 transition-shadow',
+                item.url && 'hover:shadow-md has-[a:focus-visible]:ring-[3px] has-[a:focus-visible]:ring-ring',
+              )}
             >
               {media?.url ? (
                 <Image
@@ -83,13 +88,11 @@ export async function FeaturedItemsBlock({
                 {item.phase ? <ProjectStatus phase={item.phase} className="self-start" /> : null}
 
                 <h3 className="font-heading text-xl text-primary">
-                  {/*
-                    The title is the link, so a card can be reached by clicking
-                    the thing it is named after rather than only by the small
-                    line underneath it.
-                  */}
                   {item.url ? (
-                    <Link href={item.url} className="underline-offset-4 hover:underline">
+                    <Link
+                      href={item.url}
+                      className="underline-offset-4 outline-none after:absolute after:inset-0 after:rounded-lg after:content-[''] hover:underline"
+                    >
                       {item.title}
                     </Link>
                   ) : (
@@ -98,21 +101,6 @@ export async function FeaturedItemsBlock({
                 </h3>
 
                 {item.description ? <p className="flex-1 text-sm">{item.description}</p> : null}
-
-                {item.url && item.linkLabel ? (
-                  <Link
-                    href={item.url}
-                    className="mt-1 font-medium text-accent underline-offset-4 hover:underline"
-                  >
-                    {item.linkLabel}
-                    {/*
-                      "Lees meer" on its own tells a screen reader nothing, and
-                      a page of them tells it nothing three times over. The
-                      title is read out with it without appearing on screen.
-                    */}
-                    <span className="sr-only"> over {item.title}</span>
-                  </Link>
-                ) : null}
               </div>
             </li>
           )
