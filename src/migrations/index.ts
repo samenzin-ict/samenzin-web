@@ -24,6 +24,7 @@ import * as migration_20261006_181750_project_phase_and_order from './20261006_1
 import * as migration_20261006_184500_project_details from './20261006_184500_project_details';
 import * as migration_20261006_190940_featured_items_source from './20261006_190940_featured_items_source';
 import * as migration_20261013_183731_page_sections_and_highlights from './20261013_183731_page_sections_and_highlights';
+import * as migration_20261014_113653_section_single_column from './20261014_113653_section_single_column';
 
 export const migrations = [
   {
@@ -154,6 +155,11 @@ export const migrations = [
   {
     up: migration_20261013_183731_page_sections_and_highlights.up,
     down: migration_20261013_183731_page_sections_and_highlights.down,
-    name: '20261013_183731_page_sections_and_highlights'
+    name: '20261013_183731_page_sections_and_highlights',
+  },
+  {
+    up: migration_20261014_113653_section_single_column.up,
+    down: migration_20261014_113653_section_single_column.down,
+    name: '20261014_113653_section_single_column'
   },
 ];

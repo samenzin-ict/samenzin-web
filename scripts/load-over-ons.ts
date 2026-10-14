@@ -48,7 +48,7 @@ const ANBI_MARKER = '{{anbiStatus}}'
 type Point = { title: string; text: string }
 
 type SourceBlock =
-  | { kind: 'section'; heading: string; body: TextBlock[]; layout: 'rail' | 'lead'; tone: 'plain' | 'soft' }
+  | { kind: 'section'; heading: string; body: TextBlock[]; tone: 'plain' | 'soft' }
   | {
       kind: 'highlights'
       heading: string
@@ -210,7 +210,6 @@ const body = document.blocks.map((block) => {
     return {
       blockType: 'section' as const,
       heading: block.heading,
-      layout: block.layout,
       tone: block.tone,
       content: toLexical(
         block.body.map((paragraph) =>

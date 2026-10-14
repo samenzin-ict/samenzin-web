@@ -155,11 +155,15 @@ database stopped, which is the situation in GitHub Actions.
   grid, the same way `/contact` and `/doneren` render theirs. That is where the
   introduction lives.
 
-- **Over ons is laid out, not just filled.** Two page blocks carry it: `section` (heading
-  in a rail beside the text, or a large opening statement) and `highlights` (named points
-  as rows or cards, with an optional green closing band). The board is one person per row
-  so a biography gets a readable measure. The converter decides which block a section
-  becomes from the Word file itself: paragraphs that open with a bold name are points.
+- **Over ons is laid out, not just filled.** Two page blocks carry it: `section` (a
+  heading over its text) and `highlights` (named points as rows or as filled cards, with
+  an optional green closing band). Everything on such a page, title included, shares one
+  centred `max-w-3xl` column. A heading rail on the left and an opening paragraph set at
+  heading size were both tried and rejected by the board as amateurish; the `layout`
+  option of `section` was dropped with them (migration `section_single_column`). Board
+  members are white profile cards, portrait beside the text. The converter decides which
+  block a section becomes from the Word file itself: paragraphs that open with a bold
+  name are points.
 
 ## In progress
 
