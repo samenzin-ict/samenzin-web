@@ -28,8 +28,13 @@ export async function Header() {
   const navigation = await getNavigation(settings.mainNavigation ?? [])
   const cta = settings.headerCta
 
+  /*
+   * z-50 so the header, and the menu panels hanging from it, stay above the
+   * page. Without it a banner image further down — positioned, and later in
+   * the document — painted over the top of the open mobile menu.
+   */
   return (
-    <header className="relative border-b border-border bg-card">
+    <header className="relative z-50 border-b border-border bg-card">
       <Container>
         {/*
           Logo on the left, the donate button on the right, the menu centred in

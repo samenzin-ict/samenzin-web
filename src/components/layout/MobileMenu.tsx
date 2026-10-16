@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X } from 'lucide-react'
+import { ChevronDown, Menu, X } from 'lucide-react'
 
 import type { Messages } from '@/i18n'
 import type { NavItem, NavLink } from '@/lib/navigation'
@@ -21,9 +21,10 @@ import { cn } from '@/lib/utils'
  * button that opened it, and the page behind the panel cannot be scrolled
  * while it is open.
  *
- * A submenu of the desktop bar is shown here open, as a small heading over its
- * links: on a phone a second tap to reveal three links costs more than the
- * room they take.
+ * A submenu of the desktop bar is a collapsible item here too, with a chevron
+ * that turns, and its links indented under it. Shown open with only a small
+ * label above them, the sub-links looked like ordinary items and the grouping
+ * was lost. A group opens by itself when the current page is in it.
  */
 export function MobileMenu({
   items,
@@ -86,24 +87,14 @@ export function MobileMenu({
       <div
         id={panelId}
         hidden={!isOpen}
-        className="absolute inset-x-0 top-full border-b border-border bg-card shadow-lg"
+        // Scrolls on its own: the page behind it is locked while it is open.
+        className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-card shadow-lg"
       >
         <nav aria-label={messages.mainNavigationLabel}>
           <ul className="flex flex-col py-2">
             {items.map((item) =>
               'children' in item ? (
-                <li key={item.id} className="pt-2">
-                  <p className="px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                    {item.label}
-                  </p>
-                  <ul>
-                    {item.children.map((link) => (
-                      <li key={link.id}>
-                        <MenuLink link={link} pathname={pathname} />
-                      </li>
-                    ))}
-                  </ul>
-                </li>
+                <MobileGroup key={item.id} label={item.label} links={item.children} pathname={pathname} />
               ) : (
                 <li key={item.id}>
                   <MenuLink link={item} pathname={pathname} />
@@ -117,7 +108,46 @@ export function MobileMenu({
   )
 }
 
-function MenuLink({ link, pathname }: { link: NavLink; pathname: string }) {
+function MobileGroup({
+  label,
+  links,
+  pathname,
+}: {
+  label: string
+  links: NavLink[]
+  pathname: string
+}) {
+  const listId = useId()
+  const [open, setOpen] = useState(() => links.some((link) => link.url === pathname))
+
+  return (
+    <li>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={listId}
+        onClick={() => setOpen((value) => !value)}
+        className="flex min-h-11 w-full items-center justify-between px-4 py-3 text-left text-base text-foreground"
+      >
+        {label}
+        <ChevronDown
+          aria-hidden
+          className={cn('size-5 text-muted-foreground transition-transform', open && 'rotate-180')}
+        />
+      </button>
+
+      <ul id={listId} hidden={!open} className="mx-4 mb-2 border-l-2 border-accent/30 bg-muted/40">
+        {links.map((link) => (
+          <li key={link.id}>
+            <MenuLink link={link} pathname={pathname} nested />
+          </li>
+        ))}
+      </ul>
+    </li>
+  )
+}
+
+function MenuLink({ link, pathname, nested = false }: { link: NavLink; pathname: string; nested?: boolean }) {
   const isCurrent = pathname === link.url
 
   return (
@@ -126,6 +156,7 @@ function MenuLink({ link, pathname }: { link: NavLink; pathname: string }) {
       aria-current={isCurrent ? 'page' : undefined}
       className={cn(
         'flex min-h-11 items-center px-4 py-3 text-base text-foreground',
+        nested && 'py-2.5 pl-5 text-[0.9375rem]',
         isCurrent && 'font-semibold text-primary',
       )}
     >
