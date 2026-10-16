@@ -12,8 +12,9 @@ export type NavItem = NavLink | { id: string; label: string; children: NavLink[]
  * place on the site.
  */
 const LISTINGS = {
-  '/nieuws': 'articles',
-  '/cursussen': 'courses',
+  '/nieuws': ['articles', 'nieuws'],
+  '/artikelen': ['articles', 'artikelen'],
+  '/cursussen': ['courses', undefined],
 } as const
 
 const isListing = (url: string): url is keyof typeof LISTINGS => url in LISTINGS
@@ -31,8 +32,8 @@ export async function getNavigation(
   const empty = new Set<string>()
 
   await Promise.all(
-    Object.entries(LISTINGS).map(async ([url, collection]) => {
-      if (!(await hasPublished(collection))) empty.add(url)
+    Object.entries(LISTINGS).map(async ([url, [collection, section]]) => {
+      if (!(await hasPublished(collection, section))) empty.add(url)
     }),
   )
 

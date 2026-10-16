@@ -4,6 +4,7 @@ import config from '@payload-config'
 import { getPayload, type Where } from 'payload'
 
 import { defaultLocale, type Locale } from '@/i18n'
+import type { ArticleSection } from '@/lib/article-sections'
 
 /**
  * Reading content from server components.
@@ -122,21 +123,25 @@ export const getProjectBySlug = cache(
 )
 
 /** Published articles, newest first by their own date. */
-export const getArticles = cache(async (locale: Locale = defaultLocale, draft = false) => {
-  const payload = await getPayloadClient()
+export const getArticles = cache(
+  async (section?: ArticleSection, locale: Locale = defaultLocale, draft = false) => {
+    const payload = await getPayloadClient()
 
-  const { docs } = await payload.find({
-    collection: 'articles',
-    depth: 1,
-    limit: 100,
-    locale,
-    draft,
-    overrideAccess: draft,
-    sort: '-publishedAt',
-  })
+    const { docs } = await payload.find({
+      collection: 'articles',
+      // No section: every article, for the sitemap.
+      ...(section ? { where: { section: { equals: section } } } : {}),
+      depth: 1,
+      limit: 100,
+      locale,
+      draft,
+      overrideAccess: draft,
+      sort: '-publishedAt',
+    })
 
-  return docs
-})
+    return docs
+  },
+)
 
 /** A single article by its slug, or null when there is none. */
 export const getArticleBySlug = cache(
@@ -165,12 +170,13 @@ export const getArticleBySlug = cache(
  * recent.
  */
 export const getRelatedArticles = cache(
-  async (excludeId: number, locale: Locale = defaultLocale, limit = 3) => {
+  async (excludeId: number, section: ArticleSection, locale: Locale = defaultLocale, limit = 3) => {
     const payload = await getPayloadClient()
 
     const { docs } = await payload.find({
       collection: 'articles',
-      where: { id: { not_equals: excludeId } },
+      // From the same rubriek: under a reflection, more reflections.
+      where: { and: [{ id: { not_equals: excludeId } }, { section: { equals: section } }] },
       depth: 1,
       limit,
       locale,
@@ -335,22 +341,25 @@ export const getAllPageSlugs = cache(async (locale: Locale = defaultLocale) => {
 
 /**
  * Whether a listing has anything a visitor may see, for hiding an empty
- * /nieuws or /cursussen from the menu.
+ * /nieuws, /artikelen or /cursussen from the menu.
  *
  * Asks for one document without depth rather than reusing getArticles or
  * getCourses: this runs in the header, on every page.
  */
-export const hasPublished = cache(async (collection: 'articles' | 'courses') => {
-  const payload = await getPayloadClient()
+export const hasPublished = cache(
+  async (collection: 'articles' | 'courses', section?: ArticleSection) => {
+    const payload = await getPayloadClient()
 
-  const { totalDocs } = await payload.find({
-    collection,
-    depth: 0,
-    limit: 1,
-    pagination: true,
-    // The same access rules as the listing itself, so drafts do not count.
-    overrideAccess: false,
-  })
+    const { totalDocs } = await payload.find({
+      collection,
+      ...(collection === 'articles' && section ? { where: { section: { equals: section } } } : {}),
+      depth: 0,
+      limit: 1,
+      pagination: true,
+      // The same access rules as the listing itself, so drafts do not count.
+      overrideAccess: false,
+    })
 
-  return totalDocs > 0
-})
+    return totalDocs > 0
+  },
+)

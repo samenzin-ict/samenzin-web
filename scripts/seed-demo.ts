@@ -837,13 +837,32 @@ const daysAgo = (days: number) => {
   return date.toISOString()
 }
 
+/*
+ * Both rubrieken, so a fresh install shows the difference: three artikelen
+ * (a reflection, an interview, background) and four nieuws items
+ * (an announcement, two reports, project news).
+ */
 const articles = [
+  {
+    ...PUBLISHED,
+    title: 'Nieuwe taalgroep start in Tilburg',
+    slug: 'nieuwe-taalgroep-start-in-tilburg',
+    section: 'nieuws' as const,
+    // The wide card at the top of /nieuws.
+    featured: true,
+    author: 'Jan de Vries',
+    publishedAt: daysAgo(1),
+    excerpt: 'Voorbeeldtekst. Vanaf volgende maand oefent een nieuwe groep wekelijks Nederlands in de bibliotheek.',
+    image: artTaalmaatje,
+    body: richText('Voorbeeldtekst. Een aankondiging, kort en zakelijk, zoals nieuws hoort te zijn.'),
+    tags: [{ label: 'Taal' }, { label: 'Tilburg' }],
+  },
   {
     ...PUBLISHED,
     title: 'Samen bouwen aan een sterkere gemeenschap in Rotterdam',
     slug: 'samen-bouwen-aan-een-sterkere-gemeenschap-in-rotterdam',
-    category: 'artikel' as const,
-    // The one that fills the wide card at the top of the overview.
+    section: 'artikelen' as const,
+    // The one that fills the wide card at the top of /artikelen.
     featured: true,
     author: 'Jan de Vries',
     publishedAt: daysAgo(3),
@@ -860,6 +879,7 @@ const articles = [
     ...PUBLISHED,
     title: 'Samen voorwaarts: een gesprek over vrijwilligerswerk',
     slug: 'samen-voorwaarts-een-gesprek-over-vrijwilligerswerk',
+    section: 'artikelen' as const,
     category: 'interview' as const,
     author: 'Anouk Smits',
     publishedAt: daysAgo(8),
@@ -876,6 +896,7 @@ const articles = [
     ...PUBLISHED,
     title: 'Verslag van de open dag in Schiedam',
     slug: 'verslag-van-de-open-dag-in-schiedam',
+    section: 'nieuws' as const,
     category: 'verslag' as const,
     author: 'Jan de Vries',
     publishedAt: daysAgo(16),
@@ -888,7 +909,7 @@ const articles = [
     ...PUBLISHED,
     title: 'Taalmaatje: wekelijks samen Nederlands oefenen',
     slug: 'taalmaatje-wekelijks-samen-nederlands-oefenen',
-    category: 'artikel' as const,
+    section: 'artikelen' as const,
     author: 'Jan de Vries',
     publishedAt: daysAgo(24),
     excerpt: 'Voorbeeldtekst. Hoe een taalmaatje het verschil maakt in een gezin.',
@@ -900,6 +921,7 @@ const articles = [
     ...PUBLISHED,
     title: 'Studentenhuisvesting: een kamer en een thuis',
     slug: 'studentenhuisvesting-een-kamer-en-een-thuis',
+    section: 'nieuws' as const,
     category: 'project' as const,
     author: 'Anouk Smits',
     publishedAt: daysAgo(35),
@@ -912,6 +934,7 @@ const articles = [
     ...PUBLISHED,
     title: 'Terugblik op de ramadanactiviteiten',
     slug: 'terugblik-op-de-ramadanactiviteiten',
+    section: 'nieuws' as const,
     category: 'verslag' as const,
     author: 'Jan de Vries',
     publishedAt: daysAgo(48),
@@ -932,10 +955,10 @@ for (const data of articles) {
 
   if (existing.docs[0]) {
     await payload.update({ collection: 'articles', id: existing.docs[0].id, data, overrideAccess: true })
-    console.log(`  updated /nieuws/${data.slug}`)
+    console.log(`  updated /${data.section}/${data.slug}`)
   } else {
     await payload.create({ collection: 'articles', data, overrideAccess: true })
-    console.log(`  created /nieuws/${data.slug}`)
+    console.log(`  created /${data.section}/${data.slug}`)
   }
 }
 

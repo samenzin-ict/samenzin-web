@@ -595,7 +595,7 @@ export interface Project {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * Nieuwsberichten, artikelen, interviews en verslagen.
+ * Nieuws (wat er nu speelt) en artikelen (beschouwingen, interviews, achtergrond). Kies per bericht de rubriek.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "articles".
@@ -604,16 +604,23 @@ export interface Article {
   id: number;
   title: string;
   /**
-   * Het deel van het webadres na /nieuws/. Wordt automatisch ingevuld vanuit de titel. Wijzig dit niet meer zodra het artikel online staat.
+   * Het deel van het webadres na /nieuws/ of /artikelen/. Wordt automatisch ingevuld vanuit de titel. Wijzig dit niet meer zodra het bericht online staat.
    */
   slug: string;
   /**
    * De datum die bij het artikel staat en waarop het overzicht sorteert. Dit is iets anders dan gepubliceerd zijn.
    */
   publishedAt: string;
-  category: 'nieuws' | 'artikel' | 'interview' | 'verslag' | 'project' | 'vrijwilliger';
   /**
-   * Zet dit artikel bovenaan het overzicht, groot. Is er meer dan één, dan wint het nieuwste.
+   * Nieuws verschijnt op /nieuws, artikelen op /artikelen. Wijzig dit liever niet meer zodra het bericht online staat: het webadres verandert mee (het oude blijft wel doorverwijzen).
+   */
+  section: 'nieuws' | 'artikelen';
+  /**
+   * Optioneel. Het label op de kaart.
+   */
+  category?: ('interview' | 'verslag' | 'project' | 'vrijwilliger') | null;
+  /**
+   * Zet dit bericht groot bovenaan het overzicht van zijn rubriek. Is er meer dan één, dan wint het nieuwste.
    */
   featured?: boolean | null;
   /**
@@ -1562,6 +1569,7 @@ export interface ArticlesSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   publishedAt?: T;
+  section?: T;
   category?: T;
   featured?: T;
   author?: T;
@@ -1968,7 +1976,7 @@ export interface SiteSetting {
       }[]
     | null;
   /**
-   * De links bovenaan elke pagina, in deze volgorde. Houd het bij vijf; zet wat bij elkaar hoort in een submenu. Een link naar /nieuws of /cursussen wordt vanzelf verborgen zolang daar niets gepubliceerd is.
+   * De links bovenaan elke pagina, in deze volgorde. Houd het bij vijf; zet wat bij elkaar hoort in een submenu. Een link naar /nieuws, /artikelen of /cursussen wordt vanzelf verborgen zolang daar niets gepubliceerd is.
    */
   mainNavigation?:
     | {
