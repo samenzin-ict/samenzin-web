@@ -177,6 +177,14 @@ database stopped, which is the situation in GitHub Actions.
   and collection are kept. `pnpm apply:menu-and-homepage` applied all of it to an
   existing database.
 
+- **Nieuws and Artikelen are two rubrieken, 2026-10-17.** One collection, a required
+  `section` field (`nieuws` | `artikelen`), two routes sharing one implementation
+  (`src/components/articles/article-pages.tsx`). An item asked for under the other
+  rubriek redirects permanently, so pre-split `/nieuws/<slug>` links keep working. The
+  "Soort" labels Nieuws and Artikel are gone; the migration filled the rubriek from them
+  (nieuws, verslag, project → Nieuws; the rest → Artikelen). Both sit under Over ons in
+  the menu and hide while empty.
+
 ## In progress
 
 - Nothing half-done. The session ended on a clean tree, lint, types and build all

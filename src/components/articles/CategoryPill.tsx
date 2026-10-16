@@ -7,8 +7,6 @@ import type { Article } from '@/payload-types'
  * obvious.
  */
 const labels: Record<NonNullable<Article['category']>, string> = {
-  nieuws: 'Nieuws',
-  artikel: 'Artikel',
   interview: 'Interview',
   verslag: 'Verslag',
   project: 'Project',

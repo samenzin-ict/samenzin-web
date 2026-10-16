@@ -133,14 +133,19 @@ export const nl = {
   projectDonate: 'Doneer aan dit project',
   projectBackToOverview: 'Alle projecten',
 
-  // Nieuws & artikelen (ROADMAP 2.3)
-  articlesTitle: 'Nieuws & artikelen',
-  articlesIntro: 'Verhalen en berichten over ons werk',
+  // Nieuws and Artikelen (ROADMAP 2.3), two rubrieken of one collection
+  newsTitle: 'Nieuws',
+  newsIntro: 'Wat er speelt bij de stichting: aankondigingen, verslagen en het laatste over onze projecten.',
+  newsEmpty: 'Er is nog geen nieuws gepubliceerd.',
+  newsRelated: 'Meer nieuws',
+  newsBackToOverview: 'Al het nieuws',
+  articlesTitle: 'Artikelen',
+  articlesIntro: 'Beschouwingen, interviews en achtergrondverhalen over samenleven en zingeving.',
   articlesEmpty: 'Er zijn nog geen artikelen gepubliceerd.',
-  articlesBy: 'Door',
-  articlesRelated: 'Meer lezen',
-  articlesTopics: 'Onderwerpen',
+  articlesRelated: 'Meer artikelen',
   articlesBackToOverview: 'Alle artikelen',
+  articlesBy: 'Door',
+  articlesTopics: 'Onderwerpen',
 
   // Agenda (ROADMAP 2.4)
   eventsTitle: 'Agenda',

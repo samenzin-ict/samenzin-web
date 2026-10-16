@@ -3,6 +3,7 @@ import Link from 'next/link'
 
 import { ArticleMeta } from '@/components/articles/ArticleMeta'
 import { CategoryPill } from '@/components/articles/CategoryPill'
+import { articlePath } from '@/lib/article-sections'
 import type { Article, Media } from '@/payload-types'
 import { cn } from '@/lib/utils'
 
@@ -46,7 +47,7 @@ export function ArticleCard({ article, featured = false }: { article: Article; f
             featured ? 'text-2xl md:text-3xl' : 'text-xl',
           )}
         >
-          <Link href={`/nieuws/${article.slug}`} className="underline-offset-4 hover:underline">
+          <Link href={articlePath(article)} className="underline-offset-4 hover:underline">
             {article.title}
           </Link>
         </h2>

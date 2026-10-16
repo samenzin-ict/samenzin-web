@@ -3,10 +3,14 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrEditor, isEditorOfCommission, isPublishedOrOwnCommission } from '@/access'
 import { commissionField } from '@/fields/commissions'
 import { formatSlug } from '@/fields/slug'
+import { articlePath, type ArticleSection } from '@/lib/article-sections'
 
 /**
  * News and articles. ROADMAP 2.3, modelled on
  * docs/design/10-nieuws-en-artikelen.png.
+ *
+ * Two rubrieken in one collection: Nieuws at /nieuws and Artikelen at
+ * /artikelen. See src/lib/article-sections.ts.
  *
  * Same three safeguards as Pages and Projects: drafts, a published-only read
  * rule, and read helpers that do not override access.
@@ -19,7 +23,7 @@ import { formatSlug } from '@/fields/slug'
 export const Articles: CollectionConfig = {
   slug: 'articles',
   labels: {
-    singular: 'Artikel',
+    singular: 'Bericht',
     plural: 'Nieuws & artikelen',
   },
   access: {
@@ -37,16 +41,18 @@ export const Articles: CollectionConfig = {
   defaultSort: '-publishedAt',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'category', 'publishedAt', '_status'],
+    defaultColumns: ['title', 'section', 'publishedAt', '_status'],
     group: 'Content',
-    description: 'Nieuwsberichten, artikelen, interviews en verslagen.',
+    description:
+      'Nieuws (wat er nu speelt) en artikelen (beschouwingen, interviews, achtergrond). Kies per bericht de rubriek.',
     preview: (doc) => {
       const slug = typeof doc?.slug === 'string' ? doc.slug : ''
 
       if (!slug) return null
 
+      const section = doc?.section === 'nieuws' ? 'nieuws' : 'artikelen'
       const params = new URLSearchParams({
-        path: `/nieuws/${slug}`,
+        path: articlePath({ section: section satisfies ArticleSection, slug }),
         previewSecret: process.env.PREVIEW_SECRET || '',
       })
 
@@ -68,11 +74,11 @@ export const Articles: CollectionConfig = {
       unique: true,
       index: true,
       localized: true,
-      label: 'Adres van het artikel',
+      label: 'Adres van het bericht',
       admin: {
         position: 'sidebar',
         description:
-          'Het deel van het webadres na /nieuws/. Wordt automatisch ingevuld vanuit de titel. Wijzig dit niet meer zodra het artikel online staat.',
+          'Het deel van het webadres na /nieuws/ of /artikelen/. Wordt automatisch ingevuld vanuit de titel. Wijzig dit niet meer zodra het bericht online staat.',
       },
       hooks: { beforeValidate: [formatSlug('title')] },
     },
@@ -92,26 +98,48 @@ export const Articles: CollectionConfig = {
     },
     {
       /*
+       * Which overview the item appears in, and so its address. Required and
+       * without a default, so nothing ends up in a rubriek by accident.
+       */
+      name: 'section',
+      type: 'select',
+      required: true,
+      index: true,
+      label: 'Rubriek',
+      options: [
+        { label: 'Nieuws — wat er nu speelt', value: 'nieuws' },
+        { label: 'Artikelen — beschouwing, interview, achtergrond', value: 'artikelen' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description:
+          'Nieuws verschijnt op /nieuws, artikelen op /artikelen. Wijzig dit liever niet meer zodra het bericht online staat: het webadres verandert mee (het oude blijft wel doorverwijzen).',
+      },
+    },
+    {
+      /*
        * A fixed list rather than free text. These are the labels on the cards,
        * and a list keeps them consistent; free text produces "interview",
        * "Interview" and "Intervieuw" within a month.
+       *
+       * "Nieuws" and "Artikel" were options here until the rubriek above took
+       * over that job; a label repeating the rubriek tells a reader nothing.
        */
       name: 'category',
       type: 'select',
-      required: true,
-      defaultValue: 'nieuws',
       index: true,
       label: 'Soort',
       options: [
-        { label: 'Nieuws', value: 'nieuws' },
-        { label: 'Artikel', value: 'artikel' },
         { label: 'Interview', value: 'interview' },
         { label: 'Verslag', value: 'verslag' },
         // Both appear as pills in docs/design/10-nieuws-en-artikelen.png.
         { label: 'Project', value: 'project' },
         { label: 'Vrijwilliger', value: 'vrijwilliger' },
       ],
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+        description: 'Optioneel. Het label op de kaart.',
+      },
     },
     {
       name: 'featured',
@@ -121,7 +149,7 @@ export const Articles: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description:
-          'Zet dit artikel bovenaan het overzicht, groot. Is er meer dan één, dan wint het nieuwste.',
+          'Zet dit bericht groot bovenaan het overzicht van zijn rubriek. Is er meer dan één, dan wint het nieuwste.',
       },
     },
     {

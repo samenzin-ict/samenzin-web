@@ -6,8 +6,9 @@
  * maintained in the admin panel, under Instellingen → Menu.
  *
  * Five items in the bar, the way https://stipstudenten.nl/ does it: what
- * belongs together sits in a submenu. Nieuws and Cursussen are listed but are
- * hidden by the header for as long as nothing is published there
+ * belongs together sits in a submenu. Artikelen and Nieuws sit under Over ons,
+ * which keeps the bar at five. They, and Cursussen, are hidden by the header
+ * for as long as nothing is published there
  * (src/lib/navigation.ts). Lid worden is gone: membership is not requested
  * through the site (src/lib/membership.ts).
  */
@@ -16,8 +17,9 @@ export const MAIN_NAVIGATION = [
     label: 'Over ons',
     children: [
       { label: 'Wie wij zijn', url: '/over-ons' },
-      { label: 'ANBI', url: '/anbi' },
+      { label: 'Artikelen', url: '/artikelen' },
       { label: 'Nieuws', url: '/nieuws' },
+      { label: 'ANBI', url: '/anbi' },
     ],
   },
   { label: 'Projecten', url: '/projecten' },

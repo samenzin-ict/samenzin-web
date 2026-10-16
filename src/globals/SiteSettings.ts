@@ -146,7 +146,7 @@ export const SiteSettings: GlobalConfig = {
               maxRows: 6,
               admin: {
                 description:
-                  'De links bovenaan elke pagina, in deze volgorde. Houd het bij vijf; zet wat bij elkaar hoort in een submenu. Een link naar /nieuws of /cursussen wordt vanzelf verborgen zolang daar niets gepubliceerd is.',
+                  'De links bovenaan elke pagina, in deze volgorde. Houd het bij vijf; zet wat bij elkaar hoort in een submenu. Een link naar /nieuws, /artikelen of /cursussen wordt vanzelf verborgen zolang daar niets gepubliceerd is.',
               },
               fields: [
                 {

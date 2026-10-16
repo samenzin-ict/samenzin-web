@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 
+import { ARTICLE_SECTIONS, articlePath, sectionPath } from '@/lib/article-sections'
 import { MEMBERSHIP_APPLICATIONS_OPEN } from '@/lib/membership'
 import { getAllPageSlugs, getArticles, getCourses, getEvents, getProjects } from '@/lib/payload'
 import { getSiteUrl } from '@/lib/site-url'
@@ -36,7 +37,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   entries.push({ url: `${siteUrl}/anbi`, priority: 0.8 })
   entries.push({ url: `${siteUrl}/projecten`, priority: 0.7 })
   // Left out while empty, as the menu leaves them out.
-  if (articles.length > 0) entries.push({ url: `${siteUrl}/nieuws`, priority: 0.7 })
+  for (const section of ARTICLE_SECTIONS) {
+    if (articles.some((article) => article.section === section)) {
+      entries.push({ url: `${siteUrl}${sectionPath(section)}`, priority: 0.7 })
+    }
+  }
   entries.push({ url: `${siteUrl}/agenda`, priority: 0.7 })
   if (courses.length > 0) entries.push({ url: `${siteUrl}/cursussen`, priority: 0.7 })
   // Both were missing: they are real public routes, not Pages documents.
@@ -53,7 +58,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const article of articles) {
     entries.push({
-      url: `${siteUrl}/nieuws/${article.slug}`,
+      url: `${siteUrl}${articlePath(article)}`,
       lastModified: article.updatedAt ? new Date(article.updatedAt) : undefined,
       priority: 0.5,
     })
