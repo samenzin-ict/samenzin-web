@@ -292,7 +292,9 @@ export function DonationForm({
       ) : (
         <div className="space-y-3 rounded-md border border-border bg-muted p-4">
           <p className="font-semibold text-primary">{messages.donateRecurringTitle}</p>
-          <p className="text-sm">{messages.donateRecurringBody}</p>
+          <p className="text-sm">
+            {frequency === 'periodic' ? messages.donatePeriodicBody : messages.donateRecurringBody}
+          </p>
           <Button asChild variant="default" size="sm">
             <Link href="/contact">{messages.donateRecurringAction}</Link>
           </Button>

@@ -27,6 +27,7 @@ import * as migration_20261013_183731_page_sections_and_highlights from './20261
 import * as migration_20261014_113653_section_single_column from './20261014_113653_section_single_column';
 import * as migration_20261014_124219_menu_groups_and_hero_banner from './20261014_124219_menu_groups_and_hero_banner';
 import * as migration_20261016_220613_article_sections from './20261016_220613_article_sections';
+import * as migration_20261021_170000_donation_fund_general from './20261021_170000_donation_fund_general';
 
 export const migrations = [
   {
@@ -172,6 +173,11 @@ export const migrations = [
   {
     up: migration_20261016_220613_article_sections.up,
     down: migration_20261016_220613_article_sections.down,
-    name: '20261016_220613_article_sections'
+    name: '20261016_220613_article_sections',
+  },
+  {
+    up: migration_20261021_170000_donation_fund_general.up,
+    down: migration_20261021_170000_donation_fund_general.down,
+    name: '20261021_170000_donation_fund_general',
   },
 ];
