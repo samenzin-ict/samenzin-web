@@ -54,6 +54,22 @@ export const nl = {
   donateThanksBody:
     'Wij hebben uw betaling in goede orde ontvangen zodra de bank die aan ons heeft bevestigd. Duurt dat langer dan een dag, neem dan gerust contact met ons op.',
   donateThanksAction: 'Naar de homepagina',
+  /*
+   * The return page, per outcome. The texts above remain for a payment that
+   * is still open and for a visitor whose payment cannot be looked up.
+   */
+  donatePaidTitle: 'Bedankt voor uw gift',
+  donatePaidBody: 'Uw betaling is gelukt. Met uw steun kunnen wij ons werk blijven doen.',
+  donateCanceledTitle: 'U heeft de betaling geannuleerd',
+  donateCanceledBody:
+    'Er is niets van uw rekening afgeschreven. Wilt u toch geven? U kunt het altijd opnieuw proberen.',
+  donateFailedTitle: 'De betaling is niet gelukt',
+  donateFailedBody:
+    'Er is niets van uw rekening afgeschreven. Probeer het opnieuw, eventueel met een andere betaalmethode.',
+  donateExpiredTitle: 'De betaling is verlopen',
+  donateExpiredBody:
+    'De betaling is niet op tijd afgerond en er is niets afgeschreven. U kunt het opnieuw proberen.',
+  donateRetry: 'Opnieuw proberen',
 
   donateAnbiNote:
     'De stichting heeft de ANBI-status aangevraagd. Zolang deze niet is toegekend, kunnen wij niet garanderen dat uw gift aftrekbaar is voor de inkomstenbelasting. Contante giften zijn nooit aftrekbaar; doe uw gift daarom altijd per bank.',
@@ -370,7 +386,14 @@ export const nl = {
   donateAnbiDeductible: 'Uw gift is fiscaal aftrekbaar',
   donateRecurringTitle: 'Periodiek geven regelen we samen',
   donateRecurringBody:
-    'Voor een maandelijkse of vijfjaarlijkse gift leggen wij een machtiging vast. Neem contact met ons op, dan regelen wij het met u.',
+    'Voor een maandelijkse gift leggen wij samen met u een machtiging vast. Neem contact met ons op, dan regelen wij het met u.',
+  /*
+   * A periodic gift only counts as one when it is laid down in a written
+   * agreement between donor and foundation, for at least five years. No
+   * promise about deductibility here while ANBI is only applied for.
+   */
+  donatePeriodicBody:
+    'Een periodieke gift legt u vast in een schriftelijke overeenkomst tussen u en de stichting, voor minimaal vijf jaar. Zonder die overeenkomst geldt een gift niet als periodiek. Neem contact met ons op; wij sturen u de overeenkomst toe en regelen de rest samen met u.',
   donateRecurringAction: 'Neem contact op',
   donateNotLiveTitle: 'Online doneren kan nog niet',
   donateNotLiveBody:

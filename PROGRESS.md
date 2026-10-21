@@ -310,6 +310,12 @@ Still open:
 - [x] **Donations are live in Production** (2026-10-21). Live key set in Vercel as a
       Sensitive variable, which works because only the running site reads it. A real
       €1 donation completed at Mollie.
+- [x] **The return page shows the visitor's own outcome.** A one-hour, httpOnly cookie
+      holds the Mollie id; /doneren/bedankt fetches the status for display only (the
+      webhook still does all writing). Paid thanks, cancelled/failed/expired offer
+      "Opnieuw proberen" with the project kept. A general gift is stored as "Algemeen".
+- [x] **"Periodieke gift" explains the written agreement** a five-year gift needs, instead
+      of the mandate wording that belongs to a monthly gift. No pay button for either.
 - [x] **The webhook address is derived, not configured.** `getWebhookUrl()` builds it from
       the site's origin, adding Vercel's automation-bypass secret on a preview so the
       callback gets past deployment protection. `MOLLIE_WEBHOOK_URL` remains as an override.

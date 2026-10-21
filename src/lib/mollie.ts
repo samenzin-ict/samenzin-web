@@ -96,6 +96,9 @@ export const getWebhookUrl = (): string | undefined => {
  */
 export const formatAmount = (euros: number): string => euros.toFixed(2)
 
+/** Holds the id of the visitor's last payment, for the return page. */
+export const DONATION_COOKIE = 'donation-payment'
+
 /** The amounts offered on the donation page, per docs/design/04-doneren.png. */
 export const SUGGESTED_AMOUNTS = [10, 25, 50, 100] as const
 

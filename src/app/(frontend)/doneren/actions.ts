@@ -1,9 +1,11 @@
 'use server'
 
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 import { getMessages } from '@/i18n'
 import {
+  DONATION_COOKIE,
   formatAmount,
   getMollieClient,
   getWebhookUrl,
@@ -118,7 +120,8 @@ export async function startDonation(
         status: 'open',
         project: project?.id ?? null,
         // The title as it reads now, so a later rename cannot rewrite history.
-        fund: project?.title ?? null,
+        // A general gift says so rather than leaving the field empty.
+        fund: project?.title ?? messages.donateFundGeneral,
         anonymous,
         donorName: anonymous ? null : values.name,
         donorEmail: anonymous ? null : values.email,
@@ -126,6 +129,21 @@ export async function startDonation(
     })
 
     checkoutUrl = payment.getCheckoutUrl() ?? ''
+
+    /*
+     * Lets the return page say how this visitor's own payment went. Only an
+     * id, readable by nothing but the server, and gone within the hour. It is
+     * functional, not tracking, so it needs no consent banner.
+     */
+    const cookieStore = await cookies()
+    cookieStore.set(DONATION_COOKIE, payment.id, {
+      httpOnly: true,
+      secure: siteUrl.startsWith('https://'),
+      // Lax is what lets it come along on the top-level return from Mollie.
+      sameSite: 'lax',
+      path: '/doneren',
+      maxAge: 60 * 60,
+    })
   } catch (error) {
     // Logged for the maintainer; the visitor is told nothing about our
     // internals, only that it did not work.
