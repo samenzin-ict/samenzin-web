@@ -307,9 +307,11 @@ Still open:
       request has reached Mollie because there is no account. Before switching it on:
       create the payment with a test key, confirm the webhook is reachable from the
       internet, and check a record moves from `open` to `paid`.
-- [ ] **`MOLLIE_WEBHOOK_URL` must be set in production**, to
-      `https://samenzin.org/api/mollie-webhook`. Without it Mollie never calls back and
-      every donation stays `open` regardless of whether it was paid.
+- [x] **The webhook address is derived, not configured.** `getWebhookUrl()` builds it from
+      the site's origin, adding Vercel's automation-bypass secret on a preview so the
+      callback gets past deployment protection. `MOLLIE_WEBHOOK_URL` remains as an override.
+      A live key outside Production, or a test key in Production, is refused and the page
+      stays disabled.
 - [ ] **Donations hold personal data** and need a processing register entry in
       `samenzin-ict`, including how long records are kept.
 - [x] **There is an e-mail adapter, and a member gets their own login.** SMTP through

@@ -3,7 +3,13 @@
 import { redirect } from 'next/navigation'
 
 import { getMessages } from '@/i18n'
-import { formatAmount, getMollieClient, MAX_AMOUNT, MIN_AMOUNT } from '@/lib/mollie'
+import {
+  formatAmount,
+  getMollieClient,
+  getWebhookUrl,
+  MAX_AMOUNT,
+  MIN_AMOUNT,
+} from '@/lib/mollie'
 import { getPayloadClient } from '@/lib/payload'
 import { getSiteUrl } from '@/lib/site-url'
 
@@ -98,9 +104,8 @@ export async function startDonation(
         ? `${messages.donateDescription} — ${project.title}`
         : messages.donateDescription,
       redirectUrl: `${siteUrl}/doneren/bedankt`,
-      // Mollie cannot reach a laptop, so local runs simply get no callback and
-      // the record stays "open" until someone reconciles it.
-      webhookUrl: process.env.MOLLIE_WEBHOOK_URL?.trim() || undefined,
+      // None locally: the record then stays "open". See getWebhookUrl.
+      webhookUrl: getWebhookUrl(),
       metadata: { project: project?.slug ?? null },
     })
 
