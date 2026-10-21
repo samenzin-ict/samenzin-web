@@ -350,8 +350,8 @@ Deployed from `main`, serving `samenzin.org`.
 | `EMAIL_FROM_ADDRESS` | the address mail comes from | falls back to `SMTP_USER` |
 | `EMAIL_FROM_NAME` | `Samenleving en Zingeving` | falls back to that anyway |
 | `EMAIL_NOTIFY_ADDRESS` | optional | falls back to the e-mail address in Instellingen |
-| `MOLLIE_API_KEY` | live key, once the bank account exists | the donation page stays in its disabled state |
-| `MOLLIE_WEBHOOK_URL` | `https://samenzin.org/api/mollie/webhook` | a payment is never marked paid |
+| `MOLLIE_API_KEY` | the **live** key (`live_…`); a test key is refused here | the donation page stays in its disabled state |
+| `MOLLIE_WEBHOOK_URL` | leave unset: it is derived as `<site>/api/mollie-webhook` | — set it only to send Mollie somewhere else |
 
 Nothing on this list breaks the site by being absent: each one degrades to the
 behaviour in the third column. `CRON_SECRET` and the `SMTP_*` group are the two
@@ -373,7 +373,8 @@ Every pull request. Same variables, with these differences:
 | `CRON_SECRET` | optional; set it only to test the endpoint on a preview |
 | `R2_*` | identical to production |
 | `SMTP_*` and `EMAIL_*` | the same as production, if you want to test mail |
-| `MOLLIE_API_KEY` | a **test** key, never the live one |
+| `MOLLIE_API_KEY` | a **test** key (`test_…`); a live key is refused here |
+| `MOLLIE_WEBHOOK_URL` | leave unset — see below |
 
 `NEXT_PUBLIC_SERVER_URL` stays unset on Preview because every preview
 deployment has a different hostname and there is nothing stable to pin. It used
@@ -388,6 +389,23 @@ somebody signed in to the Vercel team — which is right for a preview.
 
 Set `NEXT_PUBLIC_SERVER_URL` on Preview only if you have given the preview a
 stable alias and want links to use it.
+
+**Mollie on the Preview.** A test payment can be started on a preview, but
+Mollie's callback cannot get in: deployment protection answers it with a login
+page, so the record stays `open`. Vercel's *Protection Bypass for Automation*
+would fix that, and the code uses it when present (the webhook URL then carries
+`VERCEL_AUTOMATION_BYPASS_SECRET`), but it is not available on our Hobby plan.
+
+So the webhook is tested locally instead, which tests everything except
+reachability. Put a test key in `.env`, run the site, donate, choose *Paid*,
+*Failed* or *Canceled* on Mollie's test screen, then play Mollie's part:
+
+    curl -X POST -d id=tr_... http://localhost:3000/api/mollie-webhook
+
+The route re-fetches the payment from Mollie, so the record moving to the
+chosen status is a real result. Reachability in Production is checked with a
+made-up id: `curl -X POST -d id=tr_x https://www.samenzin.org/api/mollie-webhook`
+answers `Unknown payment` with 200 once a key is set, and 503 before.
 
 The database must be the `dev` branch. Migrations run during the build, so a
 preview pointed at production would migrate live data.
