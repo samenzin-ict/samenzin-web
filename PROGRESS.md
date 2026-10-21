@@ -302,11 +302,11 @@ Still open:
       preselects it and the project page links there. The select posts the project's id and
       the action resolves it with access not overridden, so a draft or deleted project
       cannot become a destination.
-- [ ] **The Mollie flow has never talked to Mollie.** The collection, the start action,
-      the webhook and the form are built and the disabled state still works, but no
-      request has reached Mollie because there is no account. Before switching it on:
-      create the payment with a test key, confirm the webhook is reachable from the
-      internet, and check a record moves from `open` to `paid`.
+- [x] **The Mollie flow has been tested against Mollie's test mode** (2026-10-21). Payments
+      start from the form, and the webhook moved records to `paid`, `failed` and
+      `canceled` as chosen on Mollie's test screen. Tested locally, because the preview's
+      deployment protection blocks the callback (see docs/environments.md). A made-up
+      payment id now gets a quiet 200 instead of a logged 500.
 - [x] **The webhook address is derived, not configured.** `getWebhookUrl()` builds it from
       the site's origin, adding Vercel's automation-bypass secret on a preview so the
       callback gets past deployment protection. `MOLLIE_WEBHOOK_URL` remains as an override.

@@ -390,15 +390,22 @@ somebody signed in to the Vercel team — which is right for a preview.
 Set `NEXT_PUBLIC_SERVER_URL` on Preview only if you have given the preview a
 stable alias and want links to use it.
 
-**Mollie on the Preview.** The webhook is derived from the deployment's own
-hostname, so it follows each new preview. Deployment protection would answer
-Mollie with a login page, so turn on **Settings → Deployment Protection →
-Protection Bypass for Automation** in Vercel: Vercel then gives every deployment
-`VERCEL_AUTOMATION_BYPASS_SECRET`, and the webhook URL carries it as a query
-parameter. Without it a test payment still completes at Mollie, but the record
-stays `open`. Redeploy after turning it on. To test: donate on the preview,
-choose *Paid* on Mollie's test screen, and the donation in the admin moves to
-`paid` within seconds.
+**Mollie on the Preview.** A test payment can be started on a preview, but
+Mollie's callback cannot get in: deployment protection answers it with a login
+page, so the record stays `open`. Vercel's *Protection Bypass for Automation*
+would fix that, and the code uses it when present (the webhook URL then carries
+`VERCEL_AUTOMATION_BYPASS_SECRET`), but it is not available on our Hobby plan.
+
+So the webhook is tested locally instead, which tests everything except
+reachability. Put a test key in `.env`, run the site, donate, choose *Paid*,
+*Failed* or *Canceled* on Mollie's test screen, then play Mollie's part:
+
+    curl -X POST -d id=tr_... http://localhost:3000/api/mollie-webhook
+
+The route re-fetches the payment from Mollie, so the record moving to the
+chosen status is a real result. Reachability in Production is checked with a
+made-up id: `curl -X POST -d id=tr_x https://www.samenzin.org/api/mollie-webhook`
+answers `Unknown payment` with 200 once a key is set, and 503 before.
 
 The database must be the `dev` branch. Migrations run during the build, so a
 preview pointed at production would migrate live data.

@@ -1,3 +1,5 @@
+import { MollieApiError } from '@mollie/api-client'
+
 import { getMollieClient } from '@/lib/mollie'
 import { getPayloadClient } from '@/lib/payload'
 
@@ -93,6 +95,12 @@ export async function POST(request: Request): Promise<Response> {
 
     return new Response('OK', { status: 200 })
   } catch (error) {
+    // An id Mollie does not know. Mollie never sends one, so somebody made it
+    // up; there is nothing to do and nothing worth logging as a failure.
+    if (error instanceof MollieApiError && error.statusCode === 404) {
+      return new Response('Unknown payment', { status: 200 })
+    }
+
     // A retry may well succeed, so this is one of the few cases worth a 500.
     console.error('Mollie webhook failed', error)
     return new Response('Could not process the webhook', { status: 500 })
