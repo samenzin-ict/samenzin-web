@@ -307,6 +307,9 @@ Still open:
       `canceled` as chosen on Mollie's test screen. Tested locally, because the preview's
       deployment protection blocks the callback (see docs/environments.md). A made-up
       payment id now gets a quiet 200 instead of a logged 500.
+- [x] **Donations are live in Production** (2026-10-21). Live key set in Vercel as a
+      Sensitive variable, which works because only the running site reads it. A real
+      €1 donation completed at Mollie.
 - [x] **The webhook address is derived, not configured.** `getWebhookUrl()` builds it from
       the site's origin, adding Vercel's automation-bypass secret on a preview so the
       callback gets past deployment protection. `MOLLIE_WEBHOOK_URL` remains as an override.

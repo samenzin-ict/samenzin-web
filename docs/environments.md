@@ -305,11 +305,11 @@ into a build that already happened. Run the CI workflow by hand from the
 Actions tab — on `dev` for the Preview, on `main` for Production — rather than
 making an empty commit.
 
-### Do not mark anything Sensitive
+### Sensitive only for variables the build does not read
 
 Vercel offers a **Sensitive** toggle, which stops a variable's value being read
-back after it is saved. **It cannot be used here**, for any variable, including
-the ones that really are secrets.
+back after it is saved. **It cannot be used for anything the build reads**:
+`DATABASE_URI` above all, and every `NEXT_PUBLIC_*` variable.
 
 The reason is this project's deployment model. GitHub Actions builds on its own
 runner and uploads the result, rather than letting Vercel build (see above).
@@ -323,7 +323,14 @@ Postgres driver, which reads like a network fault and sends you looking at
 Neon. The deploy job checks the connection string's shape before the build and
 names this cause, so a future occurrence says so rather than being puzzled over.
 
-The protection that does apply: these values live only in Vercel and in GitHub
+It does work for a variable read only while the site runs. Vercel still hands
+sensitive variables to the deployed functions; it is only the build on the
+runner that never sees them. `MOLLIE_API_KEY` is set this way in Production
+(verified 2026-10-21: donations enabled, a real payment completed). If you mark
+another variable Sensitive, check it is not read during `next build` or by a
+migration, and check the feature works after the deploy.
+
+The protection that applies to the rest: these values live only in Vercel and in GitHub
 Actions secrets, never in the repository, and the deploy log prints the
 database *host* and nothing else.
 
