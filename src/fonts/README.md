@@ -3,36 +3,44 @@
 Self-hosted, so no visitor IP address is sent to a third party and the
 no-cookie-banner position stays intact. Nothing here is fetched at build time.
 
-| Role | Family | Replaces |
+| Role | Family | Stands in for |
 |---|---|---|
-| Headings | Source Serif 4 | Cambria |
-| Body and interface | Source Sans 3 | Calibri |
+| Everything: headings, body, interface | Nunito Sans | Avenir |
 
-Both are released under the SIL Open Font License 1.1. The licence text is in
-this folder next to the files and must stay with them.
+The house style (`docs/SamenZin_Visual_Identity_Guidelines.pdf`, page 8) sets
+the whole identity in Avenir:
+
+| Use | Avenir | Here |
+|---|---|---|
+| Titles | Heavy / Bold | Nunito Sans 800 / 700 |
+| Subtitles | Medium | Nunito Sans 600 |
+| Running text | Book / Roman | Nunito Sans 400 |
+| Small labels | Medium, capitals, extra letter spacing | Nunito Sans 600, `uppercase tracking-widest` |
+
+Avenir belongs to Monotype/Linotype and needs a paid web licence to be served
+from a website. Nunito Sans is the closest open geometric sans: same round
+bowls, single-storey `g`, the same calm, even colour on the page. If the
+foundation ever buys an Avenir web licence, replace the two files and the
+`src` entries in `index.ts`; nothing else in the site names the family.
+
+Nunito Sans is released under the SIL Open Font License 1.1. The licence text is
+in this folder next to the files and must stay with them.
 
 ## What is in the files
 
-All three are variable fonts covering weight 400 to 700 in one file, subset to
-the Google Fonts `latin` and `latin-ext` ranges. That covers Dutch and also the
-Turkish, Polish and other Latin-script names the foundation works with.
+Variable fonts covering weight 400 to 800, subset to the Google Fonts `latin`
+and `latin-ext` ranges. That covers Dutch and also the Turkish, Polish and
+other Latin-script names the foundation works with.
 
 | File | Size |
 |---|---|
-| `SourceSerif4-Variable.woff2` | 70 KB |
-| `SourceSans3-Variable.woff2` | 69 KB |
-| `SourceSans3-Italic-Variable.woff2` | 67 KB |
+| `NunitoSans-Variable.woff2` | 40 KB |
+| `NunitoSans-Italic-Variable.woff2` | 43 KB |
 
-Two deliberate omissions:
-
-- **No serif italic.** The serif is only used for headings, which are not set
-  in italic. Skipping it saves 180 KB.
-- **The optical size axis of Source Serif 4 is pinned at 24.** Keeping the axis
-  doubled the file to 166 KB for a face that is only used at heading sizes.
-
-Source Serif 4 has no glyph for the Dutch `ĳ` ligature (U+0133). This is an
-upstream gap in the font. It does not matter in practice: Dutch digital text is
-written with a separate `i` and `j`. Source Sans 3 does have it.
+Upstream ships four axes. Width, optical size and x-height (`YTLC`) are pinned
+at their defaults, and weight is narrowed to 400–800, which roughly halves the
+files. Widen the weight range in `scripts/build-fonts.sh` if a lighter or
+heavier weight is ever needed.
 
 ## Regenerating
 

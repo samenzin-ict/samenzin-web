@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 
-import { sansBody, serifHeading } from '@/fonts'
+import { brandSans } from '@/fonts'
 import { getMessages } from '@/i18n'
 
 import './(frontend)/globals.css'
@@ -35,11 +35,11 @@ export default function GlobalError({
 
   return (
     /*
-     * The font variables are attached here too. This document replaces the
-     * root layout, so nothing else sets them and the headings would otherwise
-     * fall back to Georgia.
+     * The font variable is attached here too. This document replaces the
+     * root layout, so nothing else sets it and the text would otherwise fall
+     * back to the system sans.
      */
-    <html lang="nl" className={`${serifHeading.variable} ${sansBody.variable}`}>
+    <html lang="nl" className={brandSans.variable}>
       <body className="bg-background font-body text-foreground">
         <main className="mx-auto max-w-prose px-4 py-16 sm:px-6 md:py-24">
           <div className="space-y-4">

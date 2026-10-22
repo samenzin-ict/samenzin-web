@@ -2,7 +2,7 @@ import { BlockLinks, type BlockLinkData } from '@/components/blocks/BlockLink'
 import { Container } from '@/components/layout/Container'
 
 /**
- * A band asking the visitor to do something, modelled on the gold call to
+ * A band asking the visitor to do something, modelled on the ochre call to
  * action in the design system.
  *
  * The heading is an h2: the page already has its h1, and a jump from h1 to h3

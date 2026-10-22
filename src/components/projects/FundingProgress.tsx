@@ -8,7 +8,7 @@ const euro = new Intl.NumberFormat(defaultLocale, {
 })
 
 /**
- * The fundraising bar from docs/design/06-projecten-*.png: a teal fill on a
+ * The fundraising bar from docs/design/06-projecten-*.png: a terracotta fill on a
  * light track, with the amounts underneath.
  *
  * The bar is aria-hidden and the amounts are read instead. A progress element

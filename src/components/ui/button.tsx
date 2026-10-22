@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils'
 /*
  * Button variants follow the three styles in docs/design/01-design-system.png:
  *
- *   cta      gold filled    the primary action (Doneer, Steun ons werk)
- *   default  forest filled  the secondary action (Word vrijwilliger)
+ *   cta      ochre filled   the primary action (Doneer, Steun ons werk)
+ *   default  navy filled    the secondary action (Word vrijwilliger)
  *   outline  white outlined the tertiary action (Lees meer)
  *
  * Colours come from the semantic tokens in globals.css. No literal colour

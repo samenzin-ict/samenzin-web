@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Metadata } from 'next'
 
-import { sansBody, serifHeading } from '@/fonts'
+import { brandSans } from '@/fonts'
 import { defaultLocale, getMessages } from '@/i18n'
 
 import '../(frontend)/globals.css'
@@ -25,7 +25,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   const messages = getMessages()
 
   return (
-    <html lang={defaultLocale} className={`${serifHeading.variable} ${sansBody.variable}`}>
+    <html lang={defaultLocale} className={brandSans.variable}>
       <body className="flex min-h-dvh flex-col bg-muted">
         <a
           href="#inhoud"

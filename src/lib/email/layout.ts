@@ -19,12 +19,12 @@ import type { EmailBlock, EmailContent } from './types'
  * That file says to change a colour there and nowhere else, and this is the one
  * place that cannot honour it: an email cannot read a CSS custom property, and
  * the stylesheet is not bundled into the serverless function that sends the
- * mail. So these four are mirrored here instead of hardcoded at each use, which
+ * mail. So these five are mirrored here instead of hardcoded at each use, which
  * keeps it to one place to update. Recorded in PROGRESS.md.
  */
 const COLOUR = {
-  forest: '#0b3b36',
-  gray: '#555555',
+  navy: '#1d2333',
+  ink: '#4a5163',
   cream: '#f7f4ed',
   line: '#e4ded2',
   white: '#ffffff',
@@ -59,16 +59,16 @@ const safeUrl = (url: string): string => {
 const renderBlock = (block: EmailBlock): string => {
   switch (block.type) {
     case 'heading':
-      return `<h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:22px;line-height:1.3;color:${COLOUR.forest};font-weight:normal;">${escapeHtml(block.text)}</h1>`
+      return `<h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;color:${COLOUR.navy};font-weight:bold;">${escapeHtml(block.text)}</h1>`
 
     case 'paragraph':
-      return `<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:${COLOUR.forest};">${escapeHtml(block.text)}</p>`
+      return `<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:${COLOUR.navy};">${escapeHtml(block.text)}</p>`
 
     case 'quote':
-      return `<blockquote style="margin:0 0 16px;padding:12px 16px;border-left:3px solid ${COLOUR.line};background:${COLOUR.cream};font-size:15px;line-height:1.6;color:${COLOUR.gray};white-space:pre-wrap;">${escapeHtml(block.text)}</blockquote>`
+      return `<blockquote style="margin:0 0 16px;padding:12px 16px;border-left:3px solid ${COLOUR.line};background:${COLOUR.cream};font-size:15px;line-height:1.6;color:${COLOUR.ink};white-space:pre-wrap;">${escapeHtml(block.text)}</blockquote>`
 
     case 'facts':
-      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px;width:100%;font-size:15px;line-height:1.6;color:${COLOUR.forest};">${block.items
+      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px;width:100%;font-size:15px;line-height:1.6;color:${COLOUR.navy};">${block.items
         .map(
           (item) =>
             `<tr><th scope="row" align="left" style="padding:4px 12px 4px 0;font-weight:bold;vertical-align:top;white-space:nowrap;">${escapeHtml(item.label)}</th><td style="padding:4px 0;vertical-align:top;">${escapeHtml(item.value)}</td></tr>`,
@@ -82,7 +82,7 @@ const renderBlock = (block: EmailBlock): string => {
        * A table, not a styled anchor: Outlook on Windows ignores padding on an
        * inline element, which turns the button into bare underlined text.
        */
-      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;"><tr><td bgcolor="${COLOUR.forest}" style="border-radius:4px;"><a href="${url}" style="display:inline-block;padding:12px 24px;font-size:16px;font-weight:bold;color:${COLOUR.white};text-decoration:none;">${escapeHtml(block.label)}</a></td></tr></table>`
+      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;"><tr><td bgcolor="${COLOUR.navy}" style="border-radius:4px;"><a href="${url}" style="display:inline-block;padding:12px 24px;font-size:16px;font-weight:bold;color:${COLOUR.white};text-decoration:none;">${escapeHtml(block.label)}</a></td></tr></table>`
     }
   }
 }
@@ -108,8 +108,8 @@ export const renderEmailHtml = (content: EmailContent): string => {
 ${content.blocks.map(renderBlock).join('\n')}
 </td></tr>
 </table>
-<p style="max-width:560px;margin:16px 0 0;font-size:13px;line-height:1.6;color:${COLOUR.gray};text-align:center;">
-${escapeHtml(content.organisation)} &middot; <a href="${site}" style="color:${COLOUR.gray};">${escapeHtml(content.siteUrl.replace(/^https?:\/\//, ''))}</a><br>
+<p style="max-width:560px;margin:16px 0 0;font-size:13px;line-height:1.6;color:${COLOUR.ink};text-align:center;">
+${escapeHtml(content.organisation)} &middot; <a href="${site}" style="color:${COLOUR.ink};">${escapeHtml(content.siteUrl.replace(/^https?:\/\//, ''))}</a><br>
 &copy; ${year}
 </p>
 </td></tr>
