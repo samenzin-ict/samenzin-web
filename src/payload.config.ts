@@ -76,12 +76,25 @@ export default buildConfig({
         // Payload's; its groups already match the mockup.
         dashboard: { Component: '/admin/views/Dashboard#Dashboard' },
       },
+      // The house-style logo instead of Payload's, on the login screen and
+      // at the top of the navigation.
+      graphics: {
+        Logo: '/admin/graphics#AdminLogo',
+        Icon: '/admin/graphics#AdminIcon',
+      },
     },
     importMap: {
       baseDir: path.resolve(dirname),
     },
     meta: {
       titleSuffix: '— Samenleving en Zingeving',
+      // The files Next.js serves from src/app/icon.png and apple-icon.png,
+      // made by scripts/build-brand-assets.py. Without this the panel shows
+      // Payload's favicon.
+      icons: [
+        { rel: 'icon', type: 'image/png', url: '/icon.png' },
+        { rel: 'apple-touch-icon', type: 'image/png', url: '/apple-icon.png' },
+      ],
     },
   },
   /*

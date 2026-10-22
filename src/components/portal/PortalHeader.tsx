@@ -1,15 +1,15 @@
-import Link from 'next/link'
-
 import { logout } from '@/app/(portal)/mijn/(beveiligd)/actions'
 import { Container } from '@/components/layout/Container'
+import { Logo } from '@/components/layout/Logo'
 import { PortalNav } from '@/components/portal/PortalNav'
 import type { Messages } from '@/i18n'
+import type { SiteSetting } from '@/payload-types'
 
 /**
  * The chrome of Mijn omgeving, per `08-ledenportaal-mijn-taken.png`.
  *
- * The organisation name comes from SiteSettings like everywhere else; the
- * mockup's wordmark is a placeholder (CLAUDE.md, "Design").
+ * The same logo as the public site's header, so a member signing in can see
+ * they have not left it.
  *
  * `print:hidden` keeps all of it off a printed page. The only thing worth
  * printing in Mijn omgeving is a certificate (ROADMAP 3.6), and it should come
@@ -18,19 +18,17 @@ import type { Messages } from '@/i18n'
  */
 export function PortalHeader({
   messages,
-  organisationName,
+  settings,
   memberName,
 }: {
   messages: Messages
-  organisationName: string | null | undefined
+  settings: Pick<SiteSetting, 'logo'>
   memberName: string
 }) {
   return (
     <header className="border-b border-border bg-card print:hidden">
       <Container className="flex flex-wrap items-center justify-between gap-4 py-4">
-        <Link href="/" className="font-heading text-lg text-primary">
-          {organisationName}
-        </Link>
+        <Logo settings={settings} />
 
         <div className="flex items-center gap-4">
           <span className="text-sm">{memberName}</span>

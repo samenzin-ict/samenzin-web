@@ -129,8 +129,8 @@ export function HighlightsBlock({
                 className={cn(
                   'relative flex flex-col rounded-2xl p-6 text-foreground transition-shadow',
                   surface,
-                  // The focus ring goes round the whole card. Teal vanishes on
-                  // the green band, so there it is gold.
+                  // The focus ring goes round the whole card. On the navy band
+                  // it is ochre, the stronger of the two warm colours there.
                   item.url && 'hover:shadow-md has-[a:focus-visible]:ring-[3px]',
                   item.url && (strong ? 'has-[a:focus-visible]:ring-cta' : 'has-[a:focus-visible]:ring-ring'),
                 )}

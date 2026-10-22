@@ -40,8 +40,8 @@ export const linkArray = (overrides: Partial<ArrayField> = {}): ArrayField => ({
       defaultValue: 'cta',
       label: 'Soort knop',
       options: [
-        { label: 'Oproep tot actie (goud)', value: 'cta' },
-        { label: 'Tweede knop (groen)', value: 'primary' },
+        { label: 'Oproep tot actie (okergeel)', value: 'cta' },
+        { label: 'Tweede knop (donkerblauw)', value: 'primary' },
         { label: 'Derde knop (omlijnd)', value: 'outline' },
       ],
     },

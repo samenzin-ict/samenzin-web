@@ -14,7 +14,7 @@ export type BlockLinkData = {
 
 /*
  * The editor picks a role for a button; the design tokens supply the colour.
- * "primary" in the CMS is the forest-green button, which is the Button
+ * "primary" in the CMS is the navy button, which is the Button
  * component's default variant.
  */
 const variantForStyle = {
@@ -26,9 +26,9 @@ const variantForStyle = {
 /**
  * The buttons belonging to a block, or nothing when there are none.
  *
- * `onCta` is set by blocks that sit on the gold band. A gold button on a gold
+ * `onCta` is set by blocks that sit on the ochre band. An ochre button on an ochre
  * background is invisible, and an editor choosing "oproep tot actie" there has
- * no way to know that, so the choice is remapped to the forest-green button
+ * no way to know that, so the choice is remapped to the navy button
  * rather than left to produce an unusable page.
  */
 export function BlockLinks({

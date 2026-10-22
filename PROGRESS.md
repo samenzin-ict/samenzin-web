@@ -27,7 +27,7 @@ the first account you create becomes an administrator automatically.
 - Next.js 16.3.4 + Payload 3.88.0 in one application, PostgreSQL 18 via Docker Compose
 - Tailwind 4 and shadcn/ui, with the approved palette as tokens in
   `src/app/(frontend)/globals.css`. No colour literal appears in any component.
-- Self-hosted Source Serif 4 and Source Sans 3, committed as woff2, 212 KB total
+- Self-hosted Nunito Sans (standing in for Avenir), committed as woff2, 84 KB total
 - `Users` with `admin` and `editor` roles, Dutch labels, first account promoted to admin
 - `src/access/` — `isAdmin`, `isAdminFieldLevel`, `isAdminOrEditor`, `isAdminOrSelf`,
   `isPublic`
@@ -187,8 +187,17 @@ database stopped, which is the situation in GitHub Actions.
 
 ## In progress
 
-- Nothing half-done. The session ended on a clean tree, lint, types and build all
-  passing, and both branches in step.
+- **House style applied, on `dev` locally, not pushed.** The media commission's identity
+  (`docs/SamenZin_Visual_Identity_Guidelines.pdf`, `docs/Logo/`) replaced the mockup
+  palette and type: navy, ochre, terracotta and white; Nunito Sans for Avenir; the real
+  logo in the header, footer, Mijn omgeving and admin panel; favicons; the project banner
+  generator repainted. The maintainer wants to check it on localhost before it is pushed.
+  Afterwards:
+  - Re-run `scripts/make-project-images.py` and `pnpm load:projecten` per environment, so
+    the project banners on Preview and production are in the new colours.
+  - Check the homepage hero image on each environment: if it is a designed banner in the
+    old green, it needs replacing in the CMS. `scripts/demo-assets/` is also still in the
+    old palette; that only affects `pnpm seed`.
 
 ## Next up
 
@@ -270,12 +279,13 @@ Still open:
 
 ## Needs a decision before it can be finished
 
-- [ ] **Media commission must confirm the fonts.** Source Serif 4 and Source Sans 3 are
-      installed as the closest self-hostable equivalents to Cambria and Calibri.
-      `docs/design/README.md` asks for their sign-off.
-- [ ] **Four derived colour tints** are marked in `globals.css` as interpolated from the
-      mockups (button hover fills, hairline borders). They are not part of the approved
-      palette and need confirming.
+- [ ] **Avenir or Nunito Sans.** The guidelines specify Avenir, which needs a paid web
+      licence. Nunito Sans stands in for it. If the foundation buys the licence, swapping
+      is two files and two lines; see `src/fonts/README.md`. Needs the media commission.
+- [ ] **Derived colours** in `src/styles/brand.css` (crème, inkt, terracotta donker, two
+      hover steps, mist, line) are not among the four base colours. Each is there for a
+      contrast or a state the base four cannot provide; the media commission should
+      confirm them.
 - [ ] **Five palette values are mirrored in `src/lib/email/layout.ts`.** `brand.css` says to
       change a colour there and nowhere else, and that is the one place that cannot: an
       e-mail cannot read a CSS custom property and the stylesheet is not bundled into the
@@ -398,7 +408,8 @@ Still open:
 - [ ] Is the foundation's bank account open, and can Mollie be registered yet?
 - [ ] KVK number and RSIN for the ANBI page
 - [ ] Board members: names and roles for the ANBI page
-- [ ] Logo and final font sign-off from the media commission
+- [x] Logo from the media commission: delivered and in use
+- [ ] Font: Avenir web licence, or keep Nunito Sans (see above)
 - [ ] Container registry and VPS: not arranged yet, so CI builds the image but cannot
       push or deploy
 
@@ -409,6 +420,12 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-10-22 | The media commission's house style replaces the mockups' colours and type | It is the foundation's actual identity. The mockups keep authority over layout and components only; `docs/design/README.md` says which source decides what. |
+| 2026-10-22 | Nunito Sans instead of Avenir | Avenir needs a paid web licence. Nunito Sans is open, geometric and close in feel. One family for headings and body, as the guidelines ask. |
+| 2026-10-22 | Text on terracotta and terracotta text use `#B4472A`, not the base `#CC552F` | The base is 3.9:1 on crème and 4.3:1 on white, short of AA for body text. The base stays for the focus ring, which only needs 3:1, and for decoration. |
+| 2026-10-22 | Text on ochre is navy | White on `#D89B2F` is 2.4:1; navy is 6.5:1. Same reasoning as the 2026-09-06 decision about gold. |
+| 2026-10-22 | The logo is a bundled asset; the SiteSettings upload is an override for the header only | The house-style logo should appear without anyone uploading it. An uploaded logo is drawn for a light ground, so the navy footer always uses the bundled negative. |
+| 2026-10-22 | Logo files are PNGs made by `scripts/build-brand-assets.py`, not the delivered SVGs | The SVGs are exports that wrap raster images, 0.5–0.9 MB each. The negative is made from the positive (navy wordmark turned white) because the delivered negatives are JPEGs with the ground baked in. |
 | 2026-09-06 | Gold call-to-action buttons use forest-green text, not the white drawn in the mockups | White on `#CBA24A` is 2.4:1 and fails WCAG 2.1 AA. Forest green is 5.2:1 and passes. Confirmed with the maintainer; CLAUDE.md rule 6 takes precedence over the mockup. |
 | 2026-09-06 | Fonts are committed as woff2 rather than fetched by `next/font/google` | Both a CDN and a build-time fetch make the project depend on a third party. Committing removes it and keeps the no-cookie-banner position. |
 | 2026-09-06 | One `role` per user instead of a list of roles | The access matrix has two rows. A single dropdown is easier for a volunteer; moving to a list later is a small migration on a tiny table. |

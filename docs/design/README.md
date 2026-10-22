@@ -1,44 +1,74 @@
 # Design reference
 
 Mockups approved by the board, exported from the website presentation. These define the
-**visual language** of the platform: colours, typography, spacing, component shapes and
-interaction patterns.
+**visual language** of the platform: spacing, component shapes and interaction patterns.
+Colours, typography and the logo come from the house style below, which supersedes the
+mockups on those points.
 
 > **They do not define scope.** Most of these screens belong to phase 2 or 3. What is in
 > scope right now is in `ROADMAP.md`, and nothing else. Use these images to answer "how
 > should this look", never to decide "what should I build next".
 
+## House style
+
+The media commission delivered the foundation's visual identity in October 2026. It
+**replaces the colours and typography of the mockups**; the mockups still define layout,
+spacing and component shapes.
+
+| Source | What it settles |
+|---|---|
+| `docs/SamenZin_Visual_Identity_Guidelines.pdf` | Palette, typeface, logo use, graphic language |
+| `docs/Stichting_Samenleving_en_Zingeving_Brand_Brief_NL.pdf` | Mission, personality, what to avoid |
+| `docs/Logo/` | The logo files. `kleurpalette en font.png` is the one-page summary |
+
 ## Design tokens
 
-Taken directly from `01-design-system.png`. These are the approved values.
+The four base colours, from page 7 of the guidelines:
 
 | Token | Hex | Use |
 |---|---|---|
-| Diep bosgroen | `#0B3B36` | Primary. Hero backgrounds, footer, admin sidebar, secondary buttons |
-| Teal | `#14655C` | Accent. Stats bar, active states, badges, progress fills |
-| Warm goud | `#CBA24A` | Call to action. Donate buttons, highlights, price labels |
-| Crème | `#F7F4ED` | Page background |
+| Okergeel | `#D89B2F` | Call to action. Donate buttons, highlights, price labels |
+| Terracotta | `#CC552F` | Accent. Focus ring, the petal motif. A darker step carries text (below) |
+| Donkerblauw | `#1D2333` | Primary. Headings, hero backgrounds, footer, admin sidebar, secondary buttons |
 | Wit | `#FFFFFF` | Cards and surfaces |
-| Gedempt grijs | `#555555` | Body text |
 
-Typography is a **serif for headings, sans-serif for body**. The mockups use Cambria and
-Calibri, which are system fonts and not licensed for web distribution. Pick self-hosted
-web equivalents that keep the same feel — a warm, readable serif with moderate contrast,
-and a neutral humanist sans. Confirm the final choice with the media commission before
-committing to it.
+Derived values, because a role needs something the base four cannot give. Each is
+explained in `src/styles/brand.css`:
+
+| Token | Hex | Why |
+|---|---|---|
+| Crème | `#F7F4ED` | Page background. The ground the guidelines themselves are laid out on |
+| Inkt | `#4A5163` | Running text. Navy lifted towards grey; 7.2:1 on crème |
+| Terracotta donker | `#B4472A` | Links, badges, the stats bar. The base terracotta is 3.9:1 on crème and fails AA for text |
+
+Two pairings are fixed by contrast, not taste: text on ochre is **navy**, never white
+(white is 2.4:1), and text on terracotta uses the darker step.
+
+**Typography** is one family for everything, Avenir in the guidelines: Heavy/Bold for
+titles, Medium for subtitles and labels, Book for running text, small labels in capitals
+with extra letter spacing. Avenir needs a paid web licence, so the site self-hosts
+**Nunito Sans**, the closest open equivalent. See `src/fonts/README.md`.
 
 Do not load fonts from a foreign CDN. Self-host them. This keeps the no-cookie-banner
 position intact and avoids sending visitor IP addresses to third parties.
 
+**The logo** is served from `src/assets/brand/`, generated from `docs/Logo/` by
+`scripts/build-brand-assets.py`. The full logo is never shown narrower than 220 px; below
+that the five-petal symbol stands alone (guidelines, page 9). On navy the white-wordmark
+version is used. Never stretch, recolour, rotate or rebuild it from parts.
+
+**Graphic language** (page 11): the drops of the symbol may be used as a motif, large and
+quiet, at most one per composition, with terracotta as the accent.
+
 ## Component patterns visible in the mockups
 
 - Generous white cards with soft rounded corners on a crème background
-- Gold filled buttons for the primary action, dark green filled for the secondary, and a
+- Ochre filled buttons for the primary action, navy filled for the secondary, and a
   white outlined variant for tertiary; each has a defined hover state
-- Pill-shaped filters and status labels, in green when active and grey when inactive
+- Pill-shaped filters and status labels, coloured when active and grey when inactive
 - Date blocks on the left of event rows: day number over abbreviated month
-- Progress bars for fundraising goals, teal on light grey
-- Inline alert bars in gold with an icon
+- Progress bars for fundraising goals, terracotta on a light track
+- Inline alert bars in ochre with an icon
 - Forms with clear labels above the field, generous height, visible focus ring
 
 ## The screens
@@ -60,10 +90,10 @@ position intact and avoids sending visitor IP addresses to third parties.
 
 ## Two things the mockups get wrong on purpose
 
-1. **The branding is placeholder.** The logo, the `[İSİM]` marker and the `samenzin.nl`
-   address in the screenshots are stand-ins. The real house style comes from the media
-   commission. Build the layout so the logo is a swappable asset and the site name comes
-   from `SiteSettings`, never hardcoded.
+1. **The branding is placeholder.** The logo, the `[İSİM]` marker, the green-and-gold
+   palette and the Cambria/Calibri type in the screenshots are stand-ins, now replaced by
+   the house style above. The site name still comes from `SiteSettings`, never
+   hardcoded, and an editor can override the header logo there.
 2. **The body copy is filler.** Dutch text in the images is placeholder and in places
    grammatically wrong. Never copy it into the codebase. Real copy comes from the board
    through the CMS.

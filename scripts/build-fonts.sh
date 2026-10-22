@@ -12,6 +12,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="$ROOT/src/fonts/files"
+mkdir -p "$OUT"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -30,17 +31,20 @@ python3 -m venv "$WORK/venv"
 "$WORK/venv/bin/pip" install --quiet 'fonttools[woff]' brotli
 
 echo "==> Downloading upstream fonts"
-curl -sfL "$BASE/sourceserif4/SourceSerif4%5Bopsz,wght%5D.ttf" -o "$WORK/serif.ttf"
-curl -sfL "$BASE/sourcesans3/SourceSans3%5Bwght%5D.ttf" -o "$WORK/sans.ttf"
-curl -sfL "$BASE/sourcesans3/SourceSans3-Italic%5Bwght%5D.ttf" -o "$WORK/sans-italic.ttf"
-curl -sfL "$BASE/sourceserif4/OFL.txt" -o "$OUT/OFL-SourceSerif4.txt"
-curl -sfL "$BASE/sourcesans3/OFL.txt" -o "$OUT/OFL-SourceSans3.txt"
+NUNITO="$BASE/nunitosans/NunitoSans"
+curl -sfL "$NUNITO%5BYTLC,opsz,wdth,wght%5D.ttf" -o "$WORK/sans.ttf"
+curl -sfL "$NUNITO-Italic%5BYTLC,opsz,wdth,wght%5D.ttf" -o "$WORK/sans-italic.ttf"
+curl -sfL "$BASE/nunitosans/OFL.txt" -o "$OUT/OFL-NunitoSans.txt"
 
-# The serif is only used for headings, so the optical size axis is pinned
-# rather than shipped. Keeping it doubles the file for no visible benefit.
-echo "==> Pinning the optical size axis of Source Serif 4"
-"$WORK/venv/bin/fonttools" varLib.instancer \
-  "$WORK/serif.ttf" opsz=24 -o "$WORK/serif-pinned.ttf" >/dev/null
+# Nunito Sans ships four axes. Only weight is used, so the other three are
+# pinned at their defaults and weight is narrowed to the 400-800 the site sets
+# (Book to Heavy in the house style). That roughly halves each file.
+echo "==> Pinning the axes that are not used"
+for face in sans sans-italic; do
+  "$WORK/venv/bin/fonttools" varLib.instancer \
+    "$WORK/$face.ttf" YTLC=500 opsz=12 wdth=100 wght=400:800 \
+    -o "$WORK/$face-pinned.ttf" >/dev/null
+done
 
 subset() {
   "$WORK/venv/bin/pyftsubset" "$1" \
@@ -53,8 +57,7 @@ subset() {
 }
 
 echo "==> Subsetting"
-subset "$WORK/serif-pinned.ttf" SourceSerif4-Variable.woff2
-subset "$WORK/sans.ttf"         SourceSans3-Variable.woff2
-subset "$WORK/sans-italic.ttf"  SourceSans3-Italic-Variable.woff2
+subset "$WORK/sans-pinned.ttf"        NunitoSans-Variable.woff2
+subset "$WORK/sans-italic-pinned.ttf" NunitoSans-Italic-Variable.woff2
 
 echo "==> Done. Review the diff before committing."

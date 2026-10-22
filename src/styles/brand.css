@@ -1,30 +1,50 @@
 /*
- * The board-approved palette from docs/design/README.md.
+ * The house palette from docs/SamenZin_Visual_Identity_Guidelines.pdf
+ * (page 7, "Vier basiskleuren") and docs/Logo/kleurpalette en font.png.
  *
- * Single source of truth for colour. Two stylesheets read it: the public site
- * through Tailwind in src/app/(frontend)/globals.css, and the admin panel
- * through src/app/(payload)/custom.scss. Payload's admin does not use
- * Tailwind, so without this file the six values would have to be written twice.
+ * Single source of truth for colour. Three places read it: the public site
+ * through Tailwind in src/app/(frontend)/globals.css, the admin panel through
+ * src/app/(payload)/custom.scss, and src/admin/dashboard.css. Payload's admin
+ * does not use Tailwind, so without this file the values would have to be
+ * written twice. E-mail cannot read CSS variables; src/lib/email/layout.ts
+ * repeats the values it needs and must be kept in step.
  *
  * Change a colour here and nowhere else.
  */
 :root {
-  /* --- Approved palette ------------------------------------------------ */
-  --brand-forest: #0b3b36; /* Diep bosgroen */
-  --brand-teal: #14655c; /* Teal */
-  --brand-gold: #cba24a; /* Warm goud */
-  --brand-cream: #f7f4ed; /* Crème */
-  --brand-white: #ffffff; /* Wit */
-  --brand-gray: #555555; /* Gedempt grijs */
+  /* --- The four base colours ------------------------------------------- */
+  --brand-ochre: #d89b2f; /* Okergeel. Warmte, optimisme, ontwikkeling */
+  --brand-terracotta: #cc552f; /* Terracotta. Menselijkheid, energie, nabijheid */
+  --brand-navy: #1d2333; /* Donkerblauw. Betrouwbaarheid, rust, professionaliteit */
+  --brand-white: #ffffff; /* Wit. Ruimte, helderheid, eenvoud */
 
   /*
-   * --- Derived tints ---------------------------------------------------
-   * Not in the approved palette. Interpolated from the hover and border
-   * states drawn in docs/design/01-design-system.png because those states
-   * need concrete values. Confirm with the media commission.
+   * --- Derived values --------------------------------------------------
+   * Not among the four base colours. Each exists because a role needs a
+   * value the base four cannot give on their own. Confirm with the media
+   * commission.
    */
-  --brand-gold-hover: #b38f41; /* Gold button, hover */
-  --brand-forest-hover: #14655c; /* Forest button, hover (the approved teal) */
-  --brand-mist: #dfe7e4; /* Tertiary button hover fill, progress track */
-  --brand-line: #e4ded2; /* Hairline borders on crème */
+
+  /* The warm off-white the guidelines themselves are laid out on. */
+  --brand-cream: #f7f4ed;
+
+  /*
+   * Running text. Pure navy is too heavy for long paragraphs; this is navy
+   * lifted towards grey. 7.2:1 on cream, 7.9:1 on white: AAA.
+   */
+  --brand-ink: #4a5163;
+
+  /*
+   * Terracotta for anything that carries text or must read as text. The base
+   * terracotta measures 4.3:1 against white and 3.9:1 against cream, which
+   * fails WCAG 2.1 AA for body-size text. This is the same hue one step
+   * darker: 5.4:1 on white, 4.9:1 on cream. The base value stays in use where
+   * there is nothing to read, such as the petal motif.
+   */
+  --brand-terracotta-deep: #b4472a;
+
+  --brand-ochre-hover: #c4872a; /* Ochre button, hover. Navy on it: 5.2:1 */
+  --brand-navy-hover: #2e3750; /* Navy button, hover */
+  --brand-mist: #efe9dd; /* Quiet fills: hover, progress track, inactive pills */
+  --brand-line: #e4ded2; /* Hairline borders on cream */
 }

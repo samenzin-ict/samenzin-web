@@ -27,9 +27,9 @@
 
 .szd__role {
   border-radius: 999px;
-  background: var(--brand-mist, #dfe7e4);
+  background: var(--brand-mist, #efe9dd);
   padding: 0.35rem 0.9rem;
-  color: var(--brand-forest, #0b3b36);
+  color: var(--brand-navy, #1d2333);
   font-size: 0.85rem;
 }
 
@@ -104,7 +104,7 @@
   width: 100%;
   min-height: 2px;
   border-radius: 0.4rem 0.4rem 0 0;
-  background: var(--brand-forest, #0b3b36);
+  background: var(--brand-navy, #1d2333);
   height: var(--szd-bar-height);
 }
 
@@ -154,13 +154,13 @@
 }
 
 .szd__pill--ok {
-  background: var(--brand-teal, #14655c);
+  background: var(--brand-terracotta-deep, #b4472a);
   color: #fff;
 }
 
 .szd__pill--wait {
-  background: var(--brand-gold, #cba24a);
-  color: var(--brand-forest, #0b3b36);
+  background: var(--brand-ochre, #d89b2f);
+  color: var(--brand-navy, #1d2333);
 }
 
 .szd__pill--idle {

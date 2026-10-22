@@ -11,8 +11,10 @@ rest of .devseed; the images are reproducible from this file, so there is no
 reason to keep them in git.
 
 Why a pattern and not a photograph. docs/design/06-projecten-overzicht-en-detail.png
-draws exactly this: a band of overlapping circles, arcs and leaf shapes in the
-approved palette, with the project title over it. The grid and the project page
+draws exactly this: a band of overlapping circles, arcs and leaf shapes, with the
+project title over it. The leaf is now the drop from the logo's symbol, which
+the house style (docs/SamenZin_Visual_Identity_Guidelines.pdf, page 11) offers
+as graphic language of its own. The grid and the project page
 are built around having an image, and both collapse into a column of text
 without one. A pattern also costs nothing in rights or in permission, which a
 photograph of identifiable people does not.
@@ -22,6 +24,7 @@ like a family without looking the same. The same title always draws the same
 banner, and the colours never vary, because they come from the palette below.
 """
 import hashlib
+import math
 import json
 import pathlib
 import random
@@ -31,14 +34,12 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SOURCE = ROOT / ".devseed" / "projecten.json"
 OUT = ROOT / ".devseed" / "project-images"
 
-# docs/design/README.md, the board-approved palette. Keep in step with
-# src/styles/brand.css; these are the same six values.
-FOREST = (11, 59, 54)
-TEAL = (20, 101, 92)
-GOLD = (203, 162, 74)
+# The house palette. Keep in step with src/styles/brand.css.
+NAVY = (29, 35, 51)
+OCHRE = (216, 155, 47)
+TERRACOTTA = (204, 85, 47)
 CREAM = (247, 244, 237)
-SAGE = (154, 190, 182)  # Interpolated from the mockup's lighter greens.
-MIST = (223, 231, 228)
+MIST = (239, 233, 221)
 
 # 8:5. Wide enough for the full-width banner on a project page and still
 # sensible when the card crops it to 3:2.
@@ -60,7 +61,7 @@ def draw(name: str, path: pathlib.Path) -> None:
     rng = random.Random(seed)
 
     w, h = WIDTH * SUPERSAMPLE, HEIGHT * SUPERSAMPLE
-    background = rng.choice([CREAM, MIST, tint(SAGE, 0.45)])
+    background = rng.choice([CREAM, MIST, tint(OCHRE, 0.75)])
     image = Image.new("RGB", (w, h), background)
     pen = ImageDraw.Draw(image, "RGBA")
 
@@ -72,27 +73,30 @@ def draw(name: str, path: pathlib.Path) -> None:
         elif kind == "quarter":
             pen.pieslice(box, rng.choice([0, 90, 180, 270]), 0, fill=colour + (alpha,))
         else:
-            # A pointed oval, the leaf in the mockup: the overlap of two circles.
-            offset = size * 0.30
-            left = Image.new("L", (w, h), 0)
-            ImageDraw.Draw(left).ellipse((box[0] - offset, box[1], box[2] - offset, box[3]), fill=255)
-            right = Image.new("L", (w, h), 0)
-            ImageDraw.Draw(right).ellipse((box[0] + offset, box[1], box[2] + offset, box[3]), fill=255)
-            image.paste(
-                Image.new("RGB", (w, h), colour),
-                (0, 0),
-                Image.composite(left, Image.new("L", (w, h), 0), right),
-            )
+            # The drop from the logo's symbol: round at one end, pointed at the
+            # other, turned to a random angle. Traced as a polygon from the
+            # curve x = sin(t) * sin(t / 2), y = cos(t), whose point is at t = 0.
+            angle = rng.uniform(0, 2 * math.pi)
+            points = []
+            for step in range(120):
+                t = 2 * math.pi * step / 120
+                x = 0.62 * math.sin(t) * math.sin(t / 2) * size / 2
+                y = math.cos(t) * size / 2
+                points.append((
+                    cx + x * math.cos(angle) - y * math.sin(angle),
+                    cy + x * math.sin(angle) + y * math.cos(angle),
+                ))
+            pen.polygon(points, fill=colour + (alpha,))
 
     # One big shape anchored off the right edge carries the composition, the way
     # the mockup's banner does. Everything else is placed around it.
-    anchor = rng.choice([TEAL, FOREST, SAGE])
+    anchor = rng.choice([NAVY, OCHRE, tint(OCHRE, 0.45)])
     shape("circle", w * rng.uniform(0.86, 1.04), h * rng.uniform(0.2, 0.8), h * rng.uniform(1.1, 1.5), anchor)
 
     # Shapes are laid on a loose grid over the right-hand two thirds rather than
     # scattered freely: free placement left some banners almost empty and others
     # a single muddy pile.
-    palette = [TEAL, FOREST, SAGE, MIST, CREAM]
+    palette = [NAVY, OCHRE, tint(OCHRE, 0.45), MIST, CREAM]
     columns, rows = 4, 2
 
     for column in range(columns):
@@ -104,17 +108,17 @@ def draw(name: str, path: pathlib.Path) -> None:
             cy = h * ((row + rng.uniform(0.1, 0.9)) / rows)
             size = h * rng.uniform(0.22, 0.52)
             colour = palette[(seed >> (column * 4 + row * 2)) % len(palette)]
-            kind = rng.choice(["circle", "leaf", "quarter", "circle"])
+            kind = rng.choice(["circle", "drop", "quarter", "drop"])
             shape(kind, cx, cy, size, colour, alpha=rng.choice([255, 255, 205]))
 
-    # Exactly one gold accent. Gold is the call-to-action colour in this house
-    # style, so more than a touch of it here competes with the donate button.
+    # Exactly one terracotta accent. The house style lets terracotta work as an
+    # accent (guidelines, page 11); more than a touch of it turns loud.
     shape(
-        rng.choice(["circle", "leaf"]),
+        "drop",
         w * rng.uniform(0.45, 0.95),
         h * rng.uniform(0.15, 0.85),
-        h * rng.uniform(0.12, 0.26),
-        GOLD,
+        h * rng.uniform(0.16, 0.30),
+        TERRACOTTA,
     )
 
     # The title sits over the left of the banner, so that side is faded back to

@@ -4,13 +4,13 @@ import { cn } from '@/lib/utils'
 
 /**
  * The inline alert bar from the design system
- * (docs/design/01-design-system.png): gold, with an icon.
+ * (docs/design/01-design-system.png): ochre, with an icon.
  *
  * role="status" rather than "alert": these notices are present when the page
  * loads and are not urgent interruptions, so a screen reader should announce
  * them in turn rather than cutting off whatever it is reading.
  *
- * Text is forest green on the gold, not white. White on this gold measures
+ * Text is navy on the ochre, not white. White on this ochre measures
  * 2.4:1 and fails WCAG 2.1 AA.
  */
 export function Notice({

@@ -4,7 +4,7 @@ import { linkArray } from '@/fields/link'
 
 /**
  * A band that asks the visitor to do something: donate, volunteer, get in
- * touch. Modelled on the gold call-to-action in the design system.
+ * touch. Modelled on the ochre call-to-action in the design system.
  */
 export const CallToAction: Block = {
   slug: 'callToAction',
