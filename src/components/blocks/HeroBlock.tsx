@@ -96,7 +96,7 @@ export function HeroBlock({
 
         <Container className="py-16 md:py-24">
           <div className="max-w-xl space-y-6">
-            <h1 className="font-heading text-3xl leading-tight text-balance sm:text-4xl md:text-5xl">{heading}</h1>
+            <h1 className="font-heading text-3xl leading-tight text-balance text-primary-foreground sm:text-4xl md:text-5xl">{heading}</h1>
             {intro ? <p className="text-lg opacity-90">{intro}</p> : null}
             <BlockLinks links={links} onDark />
           </div>
@@ -108,7 +108,7 @@ export function HeroBlock({
       <div className="bg-primary text-primary-foreground">
         <Container className="py-12 md:py-20">
           <div className="max-w-2xl space-y-6">
-            <h1 className="font-heading text-3xl leading-tight text-balance sm:text-4xl md:text-5xl">{heading}</h1>
+            <h1 className="font-heading text-3xl leading-tight text-balance text-primary-foreground sm:text-4xl md:text-5xl">{heading}</h1>
             {intro ? <p className="max-w-prose text-lg opacity-90">{intro}</p> : null}
             <BlockLinks links={links} onDark />
           </div>
