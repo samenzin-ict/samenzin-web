@@ -55,7 +55,8 @@ export const SiteSettings: GlobalConfig = {
               relationTo: 'media',
               label: 'Logo',
               admin: {
-                description: 'Bij voorkeur een SVG of een PNG met transparante achtergrond.',
+                description:
+                  'Laat leeg om het logo uit de huisstijl te gebruiken. Een geüpload logo vervangt het in de kop van de website, niet in de donkere voettekst. Bij voorkeur een SVG of een PNG met transparante achtergrond.',
               },
             },
           ],

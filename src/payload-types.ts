@@ -1951,7 +1951,7 @@ export interface SiteSetting {
    */
   tagline?: string | null;
   /**
-   * Bij voorkeur een SVG of een PNG met transparante achtergrond.
+   * Laat leeg om het logo uit de huisstijl te gebruiken. Een geüpload logo vervangt het in de kop van de website, niet in de donkere voettekst. Bij voorkeur een SVG of een PNG met transparante achtergrond.
    */
   logo?: (number | null) | Media;
   email?: string | null;

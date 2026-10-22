@@ -30,7 +30,7 @@ export default async function ProtectedPortalLayout({
     <>
       <PortalHeader
         messages={messages}
-        organisationName={settings.organisationName}
+        settings={settings}
         memberName={member.name}
       />
 

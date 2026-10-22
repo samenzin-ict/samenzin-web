@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Mail, MapPin, Phone } from 'lucide-react'
 
 import { Container } from '@/components/layout/Container'
+import { BrandLogo } from '@/components/layout/Logo'
 import { getMessages } from '@/i18n'
 import { getSiteSettings } from '@/lib/payload'
 import type { SiteSetting } from '@/payload-types'
@@ -25,7 +26,8 @@ const socialLabels: Record<SocialLink['platform'], string> = {
 
 /**
  * The bottom of every page, modelled on docs/design/02-homepage-desktop.png:
- * columns of links, contact details and social media on the deep green.
+ * the negative logo, columns of links, contact details and social media on
+ * navy.
  *
  * Every part is optional. A section with nothing in it is left out entirely
  * rather than rendering an empty heading, so the footer stays tidy while the
@@ -44,8 +46,9 @@ export async function Footer() {
     <footer className="bg-primary text-primary-foreground">
       <Container className="py-12 md:py-16">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
-          <div className="space-y-3">
-            <p className="font-heading text-lg">{settings.organisationName}</p>
+          <div className="space-y-4">
+            <BrandLogo settings={settings} tone="negative" />
+            <p className="sr-only">{settings.organisationName}</p>
             {settings.footerIntro ? (
               <p className="text-sm opacity-90">{settings.footerIntro}</p>
             ) : null}
@@ -71,7 +74,7 @@ export async function Footer() {
 
           {hasContact ? (
             <div>
-              <h2 className="font-heading text-base">{messages.contactHeading}</h2>
+              <h2 className="font-heading text-base text-primary-foreground">{messages.contactHeading}</h2>
               <ul className="mt-3 space-y-3 text-sm">
                 {addresses.map((address) => (
                   <li key={address.id ?? address.city} className="flex gap-2">
