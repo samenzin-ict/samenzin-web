@@ -384,17 +384,79 @@ export const nl = {
   donateWhyPeriodicTwo: 'Fiscale voordelen voor uw giften.',
   donateWhyPeriodicThree: 'Eenvoudig en betrouwbaar geregeld.',
   donateAnbiDeductible: 'Uw gift is fiscaal aftrekbaar',
-  donateRecurringTitle: 'Periodiek geven regelen we samen',
+  donateRecurringTitle: 'Maandelijks geven kan binnenkort',
   donateRecurringBody:
-    'Voor een maandelijkse gift leggen wij samen met u een machtiging vast. Neem contact met ons op, dan regelen wij het met u.',
+    'Maandelijks geven via automatische incasso is binnenkort mogelijk. Wilt u nu al maandelijks bijdragen? Neem contact met ons op, dan regelen wij het met u.',
   /*
-   * A periodic gift only counts as one when it is laid down in a written
-   * agreement between donor and foundation, for at least five years. No
-   * promise about deductibility here while ANBI is only applied for.
+   * B1 of docs/SEPA_otomatik_incasso.pdf: the two must not be confused. A
+   * monthly gift is not a periodic gift in the fiscal sense, and a periodic
+   * gift only is one with a written agreement signed before anything is
+   * collected. No promise about deductibility while ANBI is only applied for.
    */
+  donateMonthlyIntro:
+    'Maandelijks steunen gaat via automatische incasso. U kunt op elk moment stoppen. Dit is geen periodieke gift in de zin van de belastingaftrek.',
+  donateMonthlyPrivacyNotice:
+    'Wij gebruiken uw naam en e-mailadres om uw machtiging te bevestigen, u vóór elke afschrijving te laten weten wat er wordt afgeschreven, en u te laten stoppen. Uw rekeningnummer komt nooit bij ons binnen; dat bewaart onze betaaldienst Mollie.',
+  donateMandateTitle: 'Wat u afspreekt',
+  donateMandateSummary:
+    'Stichting Samenleving en Zingeving schrijft via haar betaaldienst Mollie elke maand %amount af van de rekening waarmee u nu betaalt, voor het eerst rond %date. De eerste maand betaalt u nu via iDEAL; daarmee legt u ook de machtiging vast. Een paar dagen vóór elke afschrijving krijgt u van ons een e-mail met het bedrag en de datum.',
+  donateMandateStop:
+    'U kunt op elk moment stoppen via de link in elke e-mail die u van ons krijgt. Een afschrijving kunt u binnen 8 weken via uw bank laten terugboeken.',
+  donateMandateStopWithEmail:
+    'U kunt op elk moment stoppen via de link in elke e-mail die u van ons krijgt, of door te mailen naar %email. Een afschrijving kunt u binnen 8 weken via uw bank laten terugboeken.',
+  donateMandateConsent:
+    'Ik machtig Stichting Samenleving en Zingeving om elke maand %amount van mijn rekening af te schrijven, zoals hierboven beschreven.',
+  donateMonthlySubmit: 'Start maandelijkse gift: %s via iDEAL',
+  donateErrorMandate: 'Vink aan dat u akkoord gaat met de machtiging.',
+  donateErrorMonthlyAmount: 'Vul een bedrag in tussen € 1 en € 1.000.',
+  donatePeriodicTitle: 'Een periodieke gift legt u samen met ons vast',
   donatePeriodicBody:
-    'Een periodieke gift legt u vast in een schriftelijke overeenkomst tussen u en de stichting, voor minimaal vijf jaar. Zonder die overeenkomst geldt een gift niet als periodiek. Neem contact met ons op; wij sturen u de overeenkomst toe en regelen de rest samen met u.',
+    'Een periodieke gift loopt vijf jaar en legt u vast in een schriftelijke overeenkomst tussen u en de stichting. Zonder die overeenkomst geldt een gift niet als periodiek. Zo gaat het:',
+  donatePeriodicStepOne: 'Neem contact met ons op; wij sturen u de overeenkomst toe.',
+  donatePeriodicStepTwo:
+    'U tekent de overeenkomst en stuurt hem per post terug of geeft hem af. Stuur uw BSN nooit per e-mail.',
+  donatePeriodicStepThree:
+    'Wij sturen u een link. Daarmee betaalt u de eerste termijn via iDEAL, en daarna schrijven wij de termijnen automatisch af.',
   donateRecurringAction: 'Neem contact op',
+  /*
+   * Recurring gifts by automatische incasso (docs/SEPA_otomatik_incasso.pdf).
+   * The descriptions appear on the donor's bank statement.
+   */
+  recurringEveryMonth: 'elke maand',
+  recurringEveryYear: 'elk jaar',
+  recurringMonthlyDescription: 'Maandelijkse gift Stichting Samenleving en Zingeving',
+  recurringPeriodicDescription: 'Periodieke gift Stichting Samenleving en Zingeving',
+  recurringMonthlyFirstDescription: 'Eerste maandelijkse gift Stichting Samenleving en Zingeving',
+  recurringPeriodicFirstDescription: 'Eerste termijn periodieke gift Stichting Samenleving en Zingeving',
+  /* The pages behind the links in the donor's e-mails. */
+  recurringLinkTitle: 'Uw gift',
+  recurringAmountLabel: 'Bedrag per termijn',
+  recurringIntervalLabel: 'Hoe vaak',
+  recurringTermsLabel: 'Aantal termijnen',
+  recurringNextLabel: 'Volgende afschrijving',
+  recurringProjectLabel: 'Bestemming',
+  periodicStartTitle: 'Start uw periodieke gift',
+  periodicStartIntro:
+    'Wij hebben uw getekende overeenkomst ontvangen. Hieronder staat wat u met ons heeft afgesproken. U betaalt nu de eerste termijn via iDEAL; daarmee machtigt u Stichting Samenleving en Zingeving om de volgende termijnen via haar betaaldienst Mollie automatisch af te schrijven. Een paar dagen vóór elke afschrijving krijgt u een e-mail. Een afschrijving kunt u binnen 8 weken via uw bank laten terugboeken.',
+  periodicStartConsent:
+    'Ik machtig Stichting Samenleving en Zingeving om de termijnen van mijn periodieke gift van mijn rekening af te schrijven, zoals hierboven en in de overeenkomst beschreven.',
+  periodicStartSubmit: 'Start periodieke gift: %s via iDEAL',
+  periodicStartRunning: 'Uw periodieke gift loopt al. U hoeft niets meer te doen.',
+  recurringNotRunning: 'Deze gift loopt niet (meer). Er wordt niets afgeschreven.',
+  stopTitle: 'Maandelijkse gift stopzetten',
+  stopIntro:
+    'Wilt u uw maandelijkse gift stopzetten? Dan trekken wij uw machtiging direct in en wordt er niets meer afgeschreven.',
+  stopSubmit: 'Ja, zet mijn maandelijkse gift stop',
+  stopDoneTitle: 'Uw maandelijkse gift is stopgezet',
+  stopDoneBody:
+    'Uw machtiging is ingetrokken en er wordt niets meer afgeschreven. U krijgt hiervan ook een bevestiging per e-mail. Hartelijk dank voor uw steun tot nu toe.',
+  stopPeriodic:
+    'Uw periodieke gift loopt volgens de overeenkomst die u met ons heeft getekend. Wilt u er vervroegd mee stoppen? Neem dan contact met ons op; dat heeft gevolgen voor de overeenkomst, en wij regelen het met u.',
+  stopError: 'Het stopzetten is niet gelukt. Probeer het later opnieuw, of neem contact met ons op.',
+  recurringStartedTitle: 'Uw gift is gestart',
+  recurringStartedBody:
+    'De eerste betaling is gelukt en uw machtiging is vastgelegd. U ontvangt een bevestiging per e-mail, met de datum van de eerste afschrijving en hoe u kunt stoppen.',
+  recurringRetryByMail: 'U kunt het opnieuw proberen met de link in onze e-mail.',
   donateNotLiveTitle: 'Online doneren kan nog niet',
   donateNotLiveBody:
     'De koppeling met onze betaaldienst is nog niet actief. U ziet het formulier alvast; zodra de bankrekening en Mollie geregeld zijn, werkt de knop hieronder.',

@@ -344,7 +344,7 @@ Deployed from `main`, serving `samenzin.org`.
 | `PAYLOAD_SECRET` | `openssl rand -hex 32` | nobody can sign in |
 | `NEXT_PUBLIC_SERVER_URL` | `https://samenzin.org` | links in e-mail and the sitemap point at the deployment's own hostname |
 | `PREVIEW_SECRET` | `openssl rand -hex 32`, different again | the preview button returns 503 |
-| `CRON_SECRET` | `openssl rand -hex 32`, different again | the daily clear-out returns 503 and no personal data is ever deleted |
+| `CRON_SECRET` | `openssl rand -hex 32`, different again | the daily clear-out returns 503 and no personal data is ever deleted; the pre-notification job refuses too, so monthly gifts cannot be started |
 | `R2_BUCKET` | `samenzin-media` | uploads are written to a disk that is discarded |
 | `R2_ENDPOINT` | `https://<account-id>.r2.cloudflarestorage.com` | as above |
 | `R2_ACCESS_KEY_ID` | From the R2 API token | as above |
@@ -361,7 +361,9 @@ Deployed from `main`, serving `samenzin.org`.
 | `MOLLIE_WEBHOOK_URL` | leave unset: it is derived as `<site>/api/mollie-webhook` | — set it only to send Mollie somewhere else |
 
 Nothing on this list breaks the site by being absent: each one degrades to the
-behaviour in the third column. `CRON_SECRET` and the `SMTP_*` group are the two
+behaviour in the third column. Recurring gifts need Mollie, `SMTP_HOST` and
+`CRON_SECRET` all three; with any of them missing the monthly tab explains instead of
+offering a mandate. `CRON_SECRET` and the `SMTP_*` group are the two
 that fail *silently*, which is why they are worth checking rather than assuming.
 
 **Never set `DEMO_MEMBER_PASSWORD` in Vercel.** It belongs to `pnpm seed`, which

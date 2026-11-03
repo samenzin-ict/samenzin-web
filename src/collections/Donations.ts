@@ -207,11 +207,18 @@ export const Donations: CollectionConfig = {
         { label: 'Geannuleerd', value: 'canceled' },
         { label: 'Verlopen', value: 'expired' },
         { label: 'Mislukt', value: 'failed' },
+        /*
+         * Ours, not Mollie's: Mollie keeps saying "paid" and reports the
+         * reversal separately. A SEPA debit can be reversed by the donor's bank
+         * for 8 weeks without a reason (13 months if unauthorised), so money
+         * that arrived can still leave; it stops counting the moment it does.
+         */
+        { label: 'Teruggeboekt', value: 'charged_back' },
       ],
       admin: {
         readOnly: true,
         description:
-          'Wordt automatisch bijgewerkt door Mollie. Alleen de status "Betaald" betekent dat het geld is ontvangen.',
+          'Wordt automatisch bijgewerkt door Mollie. Alleen de status "Betaald" betekent dat het geld is ontvangen; "Teruggeboekt" betekent dat de bank het later heeft teruggehaald.',
       },
     },
     {
@@ -249,6 +256,17 @@ export const Donations: CollectionConfig = {
         readOnly: true,
         description:
           'Waar de gever de gift aan wilde besteden, zoals het project toen heette. Leeg betekent algemeen.',
+      },
+    },
+    {
+      name: 'recurringDonation',
+      type: 'relationship',
+      relationTo: 'recurring-donations',
+      index: true,
+      label: 'Doorlopende gift',
+      admin: {
+        readOnly: true,
+        description: 'Gevuld als deze betaling bij een maandelijkse of periodieke gift hoort.',
       },
     },
     {

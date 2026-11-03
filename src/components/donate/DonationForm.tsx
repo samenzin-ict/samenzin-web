@@ -16,11 +16,21 @@ type Frequency = 'once' | 'monthly' | 'periodic'
 /**
  * The donation form of docs/design/04-doneren.png.
  *
- * The three frequency tabs are all drawn, because they are what the page
- * offers. Only "Eenmalig" can be paid here: a monthly or five-year gift needs a
- * SEPA mandate, which is ROADMAP 3.3 and has legal weight, so choosing one
- * explains how it is arranged instead of showing a pay button that cannot
- * honour what it promises.
+ * Three frequency tabs, three different things (docs/SEPA_otomatik_incasso.pdf, B1):
+ *
+ * - **Eenmalig** pays once, anonymously if the donor wants.
+ * - **Maandelijks** pays the first month by iDEAL and thereby lays down a SEPA
+ *   mandate; Mollie collects every month after that. Never anonymous: the
+ *   donor must be told before each collection and must be able to stop. Before
+ *   the button the page says who collects, how much, how often, from when and
+ *   how to stop (B2), and the donor ticks that they agree.
+ * - **Periodieke gift** is not started here at all. It needs a written
+ *   agreement signed before anything is collected, so the tab explains how to
+ *   get one; once it is signed the foundation sends a link to start.
+ *
+ * `recurringEnabled` is false until mail and the daily job are set up, since
+ * the monthly gift's promises depend on both. The monthly tab then explains
+ * instead of offering a mandate that could not be kept.
  *
  * Built on a server action, so it still submits without JavaScript. The amount
  * buttons are a convenience on top of a plain number field, which is what is
@@ -37,11 +47,18 @@ export function DonationForm({
   messages,
   funds,
   enabled,
+  recurringEnabled,
+  firstCollectionDate,
+  contactEmail,
   selectedFundId,
 }: {
   messages: Messages
   funds: Fund[]
   enabled: boolean
+  recurringEnabled: boolean
+  /** Roughly when the first incasso would fall, already formatted. */
+  firstCollectionDate: string
+  contactEmail: string | null
   /** Preselected from ?project= on the donate page. Null means general. */
   selectedFundId?: number | null
 }) {
@@ -58,9 +75,17 @@ export function DonationForm({
     anonymous: useId(),
     privacy: useId(),
     frequency: useId(),
+    mandate: useId(),
   }
 
-  const fieldError = (key: 'amount' | 'name' | 'email') => state.errors?.[key]
+  const fieldError = (key: 'amount' | 'name' | 'email' | 'mandate') => state.errors?.[key]
+
+  // The form itself is for one-off gifts and, once possible, monthly ones.
+  const showForm = frequency === 'once' || (frequency === 'monthly' && recurringEnabled)
+  const monthly = frequency === 'monthly'
+  // A monthly donor is never anonymous; see the comment above.
+  const showIdentity = monthly || !anonymous
+  const amountLabel = `€ ${amount || '0'}`
 
   const inputClass = (invalid: boolean) =>
     cn(
@@ -79,12 +104,18 @@ export function DonationForm({
    * payment providers and are not ours to ship; the names carry the same
    * information. Mollie shows the real logos on its own checkout.
    */
-  const methods = ['iDEAL', 'SEPA-incasso', 'Mastercard', 'Creditcard']
+  const methods = monthly
+    ? // The first month by iDEAL, which lays down the mandate; then incasso.
+      ['iDEAL', 'SEPA-incasso']
+    : ['iDEAL', 'SEPA-incasso', 'Mastercard', 'Creditcard']
 
   return (
     <form action={formAction} noValidate className="space-y-6">
       {state.errors?.form ? (
-        <p role="alert" className="rounded-md border border-destructive bg-card p-3 text-destructive">
+        <p
+          role="alert"
+          className="rounded-md border border-destructive bg-card p-3 text-destructive"
+        >
           {state.errors.form}
         </p>
       ) : null}
@@ -113,188 +144,252 @@ export function DonationForm({
         </div>
       </fieldset>
 
-      <fieldset className="space-y-3">
-        <legend className="sr-only">{messages.donateAmountLabel}</legend>
+      <input type="hidden" name="frequency" value={frequency} />
 
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="flex flex-wrap gap-2">
-            {SUGGESTED_AMOUNTS.map((suggested) => {
-              const isSelected = amount === String(suggested)
+      {monthly && recurringEnabled ? <p>{messages.donateMonthlyIntro}</p> : null}
 
-              return (
-                <button
-                  key={suggested}
-                  type="button"
-                  // Reports selection rather than relying on colour alone.
-                  aria-pressed={isSelected}
-                  onClick={() => setAmount(String(suggested))}
-                  className={cn(
-                    'min-h-11 min-w-20 rounded-md border px-4 font-medium',
-                    isSelected
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-cta bg-cta text-cta-foreground',
-                  )}
-                >
-                  € {suggested}
-                </button>
-              )
-            })}
-          </div>
+      {showForm ? (
+        <>
+          <fieldset className="space-y-3">
+            <legend className="sr-only">{messages.donateAmountLabel}</legend>
 
-          <div className="space-y-1">
-            <label htmlFor={ids.amount} className="block text-sm font-semibold text-primary">
-              {messages.donateOtherAmount}
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="flex flex-wrap gap-2">
+                {SUGGESTED_AMOUNTS.map((suggested) => {
+                  const isSelected = amount === String(suggested)
+
+                  return (
+                    <button
+                      key={suggested}
+                      type="button"
+                      // Reports selection rather than relying on colour alone.
+                      aria-pressed={isSelected}
+                      onClick={() => setAmount(String(suggested))}
+                      className={cn(
+                        'min-h-11 min-w-20 rounded-md border px-4 font-medium',
+                        isSelected
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-cta bg-cta text-cta-foreground',
+                      )}
+                    >
+                      € {suggested}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor={ids.amount} className="block text-sm font-semibold text-primary">
+                  {messages.donateOtherAmount}
+                </label>
+                <input
+                  id={ids.amount}
+                  name="amount"
+                  type="number"
+                  inputMode="decimal"
+                  min={1}
+                  step="0.01"
+                  required
+                  value={amount}
+                  onChange={(event) => setAmount(event.target.value)}
+                  aria-invalid={Boolean(fieldError('amount'))}
+                  aria-describedby={fieldError('amount') ? `${ids.amount}-error` : undefined}
+                  className={cn(inputClass(Boolean(fieldError('amount'))), 'max-w-40')}
+                />
+              </div>
+            </div>
+
+            {fieldError('amount') ? (
+              <p id={`${ids.amount}-error`} className="text-sm text-destructive">
+                {fieldError('amount')}
+              </p>
+            ) : null}
+          </fieldset>
+
+          <div className="space-y-1.5">
+            <label htmlFor={ids.fund} className="block font-semibold text-primary">
+              {messages.donateFundLabel}
             </label>
-            <input
-              id={ids.amount}
-              name="amount"
-              type="number"
-              inputMode="decimal"
-              min={1}
-              step="0.01"
-              required
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              aria-invalid={Boolean(fieldError('amount'))}
-              aria-describedby={fieldError('amount') ? `${ids.amount}-error` : undefined}
-              className={cn(inputClass(Boolean(fieldError('amount'))), 'max-w-40')}
-            />
-          </div>
-        </div>
-
-        {fieldError('amount') ? (
-          <p id={`${ids.amount}-error`} className="text-sm text-destructive">
-            {fieldError('amount')}
-          </p>
-        ) : null}
-      </fieldset>
-
-      <div className="space-y-1.5">
-        <label htmlFor={ids.fund} className="block font-semibold text-primary">
-          {messages.donateFundLabel}
-        </label>
-        {/*
+            {/*
           The value is the project's id, not its title. A title can be edited
           and the gift has to stay attached to the project it was meant for;
           the action stores the title alongside as a label.
         */}
-        <select
-          id={ids.fund}
-          name="project"
-          defaultValue={selectedFundId ? String(selectedFundId) : ''}
-          className={inputClass(false)}
-        >
-          <option value="">{messages.donateFundGeneral}</option>
-          {funds.map((fund) => (
-            <option key={fund.id} value={fund.id}>
-              {fund.title}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <h2 className="sr-only">{messages.donatePaymentMethods}</h2>
-        <ul className="flex flex-wrap gap-2">
-          {methods.map((method) => (
-            <li
-              key={method}
-              className="rounded-md border border-border bg-card px-3 py-2 text-sm"
+            <select
+              id={ids.fund}
+              name="project"
+              defaultValue={selectedFundId ? String(selectedFundId) : ''}
+              className={inputClass(false)}
             >
-              {method}
-            </li>
-          ))}
-        </ul>
-      </div>
+              <option value="">{messages.donateFundGeneral}</option>
+              {funds.map((fund) => (
+                <option key={fund.id} value={fund.id}>
+                  {fund.title}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      {/*
+          <div>
+            <h2 className="sr-only">{messages.donatePaymentMethods}</h2>
+            <ul className="flex flex-wrap gap-2">
+              {methods.map((method) => (
+                <li
+                  key={method}
+                  className="rounded-md border border-border bg-card px-3 py-2 text-sm"
+                >
+                  {method}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/*
         Name and e-mail are only asked for when the gift is not anonymous.
         Hiding them is not enough on its own; the action also refuses to store
         them in that case.
       */}
-      {!anonymous ? (
-        <>
-          <div className="space-y-1.5">
-            <label htmlFor={ids.name} className="block font-semibold text-primary">
-              {messages.donateNameLabel}
-            </label>
-            <input
-              id={ids.name}
-              name="name"
-              type="text"
-              autoComplete="name"
-              defaultValue={state.values?.name}
-              aria-invalid={Boolean(fieldError('name'))}
-              aria-describedby={fieldError('name') ? `${ids.name}-error` : undefined}
-              className={inputClass(Boolean(fieldError('name')))}
-            />
-            {fieldError('name') ? (
-              <p id={`${ids.name}-error`} className="text-sm text-destructive">
-                {fieldError('name')}
+          {showIdentity ? (
+            <>
+              <div className="space-y-1.5">
+                <label htmlFor={ids.name} className="block font-semibold text-primary">
+                  {messages.donateNameLabel}
+                </label>
+                <input
+                  id={ids.name}
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  defaultValue={state.values?.name}
+                  aria-invalid={Boolean(fieldError('name'))}
+                  aria-describedby={fieldError('name') ? `${ids.name}-error` : undefined}
+                  className={inputClass(Boolean(fieldError('name')))}
+                />
+                {fieldError('name') ? (
+                  <p id={`${ids.name}-error`} className="text-sm text-destructive">
+                    {fieldError('name')}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor={ids.email} className="block font-semibold text-primary">
+                  {messages.donateEmailLabel}
+                </label>
+                <input
+                  id={ids.email}
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  defaultValue={state.values?.email}
+                  aria-invalid={Boolean(fieldError('email'))}
+                  aria-describedby={fieldError('email') ? `${ids.email}-error` : ids.privacy}
+                  className={inputClass(Boolean(fieldError('email')))}
+                />
+                {fieldError('email') ? (
+                  <p id={`${ids.email}-error`} className="text-sm text-destructive">
+                    {fieldError('email')}
+                  </p>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+
+          {monthly ? null : (
+            <div className="flex items-start gap-2">
+              <input
+                id={ids.anonymous}
+                name="anonymous"
+                type="checkbox"
+                checked={anonymous}
+                onChange={(event) => setAnonymous(event.target.checked)}
+                className="mt-1 size-5"
+              />
+              <label htmlFor={ids.anonymous}>
+                <span className="font-semibold text-primary">{messages.donateAnonymousLabel}</span>
+                <span className="block text-sm">{messages.donateAnonymousHint}</span>
+              </label>
+            </div>
+          )}
+
+          <p id={ids.privacy} className="text-sm">
+            {monthly ? messages.donateMonthlyPrivacyNotice : messages.donatePrivacyNotice}
+          </p>
+
+          {monthly ? (
+            /*
+          What the donor agrees to, in full, before the button (B2): who
+          collects, how much, how often, from when, and how to stop.
+        */
+            <fieldset className="space-y-3 rounded-md border border-border bg-muted p-4">
+              <legend className="sr-only">{messages.donateMandateTitle}</legend>
+              <p className="font-semibold text-primary" aria-hidden="true">
+                {messages.donateMandateTitle}
               </p>
-            ) : null}
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor={ids.email} className="block font-semibold text-primary">
-              {messages.donateEmailLabel}
-            </label>
-            <input
-              id={ids.email}
-              name="email"
-              type="email"
-              autoComplete="email"
-              defaultValue={state.values?.email}
-              aria-invalid={Boolean(fieldError('email'))}
-              aria-describedby={fieldError('email') ? `${ids.email}-error` : ids.privacy}
-              className={inputClass(Boolean(fieldError('email')))}
-            />
-            {fieldError('email') ? (
-              <p id={`${ids.email}-error`} className="text-sm text-destructive">
-                {fieldError('email')}
+              <p className="text-sm">
+                {messages.donateMandateSummary
+                  .replace('%amount', amountLabel)
+                  .replace('%date', firstCollectionDate)}
               </p>
-            ) : null}
-          </div>
-        </>
-      ) : null}
+              <p className="text-sm">
+                {contactEmail
+                  ? messages.donateMandateStopWithEmail.replace('%email', contactEmail)
+                  : messages.donateMandateStop}
+              </p>
+              <div className="flex items-start gap-2">
+                <input
+                  id={ids.mandate}
+                  name="mandate"
+                  type="checkbox"
+                  required
+                  aria-invalid={Boolean(fieldError('mandate'))}
+                  aria-describedby={fieldError('mandate') ? `${ids.mandate}-error` : undefined}
+                  className="mt-1 size-5"
+                />
+                <label htmlFor={ids.mandate} className="font-semibold text-primary">
+                  {messages.donateMandateConsent.replace('%amount', amountLabel)}
+                </label>
+              </div>
+              {fieldError('mandate') ? (
+                <p id={`${ids.mandate}-error`} className="text-sm text-destructive">
+                  {fieldError('mandate')}
+                </p>
+              ) : null}
+            </fieldset>
+          ) : null}
 
-      <div className="flex items-start gap-2">
-        <input
-          id={ids.anonymous}
-          name="anonymous"
-          type="checkbox"
-          checked={anonymous}
-          onChange={(event) => setAnonymous(event.target.checked)}
-          className="mt-1 size-5"
-        />
-        <label htmlFor={ids.anonymous}>
-          <span className="font-semibold text-primary">{messages.donateAnonymousLabel}</span>
-          <span className="block text-sm">{messages.donateAnonymousHint}</span>
-        </label>
-      </div>
-
-      <p id={ids.privacy} className="text-sm">
-        {messages.donatePrivacyNotice}
-      </p>
-
-      {frequency === 'once' ? (
-        <>
           {/*
-            The explanation lives once, in the notice above the form. Repeating
-            it next to the button would say the same thing twice.
-          */}
+        The explanation lives once, in the notice above the form. Repeating
+        it next to the button would say the same thing twice.
+      */}
           <Button type="submit" variant="cta" size="lg" disabled={isPending || !enabled}>
             {isPending
               ? messages.donateSubmitting
-              : messages.donateSubmitWithAmount.replace('%s', `€ ${amount || '0'}`)}
+              : (monthly ? messages.donateMonthlySubmit : messages.donateSubmitWithAmount).replace(
+                  '%s',
+                  amountLabel,
+                )}
           </Button>
         </>
       ) : (
         <div className="space-y-3 rounded-md border border-border bg-muted p-4">
-          <p className="font-semibold text-primary">{messages.donateRecurringTitle}</p>
-          <p className="text-sm">
-            {frequency === 'periodic' ? messages.donatePeriodicBody : messages.donateRecurringBody}
+          <p className="font-semibold text-primary">
+            {frequency === 'periodic'
+              ? messages.donatePeriodicTitle
+              : messages.donateRecurringTitle}
           </p>
+          {frequency === 'periodic' ? (
+            <>
+              <p className="text-sm">{messages.donatePeriodicBody}</p>
+              <ol className="list-decimal space-y-1 pl-5 text-sm">
+                <li>{messages.donatePeriodicStepOne}</li>
+                <li>{messages.donatePeriodicStepTwo}</li>
+                <li>{messages.donatePeriodicStepThree}</li>
+              </ol>
+            </>
+          ) : (
+            <p className="text-sm">{messages.donateRecurringBody}</p>
+          )}
           <Button asChild variant="default" size="sm">
             <Link href="/contact">{messages.donateRecurringAction}</Link>
           </Button>

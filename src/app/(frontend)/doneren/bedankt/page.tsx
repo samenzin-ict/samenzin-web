@@ -6,6 +6,7 @@ import { Container } from '@/components/layout/Container'
 import { Button } from '@/components/ui/button'
 import { getMessages, type Messages } from '@/i18n'
 import { DONATION_COOKIE, getMollieClient } from '@/lib/mollie'
+import { getPayloadClient } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,31 +32,47 @@ export const metadata: Metadata = {
 
 type Outcome = 'paid' | 'canceled' | 'failed' | 'expired' | 'unknown'
 
-type Result = { outcome: Outcome; project: string | null }
+type Result = {
+  outcome: Outcome
+  project: string | null
+  /** Set when this was the first payment of a recurring gift. */
+  recurring: 'monthly' | 'periodic' | null
+}
 
 const readResult = async (): Promise<Result> => {
   const paymentId = (await cookies()).get(DONATION_COOKIE)?.value
   const mollie = getMollieClient()
 
   // Mollie's payment ids start with tr_; anything else did not come from us.
-  if (!paymentId?.startsWith('tr_') || !mollie) return { outcome: 'unknown', project: null }
+  if (!paymentId?.startsWith('tr_') || !mollie) return { outcome: 'unknown', project: null, recurring: null }
 
   try {
     const payment = await mollie.payments.get(paymentId)
-    const metadata = payment.metadata as { project?: unknown } | null
+    const metadata = payment.metadata as { project?: unknown; recurringDonation?: unknown } | null
     const project = typeof metadata?.project === 'string' ? metadata.project : null
     const status = payment.status as string
+    const recurring =
+      typeof metadata?.recurringDonation === 'number' ? await kindOf(metadata.recurringDonation) : null
 
     if (status === 'paid' || status === 'canceled' || status === 'failed' || status === 'expired') {
-      return { outcome: status, project }
+      return { outcome: status, project, recurring }
     }
 
     // Open, pending or authorized: the money may still come.
-    return { outcome: 'unknown', project }
+    return { outcome: 'unknown', project, recurring }
   } catch (error) {
     console.error('Could not look up the returning payment', error)
-    return { outcome: 'unknown', project: null }
+    return { outcome: 'unknown', project: null, recurring: null }
   }
+}
+
+const kindOf = async (id: number): Promise<'monthly' | 'periodic' | null> => {
+  const payload = await getPayloadClient()
+  const recurring = await payload
+    .findByID({ collection: 'recurring-donations', id, depth: 0, overrideAccess: true })
+    .catch(() => null)
+
+  return recurring?.kind ?? null
 }
 
 const texts = (messages: Messages): Record<Outcome, { title: string; body: string }> => ({
@@ -68,9 +85,19 @@ const texts = (messages: Messages): Record<Outcome, { title: string; body: strin
 
 export default async function DonationThanksPage() {
   const messages = getMessages()
-  const { outcome, project } = await readResult()
-  const { title, body } = texts(messages)[outcome]
-  const retry = outcome === 'canceled' || outcome === 'failed' || outcome === 'expired'
+  const { outcome, project, recurring } = await readResult()
+  const failed = outcome === 'canceled' || outcome === 'failed' || outcome === 'expired'
+  let { title, body } = texts(messages)[outcome]
+
+  if (recurring && outcome === 'paid') {
+    title = messages.recurringStartedTitle
+    body = messages.recurringStartedBody
+  }
+
+  // A periodic donor starts from the personal link in their e-mail, not the form.
+  if (recurring === 'periodic' && failed) body = `${body} ${messages.recurringRetryByMail}`
+
+  const retry = failed && recurring !== 'periodic'
   const retryHref = project ? `/doneren?project=${encodeURIComponent(project)}` : '/doneren'
 
   return (

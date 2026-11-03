@@ -7,6 +7,7 @@ import { Container } from '@/components/layout/Container'
 import { Notice } from '@/components/ui/notice'
 import { getMessages } from '@/i18n'
 import { buildPageMetadata } from '@/lib/metadata'
+import { addMonths, formatDate, isRecurringEnabled, todayInAmsterdam } from '@/lib/donations'
 import { isDonationEnabled } from '@/lib/mollie'
 import { getPageBySlug, getProjects, getSiteSettings } from '@/lib/payload'
 
@@ -51,15 +52,19 @@ export default async function DonatePage({
   searchParams: Promise<{ project?: string }>
 }) {
   const { isEnabled: isDraft } = await draftMode()
-  const [{ project: requestedSlug }, page, projects] = await Promise.all([
+  const [{ project: requestedSlug }, page, projects, settings] = await Promise.all([
     searchParams,
     getPageBySlug(DONATE_SLUG, undefined, isDraft),
     getProjects(),
+    getSiteSettings(),
   ])
   const messages = getMessages()
 
   const hasHero = page?.body?.[0]?.blockType === 'hero'
   const donationsEnabled = isDonationEnabled()
+  // Shown in the mandate summary. The real date is set when the first payment
+  // is in, one month after it; the confirmation mail states it exactly.
+  const firstCollectionDate = formatDate(addMonths(todayInAmsterdam(), 1))
   const funds = projects
     .filter((project) => Boolean(project.title))
     .map((project) => ({ id: project.id, title: project.title }))
@@ -97,6 +102,9 @@ export default async function DonatePage({
               messages={messages}
               funds={funds}
               enabled={donationsEnabled}
+              recurringEnabled={donationsEnabled && isRecurringEnabled()}
+              firstCollectionDate={firstCollectionDate}
+              contactEmail={settings?.email?.trim() || null}
               selectedFundId={selectedFundId}
             />
           </div>

@@ -185,6 +185,19 @@ database stopped, which is the situation in GitHub Actions.
   (nieuws, verslag, project → Nieuws; the rest → Artikelen). Both sit under Over ons in
   the menu and hide while empty.
 
+- [x] **Recurring gifts by SEPA automatische incasso** (ROADMAP 3.3, 2026-11-03), per
+      `docs/SEPA_otomatik_incasso.pdf`. Monthly: started on /doneren after the donor ticks
+      a mandate summary; first month by iDEAL lays down the mandate, then a Mollie
+      subscription. Periodic (5 years): never from the website; an administrator records
+      the signed agreement in Doorlopende giften and sets "Betaallink versturen", the
+      donor starts from that link, and Mollie stops by itself after 60 (or 5) terms.
+      Pre-notification by e-mail about five days before each collection (daily cron at
+      07:00 UTC), confirmation e-mail as proof of the mandate, a stop link in every
+      e-mail, revocation at Mollie before anything says "stopgezet". Collections become
+      Donaties records; chargebacks get their own status and stop counting. One-off gifts
+      now get a dated receipt by e-mail. Tested end to end in Mollie test mode against a
+      local mail sink, including AC01 cancellation, admin stop and donor stop.
+
 ## In progress
 
 - **House style applied, on `dev` locally, not pushed.** The media commission's identity
@@ -201,6 +214,11 @@ database stopped, which is the situation in GitHub Actions.
 
 ## Next up
 
+0. **Before recurring gifts go live in production:** SMTP must work there (the monthly
+   tab stays in its "binnenkort" state until `SMTP_HOST` is set), add the processing
+   register entry for mandates in `samenzin-ict`, and add the recurring-gift sentence to
+   the privacyverklaring. Have a periodic-gift agreement template ready to post, since
+   the tab promises to send one.
 1. **Fill in the SMTP variables in Vercel, then redeploy.** Everything that sends mail is
    built and tested, and nothing is sent until `SMTP_HOST` is set. See `.env.example`; for
    Google Workspace it is `smtp.gmail.com`, port 587, and an app password. Until then an
@@ -260,6 +278,7 @@ cron job at 04:00 UTC and by `pnpm prune:expired`.
 | Membership applications | — | 6 months; an approved one is kept |
 | Members | "zolang uw account bestaat en daarna 2 jaar" | 2 years from `status: beeindigd`; deleting takes their hours, tasks, enrolments and registrations |
 | Donations | 7 years, a legal obligation | the donor's name and e-mail come off after the fiscal period; the amount, date and Mollie reference stay |
+| Recurring gifts (mandates) | **not yet in the privacyverklaring** | name and e-mail come off 14 months after the gift ends (unauthorised-debit claims run 13 months); Mollie's ids and the amounts stay. No IBAN is stored here |
 
 Two decisions inside that worth knowing:
 
@@ -426,6 +445,10 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-10-22 | Text on ochre is navy | White on `#D89B2F` is 2.4:1; navy is 6.5:1. Same reasoning as the 2026-09-06 decision about gold. |
 | 2026-10-22 | The logo is a bundled asset; the SiteSettings upload is an override for the header only | The house-style logo should appear without anyone uploading it. An uploaded logo is drawn for a light ground, so the navy footer always uses the bundled negative. |
 | 2026-10-22 | Logo files are PNGs made by `scripts/build-brand-assets.py`, not the delivered SVGs | The SVGs are exports that wrap raster images, 0.5–0.9 MB each. The negative is made from the positive (navy wordmark turned white) because the delivered negatives are JPEGs with the ground baked in. |
+| 2026-11-03 | A periodic gift starts only from a link sent after the signed agreement is in | Fiscally a periodic gift needs the agreement before anything is collected, and it carries a BSN, which must not travel by e-mail. Decided by the maintainer over "start online, sign later". |
+| 2026-11-03 | Pre-notification per collection, about five days ahead, by our own daily job | Mollie confirmed it does not send one. The texts promise "a few days"; aiming for five leaves margin for a missed cron run. Each mail also confirms the previous collection, so a monthly donor gets one message a month, not two. |
+| 2026-11-03 | First payment by iDEAL only, one Mollie customer per gift | iDEAL creates a SEPA direct-debit mandate, a card would create a card mandate. A customer per gift keeps the subscription description unique per customer, as Mollie requires, without suffixes. |
+| 2026-11-03 | Stopping revokes the mandate, not just the subscription | Revoking also cancels every subscription on it and leaves nothing that could still be charged. It happens in the collection's hook before the save, so a failure at Mollie fails the save instead of showing "stopgezet" for a gift that still runs. |
 | 2026-09-06 | Gold call-to-action buttons use forest-green text, not the white drawn in the mockups | White on `#CBA24A` is 2.4:1 and fails WCAG 2.1 AA. Forest green is 5.2:1 and passes. Confirmed with the maintainer; CLAUDE.md rule 6 takes precedence over the mockup. |
 | 2026-09-06 | Fonts are committed as woff2 rather than fetched by `next/font/google` | Both a CDN and a build-time fetch make the project depend on a third party. Committing removes it and keeps the no-cookie-banner position. |
 | 2026-09-06 | One `role` per user instead of a list of roles | The access matrix has two rows. A single dropdown is easier for a volunteer; moving to a list later is a small migration on a tiny table. |
@@ -549,6 +572,13 @@ significant, write a proper ADR in the `samenzin-ict` repository and link it her
 | 2026-09-06 | CI builds without a database | Every public route is force-dynamic, so the build must not need PostgreSQL. CI fails instead of the deploy if that changes. |
 
 ## Notes for whoever is next
+
+- **Recurring gifts, where to look.** `src/lib/donations.ts` holds the whole flow and
+  says why each step exists. The admin panel only lets a person send a periodic link or
+  stop a gift; every other status is set by the system. To test locally you need a Mollie
+  test key, any SMTP sink (`SMTP_HOST`), and `CRON_SECRET`; then play Mollie's part with
+  `curl -X POST -d id=tr_... localhost:3000/api/mollie-webhook`, and call
+  `/api/cron/donations` with `Authorization: Bearer $CRON_SECRET`.
 
 - **Do not trust training data for Payload APIs.** Payload 3 differs a lot from Payload 2.
   Check the current docs, as CLAUDE.md says.

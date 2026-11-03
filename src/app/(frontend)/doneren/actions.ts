@@ -1,11 +1,10 @@
 'use server'
 
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 import { getMessages } from '@/i18n'
+import { isRecurringEnabled, MAX_RECURRING_AMOUNT, startFirstPayment } from '@/lib/donations'
 import {
-  DONATION_COOKIE,
   formatAmount,
   getMollieClient,
   getWebhookUrl,
@@ -15,9 +14,11 @@ import {
 import { getPayloadClient } from '@/lib/payload'
 import { getSiteUrl } from '@/lib/site-url'
 
+import { rememberPayment } from './payment-cookie'
+
 export type DonationFormState = {
   status: 'idle' | 'error'
-  errors?: Partial<Record<'amount' | 'name' | 'email' | 'form', string>>
+  errors?: Partial<Record<'amount' | 'name' | 'email' | 'mandate' | 'form', string>>
   values?: { amount: string; name: string; email: string; anonymous: boolean; project: string }
 }
 
@@ -44,7 +45,9 @@ export async function startDonation(
 ): Promise<DonationFormState> {
   const messages = getMessages()
 
-  const anonymous = formData.get('anonymous') === 'on'
+  // Only one-off gifts can be anonymous; see DonationForm.
+  const monthly = formData.get('frequency') === 'monthly'
+  const anonymous = !monthly && formData.get('anonymous') === 'on'
   const values = {
     amount: readField(formData, 'amount'),
     name: readField(formData, 'name'),
@@ -62,7 +65,13 @@ export async function startDonation(
   const amount = Number(values.amount.replace(',', '.'))
   const errors: DonationFormState['errors'] = {}
 
-  if (!Number.isFinite(amount) || amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
+  if (monthly) {
+    if (!Number.isFinite(amount) || amount < MIN_AMOUNT || amount > MAX_RECURRING_AMOUNT) {
+      errors.amount = messages.donateErrorMonthlyAmount
+    }
+    // The donor's agreement to the mandate, as summarised above the box.
+    if (formData.get('mandate') !== 'on') errors.mandate = messages.donateErrorMandate
+  } else if (!Number.isFinite(amount) || amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
     errors.amount = messages.donateErrorAmount
   }
 
@@ -99,6 +108,46 @@ export async function startDonation(
   const siteUrl = getSiteUrl()
   let checkoutUrl: string
 
+  if (monthly) {
+    // Checked again here: the tab could be posted by hand.
+    if (!isRecurringEnabled()) {
+      return { status: 'error', errors: { form: messages.donateErrorGeneric }, values }
+    }
+
+    try {
+      // Rounded to cents: this amount is collected every month.
+      const monthlyAmount = Math.round(amount * 100) / 100
+      const recurring = await payload.create({
+        collection: 'recurring-donations',
+        overrideAccess: true,
+        context: { system: true },
+        data: {
+          kind: 'monthly',
+          interval: 'monthly',
+          status: 'pending',
+          amount: monthlyAmount,
+          donorName: values.name,
+          donorEmail: values.email,
+          project: project?.id ?? null,
+          fund: project?.title ?? messages.donateFundGeneral,
+        },
+      })
+      const started = await startFirstPayment(payload, recurring)
+
+      checkoutUrl = started.checkoutUrl
+      await rememberPayment(started.paymentId, siteUrl)
+    } catch (error) {
+      console.error('Could not start a monthly gift', error)
+      return { status: 'error', errors: { form: messages.donateErrorGeneric }, values }
+    }
+
+    if (!checkoutUrl) {
+      return { status: 'error', errors: { form: messages.donateErrorGeneric }, values }
+    }
+
+    redirect(checkoutUrl)
+  }
+
   try {
     const payment = await mollie.payments.create({
       amount: { currency: 'EUR', value: formatAmount(amount) },
@@ -130,20 +179,7 @@ export async function startDonation(
 
     checkoutUrl = payment.getCheckoutUrl() ?? ''
 
-    /*
-     * Lets the return page say how this visitor's own payment went. Only an
-     * id, readable by nothing but the server, and gone within the hour. It is
-     * functional, not tracking, so it needs no consent banner.
-     */
-    const cookieStore = await cookies()
-    cookieStore.set(DONATION_COOKIE, payment.id, {
-      httpOnly: true,
-      secure: siteUrl.startsWith('https://'),
-      // Lax is what lets it come along on the top-level return from Mollie.
-      sameSite: 'lax',
-      path: '/doneren',
-      maxAge: 60 * 60,
-    })
+    await rememberPayment(payment.id, siteUrl)
   } catch (error) {
     // Logged for the maintainer; the visitor is told nothing about our
     // internals, only that it did not work.

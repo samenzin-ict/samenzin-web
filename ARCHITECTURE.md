@@ -40,6 +40,7 @@ src/
 | `Pages` | collection | Home, Over ons, Contact. Block-based body |
 | `Media` | collection | Uploads, with required alt text |
 | `Donations` | collection | Mollie transaction records. Never publicly readable |
+| `RecurringDonations` | collection | Monthly and periodic gifts by SEPA incasso: the mandate's Mollie ids, never an IBAN |
 | `SiteSettings` | global | Organisation name, addresses, social links, footer |
 | `AnbiGegevens` | global | The statutory ANBI publication fields |
 
@@ -74,6 +75,28 @@ repository; when one changes, change the other.
 
 **Never trust the return URL to confirm payment.** The webhook plus a server-side re-fetch
 is the only source of truth. Card details never touch our servers.
+
+### Recurring gifts (SEPA automatische incasso)
+
+Requirements: `docs/SEPA_otomatik_incasso.pdf`. Code: `src/lib/donations.ts`.
+
+1. A monthly donor ticks the mandate summary on `/doneren`; a periodic donor follows the
+   link an administrator sends once the signed agreement is in. Either way a Mollie
+   customer is created and the first term is paid by iDEAL as a `first` payment, which
+   lays down the SEPA mandate.
+2. The webhook sees that payment paid and creates a Mollie subscription one term later
+   (a periodic gift with a fixed number of terms). Mollie schedules every collection.
+3. Each collection reaches the same webhook as a payment we never created; its
+   `subscriptionId` links it to the gift and it becomes a `Donations` record. Mollie has
+   no webhook for subscriptions, so the subscription is re-read after each payment: that
+   is how a gift ended by the bank or completed is noticed.
+4. `/api/cron/donations` runs daily and mails the pre-notification about five days before
+   each collection. Mollie does not send it; the creditor must, and that is us.
+5. Stopping (`/doneren/stopzetten/<key>`, or the status in the admin panel) revokes the
+   mandate at Mollie before the record may say "stopgezet".
+
+Recurring gifts can only be started while mail and `CRON_SECRET` are configured, because
+the confirmation and the pre-notifications are what the mandate's promises rest on.
 
 ## Privacy by design
 

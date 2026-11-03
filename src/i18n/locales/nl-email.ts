@@ -391,6 +391,268 @@ export const nlEmail = {
       { type: 'button', label: 'Bekijk in het beheerpaneel', url },
     ],
   }),
+  /* --- Donations ------------------------------------------------------ */
+  /*
+   * The texts docs/SEPA_otomatik_incasso.pdf asks for. Amounts and dates
+   * arrive already formatted ("€ 10,00", "3 december 2026").
+   *
+   * Every message about a running gift ends with how to stop it, written out:
+   * stopping must be as easy as starting (B5), and an incasso the donor did
+   * not expect is what turns into a chargeback.
+   */
+
+  /** Dated confirmation of a one-off gift (beleidsplan §8). */
+  donationReceipt: ({
+    name,
+    amount,
+    date,
+    fund,
+  }: Named & { amount: string; date: string; fund: string }): EmailTemplate => ({
+    subject: 'Bevestiging van uw gift',
+    preview: `Wij hebben uw gift van ${amount} ontvangen.`,
+    blocks: [
+      { type: 'heading', text: 'Bedankt voor uw gift' },
+      { type: 'paragraph', text: greeting(name) },
+      { type: 'paragraph', text: 'Wij hebben uw gift in goede orde ontvangen. Hartelijk dank.' },
+      {
+        type: 'facts',
+        items: [
+          { label: 'Bedrag', value: amount },
+          { label: 'Datum', value: date },
+          { label: 'Bestemming', value: fund },
+        ],
+      },
+      { type: 'paragraph', text: 'Bewaar deze e-mail als bewijs van uw gift.' },
+      { type: 'paragraph', text: signOff },
+    ],
+  }),
+
+  /** Proof of the mandate, sent once the first payment is in (B3). */
+  recurringStarted: ({
+    name,
+    kind,
+    amount,
+    interval,
+    firstDate,
+    terms,
+    stopUrl,
+    contactEmail,
+  }: Named & {
+    kind: 'monthly' | 'periodic'
+    amount: string
+    interval: string
+    firstDate: string
+    terms: number | null
+    stopUrl: string
+    contactEmail: string | null
+  }): EmailTemplate => ({
+    subject:
+      kind === 'periodic'
+        ? 'Bevestiging van uw periodieke gift'
+        : 'Bevestiging van uw maandelijkse gift',
+    preview: `Vanaf ${firstDate} schrijven wij ${interval} ${amount} af.`,
+    blocks: [
+      {
+        type: 'heading',
+        text: kind === 'periodic' ? 'Uw periodieke gift is gestart' : 'Uw maandelijkse gift is gestart',
+      },
+      { type: 'paragraph', text: greeting(name) },
+      {
+        type: 'paragraph',
+        text: 'Hartelijk dank voor uw steun. Uw eerste gift is betaald, en daarmee heeft u ons gemachtigd om voortaan automatisch af te schrijven. Hieronder staat wat u met ons heeft afgesproken.',
+      },
+      {
+        type: 'facts',
+        items: [
+          { label: 'Ten gunste van', value: 'Stichting Samenleving en Zingeving' },
+          { label: 'Bedrag', value: amount },
+          { label: 'Hoe vaak', value: interval },
+          { label: 'Eerste afschrijving', value: firstDate },
+          {
+            label: 'Looptijd',
+            value: terms
+              ? `${terms} termijnen in totaal, de eerste betaling meegeteld; daarna stopt de incasso vanzelf`
+              : 'tot u stopt',
+          },
+        ],
+      },
+      {
+        type: 'paragraph',
+        text: 'De afschrijving wordt uitgevoerd door onze betaaldienst Mollie, namens de stichting. Een paar dagen vóór elke afschrijving krijgt u van ons een e-mail met het bedrag en de datum.',
+      },
+      {
+        type: 'paragraph',
+        text: 'Bent u het niet eens met een afschrijving? Dan kunt u die binnen 8 weken via uw eigen bank laten terugboeken, zonder opgaaf van reden.',
+      },
+      {
+        type: 'paragraph',
+        text:
+          kind === 'periodic'
+            ? 'Uw periodieke gift loopt volgens de overeenkomst die u met ons heeft getekend. Wilt u er vervroegd mee stoppen, neem dan contact met ons op; dat heeft gevolgen voor de overeenkomst.'
+            : 'U kunt uw maandelijkse gift op elk moment stopzetten, met de knop hieronder of door ons te mailen. Er wordt dan niets meer afgeschreven.',
+      },
+      ...(kind === 'monthly'
+        ? [
+            { type: 'button' as const, label: 'Maandelijkse gift stopzetten', url: stopUrl },
+            { type: 'paragraph' as const, text: `Werkt de knop niet? Gebruik dan deze link: ${stopUrl}` },
+          ]
+        : []),
+      ...(contactEmail
+        ? [{ type: 'paragraph' as const, text: `Vragen? Mail ons op ${contactEmail}.` }]
+        : []),
+      { type: 'paragraph', text: 'Bewaar deze e-mail: hij is het bewijs van uw machtiging.' },
+      { type: 'paragraph', text: signOff },
+    ],
+  }),
+
+  /** The pre-notification before each collection (B4). */
+  recurringPreNotice: ({
+    name,
+    kind,
+    amount,
+    date,
+    previous,
+    stopUrl,
+    contactEmail,
+  }: Named & {
+    kind: 'monthly' | 'periodic'
+    amount: string
+    date: string
+    previous: { amount: string; date: string } | null
+    stopUrl: string
+    contactEmail: string | null
+  }): EmailTemplate => ({
+    subject: `Op ${date} schrijven wij ${amount} af`,
+    preview: `Aankondiging van de volgende afschrijving voor uw ${kind === 'periodic' ? 'periodieke' : 'maandelijkse'} gift.`,
+    blocks: [
+      { type: 'heading', text: 'Aankondiging van uw volgende gift' },
+      { type: 'paragraph', text: greeting(name) },
+      {
+        type: 'paragraph',
+        text: `Op of rond ${date} schrijven wij ${amount} van uw rekening af voor uw ${kind === 'periodic' ? 'periodieke' : 'maandelijkse'} gift aan Stichting Samenleving en Zingeving. De afschrijving loopt via onze betaaldienst Mollie. U hoeft hiervoor niets te doen.`,
+      },
+      ...(previous
+        ? [
+            {
+              type: 'paragraph' as const,
+              text: `Uw vorige gift van ${previous.amount}, afgeschreven op ${previous.date}, hebben wij in goede orde ontvangen. Hartelijk dank.`,
+            },
+          ]
+        : []),
+      ...(kind === 'monthly'
+        ? [
+            {
+              type: 'paragraph' as const,
+              text: 'Wilt u niet meer geven? Zet uw maandelijkse gift dan stop vóór de afschrijvingsdatum. Er wordt daarna niets meer afgeschreven.',
+            },
+            { type: 'button' as const, label: 'Maandelijkse gift stopzetten', url: stopUrl },
+            { type: 'paragraph' as const, text: `Werkt de knop niet? Gebruik dan deze link: ${stopUrl}` },
+          ]
+        : []),
+      ...(contactEmail
+        ? [{ type: 'paragraph' as const, text: `Vragen? Mail ons op ${contactEmail}.` }]
+        : []),
+      { type: 'paragraph', text: signOff },
+    ],
+  }),
+
+  recurringStopped: ({
+    name,
+    kind,
+    byBank,
+    contactEmail,
+  }: Named & {
+    kind: 'monthly' | 'periodic'
+    byBank: boolean
+    contactEmail: string | null
+  }): EmailTemplate => ({
+    subject: `Uw ${kind === 'periodic' ? 'periodieke' : 'maandelijkse'} gift is stopgezet`,
+    preview: 'Er wordt niets meer van uw rekening afgeschreven.',
+    blocks: [
+      { type: 'heading', text: `Uw ${kind === 'periodic' ? 'periodieke' : 'maandelijkse'} gift is stopgezet` },
+      { type: 'paragraph', text: greeting(name) },
+      {
+        type: 'paragraph',
+        text: byBank
+          ? 'De automatische incasso voor uw gift kon niet worden uitgevoerd en is daarom beëindigd. Er wordt niets meer van uw rekening afgeschreven. Wilt u ons blijven steunen, dan kunt u op onze website opnieuw beginnen.'
+          : 'Uw machtiging is ingetrokken. Er wordt niets meer van uw rekening afgeschreven.',
+      },
+      { type: 'paragraph', text: 'Hartelijk dank voor uw steun tot nu toe.' },
+      ...(contactEmail
+        ? [{ type: 'paragraph' as const, text: `Klopt dit niet? Mail ons op ${contactEmail}.` }]
+        : []),
+      { type: 'paragraph', text: signOff },
+    ],
+  }),
+
+  recurringCompleted: ({ name }: Named): EmailTemplate => ({
+    subject: 'Uw periodieke gift is afgerond',
+    preview: 'De laatste termijn is afgeschreven.',
+    blocks: [
+      { type: 'heading', text: 'Uw periodieke gift is afgerond' },
+      { type: 'paragraph', text: greeting(name) },
+      {
+        type: 'paragraph',
+        text: 'De laatste termijn van uw periodieke gift is afgeschreven. De incasso is daarmee beëindigd; er wordt niets meer afgeschreven. Hartelijk dank voor uw trouwe steun.',
+      },
+      { type: 'paragraph', text: signOff },
+    ],
+  }),
+
+  /** Sent once the signed agreement is in, so the donor can start (A2, B1). */
+  periodicInvite: ({
+    name,
+    amount,
+    interval,
+    terms,
+    url,
+  }: Named & { amount: string; interval: string; terms: number; url: string }): EmailTemplate => ({
+    subject: 'Start uw periodieke gift',
+    preview: 'Wij hebben uw getekende overeenkomst ontvangen.',
+    blocks: [
+      { type: 'heading', text: 'Start uw periodieke gift' },
+      { type: 'paragraph', text: greeting(name) },
+      {
+        type: 'paragraph',
+        text: 'Wij hebben uw getekende overeenkomst voor een periodieke gift ontvangen. Hartelijk dank. Met de knop hieronder betaalt u de eerste termijn via iDEAL; daarmee geeft u ons ook de machtiging om de volgende termijnen automatisch af te schrijven.',
+      },
+      {
+        type: 'facts',
+        items: [
+          { label: 'Bedrag per termijn', value: amount },
+          { label: 'Hoe vaak', value: interval },
+          { label: 'Aantal termijnen', value: String(terms) },
+        ],
+      },
+      { type: 'button', label: 'Periodieke gift starten', url },
+      { type: 'paragraph', text: `Werkt de knop niet? Gebruik dan deze link: ${url}` },
+      { type: 'paragraph', text: signOff },
+    ],
+  }),
+
+  /** To the foundation's own mailbox: something about a running gift changed. */
+  recurringNotification: ({
+    event,
+    name,
+    amount,
+    reason,
+    url,
+  }: Named & { event: string; amount: string; reason?: string | null; url: string }): EmailTemplate => ({
+    subject: `Doorlopende gift: ${event}`,
+    preview: `${name}, ${amount}`,
+    blocks: [
+      { type: 'heading', text: `Doorlopende gift: ${event}` },
+      {
+        type: 'facts',
+        items: [
+          { label: 'Gever', value: name },
+          { label: 'Bedrag per termijn', value: amount },
+          ...(reason ? [{ label: 'Toelichting', value: reason }] : []),
+        ],
+      },
+      { type: 'button', label: 'Bekijk in het beheerpaneel', url },
+    ],
+  }),
 } as const
 
 export type EmailMessages = typeof nlEmail

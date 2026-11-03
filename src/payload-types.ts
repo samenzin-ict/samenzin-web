@@ -84,6 +84,7 @@ export interface Config {
     members: Member;
     'contact-submissions': ContactSubmission;
     donations: Donation;
+    'recurring-donations': RecurringDonation;
     users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -108,6 +109,7 @@ export interface Config {
     members: MembersSelect<false> | MembersSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     donations: DonationsSelect<false> | DonationsSelect<true>;
+    'recurring-donations': RecurringDonationsSelect<false> | RecurringDonationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -1149,9 +1151,9 @@ export interface Donation {
   molliePaymentId: string;
   amount: number;
   /**
-   * Wordt automatisch bijgewerkt door Mollie. Alleen de status "Betaald" betekent dat het geld is ontvangen.
+   * Wordt automatisch bijgewerkt door Mollie. Alleen de status "Betaald" betekent dat het geld is ontvangen; "Teruggeboekt" betekent dat de bank het later heeft teruggehaald.
    */
-  status: 'open' | 'pending' | 'paid' | 'canceled' | 'expired' | 'failed';
+  status: 'open' | 'pending' | 'paid' | 'canceled' | 'expired' | 'failed' | 'charged_back';
   /**
    * Het project waarvoor de gever heeft gekozen. Leeg betekent een algemene gift. Betaalde giften worden bij het opgehaalde bedrag van het project geteld.
    */
@@ -1160,6 +1162,10 @@ export interface Donation {
    * Waar de gever de gift aan wilde besteden, zoals het project toen heette. Leeg betekent algemeen.
    */
   fund?: string | null;
+  /**
+   * Gevuld als deze betaling bij een maandelijkse of periodieke gift hoort.
+   */
+  recurringDonation?: (number | null) | RecurringDonation;
   /**
    * Bij een anonieme gift zijn naam en e-mailadres niet opgeslagen.
    */
@@ -1175,6 +1181,78 @@ export interface Donation {
   paidAt?: string | null;
   /**
    * Automatisch ingevuld: 7 jaar na het einde van het jaar waarin de gift is gedaan, zoals de wet voorschrijft. Op die datum worden naam en e-mailadres weggehaald; het bedrag, de datum en het Mollie-kenmerk blijven staan voor de boekhouding.
+   */
+  deleteAfter?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Maandelijkse giften en periodieke giften die via automatische incasso lopen. Een periodieke gift maakt u hier zelf aan, nadat de getekende overeenkomst binnen is; zet daarna de status op "Betaallink versturen". Een gift stopzetten doet u door de status op "Stopgezet" te zetten: de machtiging wordt dan direct bij Mollie ingetrokken.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "recurring-donations".
+ */
+export interface RecurringDonation {
+  id: number;
+  kind: 'monthly' | 'periodic';
+  /**
+   * Kies zelf alleen "Betaallink versturen" (periodieke gift, na ontvangst van de overeenkomst) of "Stopgezet". De rest zet het systeem.
+   */
+  status: 'draft' | 'invited' | 'pending' | 'active' | 'stopped' | 'failed' | 'completed';
+  /**
+   * De overeenkomst met het BSN komt per post of wordt afgegeven, nooit per e-mail. Bewaar het origineel bij de administratie.
+   */
+  agreementReceived?: boolean | null;
+  agreementDate?: string | null;
+  donorName?: string | null;
+  /**
+   * Hier gaan de bevestiging, het bericht vóór elke afschrijving en de link om te stoppen naartoe.
+   */
+  donorEmail?: string | null;
+  /**
+   * Mollie schrijft standaard hoogstens € 1000 per keer af.
+   */
+  amount: number;
+  /**
+   * Een maandelijkse gift is altijd elke maand.
+   */
+  interval: 'monthly' | 'yearly';
+  /**
+   * Leeg betekent een algemene gift.
+   */
+  project?: (number | null) | Project;
+  /**
+   * Zoals het project heette toen de gift begon.
+   */
+  fund?: string | null;
+  /**
+   * JJJJ-MM-DD
+   */
+  startDate?: string | null;
+  /**
+   * JJJJ-MM-DD, volgens Mollie
+   */
+  nextPaymentDate?: string | null;
+  endedOn?: string | null;
+  /**
+   * Alleen bij een periodieke gift: vijf jaar, de eerste betaling meegeteld.
+   */
+  totalTerms?: number | null;
+  stoppedBy?: ('donor' | 'admin' | 'mollie') | null;
+  /**
+   * Bij een stop door de bank: de redencode, bijvoorbeeld AC01 (rekening ongeldig) of MD01 (geen machtiging).
+   */
+  stopReason?: string | null;
+  /**
+   * De incassodatum waarover de gever het laatst vooraf is ingelicht.
+   */
+  notifiedFor?: string | null;
+  mollieCustomerId?: string | null;
+  mollieMandateId?: string | null;
+  mollieSubscriptionId?: string | null;
+  accessKey?: string | null;
+  /**
+   * Automatisch: 14 maanden na de laatste incasso. Daarna worden naam en e-mailadres weggehaald.
    */
   deleteAfter?: string | null;
   updatedAt: string;
@@ -1314,6 +1392,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'donations';
         value: number | Donation;
+      } | null)
+    | ({
+        relationTo: 'recurring-donations';
+        value: number | RecurringDonation;
       } | null)
     | ({
         relationTo: 'users';
@@ -1861,10 +1943,41 @@ export interface DonationsSelect<T extends boolean = true> {
   status?: T;
   project?: T;
   fund?: T;
+  recurringDonation?: T;
   anonymous?: T;
   donorName?: T;
   donorEmail?: T;
   paidAt?: T;
+  deleteAfter?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "recurring-donations_select".
+ */
+export interface RecurringDonationsSelect<T extends boolean = true> {
+  kind?: T;
+  status?: T;
+  agreementReceived?: T;
+  agreementDate?: T;
+  donorName?: T;
+  donorEmail?: T;
+  amount?: T;
+  interval?: T;
+  project?: T;
+  fund?: T;
+  startDate?: T;
+  nextPaymentDate?: T;
+  endedOn?: T;
+  totalTerms?: T;
+  stoppedBy?: T;
+  stopReason?: T;
+  notifiedFor?: T;
+  mollieCustomerId?: T;
+  mollieMandateId?: T;
+  mollieSubscriptionId?: T;
+  accessKey?: T;
   deleteAfter?: T;
   updatedAt?: T;
   createdAt?: T;
