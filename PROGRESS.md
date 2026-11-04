@@ -197,6 +197,8 @@ database stopped, which is the situation in GitHub Actions.
       Donaties records; chargebacks get their own status and stop counting. One-off gifts
       now get a dated receipt by e-mail. Tested end to end in Mollie test mode against a
       local mail sink, including AC01 cancellation, admin stop and donor stop.
+      On 2026-11-04 also tested by the user on the Preview (monthly and periodic, with
+      Vercel Authentication off for previews so the webhook gets in).
 
 ## In progress
 
