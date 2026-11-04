@@ -4,7 +4,7 @@ Register van verwerkingen van Stichting Samenleving en Zingeving, zoals artikel 
 het vraagt. Het beschrijft welke persoonsgegevens de stichting verwerkt, waarvoor, op
 welke grondslag, wie erbij kan, met wie ze gedeeld worden en hoe lang ze blijven.
 
-Bijgewerkt: 4 november 2026. Hoort bij privacyverklaring versie 1.3.
+Bijgewerkt: 4 november 2026. Hoort bij privacyverklaring versie 1.4.
 
 Dit bestand bevat geen persoonsgegevens, alleen soorten gegevens. Echte namen en
 adressen horen hier nooit in (CLAUDE.md, regel 2).
@@ -134,7 +134,7 @@ dagelijkse taak verwijdert of anonimiseert de rij op die datum.
 | Gegevens | Naam, e-mailadres, motivatie, notities van de beoordeling |
 | Grondslag | Voorbereiding van de overeenkomst |
 | Toegang | Alleen beheerders |
-| Bewaartermijn | Afgewezen of open: 6 maanden, daarna automatisch verwijderd. Goedgekeurd: bewaard als bewijs van toekenning; zie open punten |
+| Bewaartermijn | Afgewezen of zonder besluit: 6 maanden, daarna automatisch verwijderd. Goedgekeurd: bewaard als bewijs dat het lidmaatschap is toegekend, ook na het einde ervan (privacyverklaring 3.5) |
 | In de code | `src/collections/MembershipApplications.ts` |
 
 ### 8. Leden en hun account (Mijn omgeving)
@@ -170,7 +170,7 @@ dagelijkse taak verwijdert of anonimiseert de rij op die datum.
 | Gegevens | Wie, welke cursus of bijeenkomst, voortgang, aanwezigheid, afronding |
 | Grondslag | Uitvoering van de inschrijving |
 | Toegang | Het lid zelf; beheerders en de betreffende commissie |
-| Bewaartermijn | Verdwijnt met het lid (8). Belofte in de privacyverklaring: tot 1 jaar na de activiteit; zie open punten |
+| Bewaartermijn | Bijeenkomsten: 1 jaar na de bijeenkomst (het einde, of zonder eindtijd het begin), daarna automatisch verwijderd (privacyverklaring 3.9). Cursussen: voortgang en afronding horen bij de ledenomgeving en verdwijnen met het lid (8; privacyverklaring 3.10) |
 | In de code | `src/collections/CourseEnrolments.ts`, `src/collections/EventRegistrations.ts` |
 
 ### 11. Beheeraccounts
@@ -211,11 +211,9 @@ ze bij; de website-ontwikkelaar kan ze niet controleren.
 
 ## Open punten
 
-- **Goedgekeurde lidmaatschapsaanvragen** worden onbeperkt bewaard. Dat staat niet in de
-  privacyverklaring. Koppel de termijn aan het lidmaatschap (verwijderen met het lid), of
-  zet het in de verklaring.
-- **Inschrijvingen** blijven staan zolang het lid bestaat. De privacyverklaring belooft
-  1 jaar na de activiteit. Code of verklaring moet worden aangepast.
+- **Goedgekeurde lidmaatschapsaanvragen** worden zonder einddatum bewaard. Dat staat
+  sinds versie 1.4 in de privacyverklaring, maar de AVG vraagt een termijn. Overweeg
+  ze te verwijderen een vast aantal jaren na het einde van het lidmaatschap.
 - **Beheeraccounts** hebben geen bewaartermijn. Spreek af dat een account wordt verwijderd
   zodra iemand stopt.
 - **Verwerkersovereenkomsten**: controleer dat die met Vercel, Neon, Cloudflare en

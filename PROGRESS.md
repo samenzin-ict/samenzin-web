@@ -280,7 +280,8 @@ cron job at 04:00 UTC and by `pnpm prune:expired`.
 |---|---|---|
 | Contact messages | handled, then at most 1 year, deleted automatically | `deleteAfter` on arrival |
 | Volunteer applications | — | 6 months from arrival |
-| Membership applications | — | 6 months; an approved one is kept |
+| Event registrations | "tot 1 jaar na de activiteit" (3.9) | deleted 12 months after the event ends, or starts if it has no end; read from the event, no `deleteAfter`. Course enrolments fall under the portal (3.10) and go with the member |
+| Membership applications | "na 6 maanden"; approved kept as proof (3.5, version 1.4) | 6 months unless approved; an approved one has no `deleteAfter` |
 | Members | "zolang uw account bestaat en daarna 2 jaar" | 2 years from `status: beeindigd`; deleting takes their hours, tasks, enrolments and registrations |
 | Donations | 7 years, a legal obligation | the donor's name and e-mail come off after the fiscal period; the amount, date and Mollie reference stay |
 | Recurring gifts (mandates) | "14 maanden na de laatste afschrijving" (3.3, version 1.3) | name and e-mail come off 14 months after the gift ends (unauthorised-debit claims run 13 months); Mollie's ids and the amounts stay. No IBAN is stored here |
@@ -384,10 +385,10 @@ Still open:
       in this repository. Earlier notes put it in a separate `samenzin-ict` repository,
       which was never created. It covers every collection holding personal data, the
       outgoing e-mail, the paper periodic-gift agreement and the foundation's work
-      outside the website. Its "Open punten" list three gaps between the code and the
-      privacyverklaring: approved membership applications kept indefinitely,
-      enrolments kept as long as the member instead of 1 year after the activity, and
-      admin accounts without a retention. Update it before anything new with personal
+      outside the website. Its "Open punten" list what is still loose: approved membership
+      applications have no end date (now stated in privacyverklaring 1.4, but the AVG
+      wants a term), admin accounts have no retention, and the processor agreements
+      need checking. Update it before anything new with personal
       data goes live.
 - [x] **The privacy statement exists and is published**, with the real text, and the
       footer links to it. See the retention table above for what it promises and what

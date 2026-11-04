@@ -13,8 +13,10 @@ import type { Payload } from 'payload'
  * /api/cron/prune, and `pnpm prune:expired` runs the same code by hand. They
  * must not drift, which is why neither has its own copy of the rules.
  *
- * The convention is the same everywhere: a `deleteAfter` date is written when
- * the clock starts, and a record with no `deleteAfter` is never touched. That
+ * The convention is the same almost everywhere: a `deleteAfter` date is
+ * written when the clock starts, and a record with no `deleteAfter` is never
+ * touched. The one exception is an event registration, whose clock is the
+ * event's own date (see pruneEventRegistrations). That
  * absence is how a record is marked "keep" — an approved membership
  * application, an active member, a donation whose name has already come off.
  */
@@ -55,7 +57,14 @@ export const RETENTION_RULES: readonly RetentionRule[] = [
   { collection: 'recurring-donations', action: 'anonymise' },
 ]
 
-export type RetentionCollection = RetentionRule['collection']
+export type RetentionCollection = RetentionRule['collection'] | 'event-registrations'
+
+/**
+ * "Tot 1 jaar na de activiteit" (privacyverklaring 3.9). Course enrolments are
+ * not under this: their progress and certificates belong to the ledenportaal
+ * (3.10) and go with the member.
+ */
+export const EVENT_REGISTRATION_RETENTION_MONTHS = 12
 
 export type PruneResult = {
   collection: RetentionCollection
@@ -141,5 +150,50 @@ export async function pruneExpired(payload: Payload): Promise<PruneResult[]> {
     }
   }
 
+  results.push(await pruneEventRegistrations(payload))
+
   return results
+}
+
+/**
+ * Registrations for an event that ended more than a year ago.
+ *
+ * Read from the event rather than stamped on the registration, so moving an
+ * event's date moves the deadline with it and nothing has to be kept in step.
+ * An event without an end time counts from its start.
+ */
+async function pruneEventRegistrations(payload: Payload): Promise<PruneResult> {
+  const cutoff = new Date()
+  cutoff.setUTCMonth(cutoff.getUTCMonth() - EVENT_REGISTRATION_RETENTION_MONTHS)
+  const before = cutoff.toISOString()
+
+  try {
+    const { docs } = await payload.find({
+      collection: 'event-registrations',
+      where: {
+        or: [
+          { 'event.endsAt': { less_than: before } },
+          {
+            and: [{ 'event.endsAt': { exists: false } }, { 'event.startsAt': { less_than: before } }],
+          },
+        ],
+      },
+      limit: BATCH,
+      depth: 0,
+      overrideAccess: true,
+    })
+
+    for (const doc of docs) {
+      await payload.delete({ collection: 'event-registrations', id: doc.id, overrideAccess: true })
+    }
+
+    return { collection: 'event-registrations', action: 'delete', affected: docs.length }
+  } catch (error) {
+    return {
+      collection: 'event-registrations',
+      action: 'delete',
+      affected: 0,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
 }

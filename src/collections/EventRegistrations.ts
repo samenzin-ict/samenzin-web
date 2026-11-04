@@ -29,6 +29,9 @@ import { getSiteUrl } from '@/lib/site-url'
  * event has one. See src/access/selfEnrolment.ts.
  *
  * Capacity is counted from these rows, so cancelling frees the place.
+ *
+ * Deleted a year after the event by src/lib/retention.ts, which reads the
+ * date from the event (privacyverklaring 3.9).
  */
 export const EventRegistrations: CollectionConfig = {
   slug: 'event-registrations',
