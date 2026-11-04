@@ -29,8 +29,8 @@ export const MIN_HOURS_PER_ENTRY = 0.25
  * hours. A volunteer who never became a member has nowhere to enter them; that
  * is a gap in the model, recorded in PROGRESS.md rather than papered over here.
  *
- * Holds personal data and needs a processing register entry in samenzin-ict
- * before it goes live.
+ * Holds personal data; its entry in the processing register is
+ * docs/verwerkingsregister.md.
  */
 export const VolunteerHours: CollectionConfig = {
   slug: 'volunteer-hours',

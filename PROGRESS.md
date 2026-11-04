@@ -217,14 +217,13 @@ database stopped, which is the situation in GitHub Actions.
 ## Next up
 
 0. **Before recurring gifts go live in production:** SMTP must work there (the monthly
-   tab stays in its "binnenkort" state until `SMTP_HOST` is set), and the processing
-   register entry for mandates must be added in `samenzin-ict` (drafted 2026-11-04, the
-   board pastes it in; that repository is not reachable from here). Done on 2026-11-04:
-   the privacyverklaring is version 1.3 with the mandate text in 3.3 and 3.4 (edited in
-   the Word file, loaded to dev and production with `pnpm load:legal`), and the
-   periodic-gift agreement exists as a Claude Doc ("Overeenkomst periodieke gift in
-   geld"). Before the first periodic gift, the ANBI status must be granted: without it
-   the agreement brings no tax deduction.
+   tab stays in its "binnenkort" state until `SMTP_HOST` is set). Done on 2026-11-04:
+   the processing register (`docs/verwerkingsregister.md`, entries 4 and 5); the
+   privacyverklaring, now version 1.3 with the mandate text in 3.3 and 3.4 (edited in
+   the Word file, loaded to dev and production with `pnpm load:legal`); and the
+   periodic-gift agreement, a Claude Doc ("Overeenkomst periodieke gift in geld").
+   Before the first periodic gift, the ANBI status must be granted: without it the
+   agreement brings no tax deduction.
 1. **Fill in the SMTP variables in Vercel, then redeploy.** Everything that sends mail is
    built and tested, and nothing is sent until `SMTP_HOST` is set. See `.env.example`; for
    Google Workspace it is `smtp.gmail.com`, port 587, and an app password. Until then an
@@ -356,8 +355,6 @@ Still open:
       callback gets past deployment protection. `MOLLIE_WEBHOOK_URL` remains as an override.
       A live key outside Production, or a test key in Production, is refused and the page
       stays disabled.
-- [ ] **Donations hold personal data** and need a processing register entry in
-      `samenzin-ict`, including how long records are kept.
 - [x] **There is an e-mail adapter, and a member gets their own login.** SMTP through
       nodemailer, chosen over a hosted mail API by the maintainer so that no second
       processor handles members' names and addresses and no processing register entry or
@@ -369,14 +366,6 @@ Still open:
       volunteer who never became a member has no login and therefore nowhere to enter
       hours. Either they are given a membership record, or 3.5 needs a second way in.
       This is a gap in the model, not a bug in the code, and it needs a decision.
-- [ ] **Registered hours are personal data** and belong in the processing register in
-      `samenzin-ict` together with the rest of 3.5, including who may read them
-      (administrators and the vrijwilligers commission) and how long they are kept.
-      Nothing prunes them today.
-- [ ] **Members hold personal data** — name, e-mail, telephone and address — and need a
-      processing register entry in `samenzin-ict`, with a retention tied to the end of the
-      membership. Note that nothing deletes an ended member: `status` goes to `beeindigd`
-      and the record stays until somebody removes it.
 - [ ] **Nobody has logged into Mijn omgeving with a real account yet.** The flow is
       verified end to end against a test member that was created and then deleted; the
       first real member is still a manual step for an administrator.
@@ -391,26 +380,18 @@ Still open:
       `voorbeeld@example.org` and invented project names are publicly visible. Replace
       them before the site is announced, and before the contact form faces the public.
       The seeded privacy statement says in capitals that it is not valid.
+- [x] **The processing register exists**: `docs/verwerkingsregister.md` (2026-11-04),
+      in this repository. Earlier notes put it in a separate `samenzin-ict` repository,
+      which was never created. It covers every collection holding personal data, the
+      outgoing e-mail, the paper periodic-gift agreement and the foundation's work
+      outside the website. Its "Open punten" list three gaps between the code and the
+      privacyverklaring: approved membership applications kept indefinitely,
+      enrolments kept as long as the member instead of 1 year after the activity, and
+      admin accounts without a retention. Update it before anything new with personal
+      data goes live.
 - [x] **The privacy statement exists and is published**, with the real text, and the
       footer links to it. See the retention table above for what it promises and what
       enforces each promise.
-- [ ] **The contact form needs a processing register entry** in `samenzin-ict` before it
-      goes live, including how long messages are kept. Deletion is automatic now; the
-      register entry is still missing.
-- [ ] **Volunteer and membership applications need processing register entries too**,
-      before either form faces the public. Both keep records six months, enforced by
-      `pnpm prune:expired` and by the daily cron job, so the deletion itself is handled;
-      the register entries are not. Note the difference to write down:
-      an approved membership application is kept indefinitely, because it is the record
-      that a membership was granted. That needs its own line in the register, with a
-      retention tied to the membership rather than to a date.
-- [ ] **Course enrolments and event registrations need a line in the processing
-      register.** They were administrator-entered and are now created by the member
-      themselves, which changes who the data comes from even though the fields did not
-      change. Both say who went to what, which is personal data.
-- [ ] **Outgoing e-mail belongs in the register too**, including the mail provider as a
-      processor if the foundation's mailbox is hosted. SMTP was chosen partly to avoid a
-      *separate* processor, but whoever hosts the mailbox is still one.
 - [ ] **Contact messages are visible to administrators only.** If a volunteer with the
       editor role is meant to answer them, that needs a deliberate decision, because the
       messages contain personal data.

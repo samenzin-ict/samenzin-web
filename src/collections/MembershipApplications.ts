@@ -33,8 +33,7 @@ export const RETENTION_MONTHS = 6
  * kept, because it is the evidence that a membership was granted; it gets no
  * `deleteAfter`, and `pnpm prune:expired` leaves it alone.
  *
- * Needs an entry in the processing register in samenzin-ict before it goes
- * live.
+ * Its entry in the processing register is docs/verwerkingsregister.md.
  */
 export const MembershipApplications: CollectionConfig = {
   slug: 'membership-applications',

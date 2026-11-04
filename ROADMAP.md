@@ -94,8 +94,8 @@ belongs here, not earlier: it reports on data that phases 2 and 3 create.
 
 These are not negotiable per feature; they are how this repository works.
 
-- **Anything holding personal data needs a processing register entry in `samenzin-ict`
-  before it goes live**, including how long records are kept and who may read them. That
+- **Anything holding personal data needs a processing register entry in
+  `docs/verwerkingsregister.md` before it goes live**, including how long records are kept and who may read them. That
   covers 2.6, 2.7, 3.1, 3.2, 3.3 and 3.5.
 - **Anything touching payments is discussed before it is built** (`CLAUDE.md`).
 - **A public form needs spam handling that is not a third-party tracker.** The honeypot

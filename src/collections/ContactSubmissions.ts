@@ -18,9 +18,8 @@ import { isAdmin } from '@/access'
  *   action that overrides access after validating, so nothing can be inserted
  *   by posting at /api/contact-submissions directly.
  *
- * Before this goes live it needs an entry in the processing register in the
- * samenzin-ict repository (ARCHITECTURE.md, "Privacy by design"), including
- * how long messages are kept. Nothing here deletes them automatically yet.
+ * Its entry in the processing register is docs/verwerkingsregister.md
+ * (ARCHITECTURE.md, "Privacy by design"). Keep the two in step.
  */
 /**
  * How long a message is kept. The published privacyverklaring says "tot uw

@@ -44,8 +44,7 @@ export const RETENTION_MONTHS = 6
  * record is visible rather than theoretical. Deleting is not automatic; run
  * `pnpm prune:expired`, and a daily Vercel cron job calls the same code.
  *
- * This needs an entry in the processing register in samenzin-ict before it
- * goes live.
+ * Its entry in the processing register is docs/verwerkingsregister.md.
  */
 export const VolunteerApplications: CollectionConfig = {
   slug: 'volunteer-applications',

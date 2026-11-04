@@ -103,8 +103,8 @@ the confirmation and the pre-notifications are what the mandate's promises rest 
 - Cookieless, aggregate analytics. No marketing pixels. Therefore no cookie banner.
 - No third-party fonts or scripts loaded from foreign CDNs; self-host them.
 - Contact form stores the minimum and nothing more.
-- Every model holding personal data must have a matching entry in the processing register
-  in the `samenzin-ict` repository before it goes live.
+- Every model holding personal data must have a matching entry in the processing register,
+  `docs/verwerkingsregister.md`, before it goes live.
 
 ## Deployment
 
