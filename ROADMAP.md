@@ -58,7 +58,7 @@ for the phase as a whole.
 |---|---|---|---|
 | 3.1 | Lid worden: application and approval | `/lid-worden` | **Done.** **Personal data.** Approval is a human decision, not automatic |
 | 3.2 | Member login and member area | `/mijn` | **Done.** Separate `Members` collection with its own login, never Payload users |
-| 3.3 | Recurring SEPA contributions | — | **Payments and mandates.** Mollie recurring; a signed mandate has legal weight |
+| 3.3 | Recurring SEPA contributions | `/doneren`, `/doneren/periodiek/<key>`, `/doneren/stopzetten/<key>` | **Done.** Monthly online; periodic only after the signed agreement. See ARCHITECTURE.md |
 | 3.4 | Cursussen: catalogue and enrolment | `/cursussen`, `/cursussen/<slug>` | **Done.** A member enrols themselves and may withdraw while progress is zero |
 | 3.5 | Hour registration for volunteers | `/mijn/uren` | **Done.** No approval step; only members can register, see PROGRESS.md |
 | 3.6 | Certificates | `/mijn/certificaten` | **Done.** A print-styled page the browser saves as pdf; no certificate is stored, because the enrolment is the evidence |

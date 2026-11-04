@@ -344,7 +344,7 @@ Deployed from `main`, serving `samenzin.org`.
 | `PAYLOAD_SECRET` | `openssl rand -hex 32` | nobody can sign in |
 | `NEXT_PUBLIC_SERVER_URL` | `https://samenzin.org` | links in e-mail and the sitemap point at the deployment's own hostname |
 | `PREVIEW_SECRET` | `openssl rand -hex 32`, different again | the preview button returns 503 |
-| `CRON_SECRET` | `openssl rand -hex 32`, different again | the daily clear-out returns 503 and no personal data is ever deleted |
+| `CRON_SECRET` | `openssl rand -hex 32`, different again | the daily clear-out returns 503 and no personal data is ever deleted; the pre-notification job refuses too, so monthly gifts cannot be started |
 | `R2_BUCKET` | `samenzin-media` | uploads are written to a disk that is discarded |
 | `R2_ENDPOINT` | `https://<account-id>.r2.cloudflarestorage.com` | as above |
 | `R2_ACCESS_KEY_ID` | From the R2 API token | as above |
@@ -361,7 +361,9 @@ Deployed from `main`, serving `samenzin.org`.
 | `MOLLIE_WEBHOOK_URL` | leave unset: it is derived as `<site>/api/mollie-webhook` | — set it only to send Mollie somewhere else |
 
 Nothing on this list breaks the site by being absent: each one degrades to the
-behaviour in the third column. `CRON_SECRET` and the `SMTP_*` group are the two
+behaviour in the third column. Recurring gifts need Mollie, `SMTP_HOST` and
+`CRON_SECRET` all three; with any of them missing the monthly tab explains instead of
+offering a mandate. `CRON_SECRET` and the `SMTP_*` group are the two
 that fail *silently*, which is why they are worth checking rather than assuming.
 
 **Never set `DEMO_MEMBER_PASSWORD` in Vercel.** It belongs to `pnpm seed`, which
@@ -391,21 +393,24 @@ built from `http://localhost:3000` is a dead link for whoever receives it.
 
 So `getSiteUrl()` falls back to `VERCEL_URL`, the deployment's own hostname,
 which Vercel sets at runtime. Links in a preview's mail therefore point at that
-preview. They go through Vercel's deployment protection, so they only open for
-somebody signed in to the Vercel team — which is right for a preview.
+preview. Vercel Authentication is off for previews (see below), so anybody with
+the link can open them; the preview holds only test data.
 
 Set `NEXT_PUBLIC_SERVER_URL` on Preview only if you have given the preview a
 stable alias and want links to use it.
 
-**Mollie on the Preview.** A test payment can be started on a preview, but
-Mollie's callback cannot get in: deployment protection answers it with a login
-page, so the record stays `open`. Vercel's *Protection Bypass for Automation*
-would fix that, and the code uses it when present (the webhook URL then carries
-`VERCEL_AUTOMATION_BYPASS_SECRET`), but it is not available on our Hobby plan.
+**Mollie on the Preview.** Mollie's callback has to reach the preview without a
+login. Vercel's *Protection Bypass for Automation* would let it through (the code
+adds `VERCEL_AUTOMATION_BYPASS_SECRET` to the webhook URL when present), but it is
+not on our Hobby plan. So since 2026-11-03 *Vercel Authentication* is switched off
+for previews (Settings → Deployment Protection). With it on, every test payment
+stays `Gestart` and a recurring gift stays at "Wacht op eerste betaling", because
+the webhook only gets a login page. Vercel crons run only in Production: on a
+preview, call `/api/cron/donations` by hand with the preview's `CRON_SECRET`.
 
-So the webhook is tested locally instead, which tests everything except
-reachability. Put a test key in `.env`, run the site, donate, choose *Paid*,
-*Failed* or *Canceled* on Mollie's test screen, then play Mollie's part:
+The webhook can also be tested locally. Put a test key in `.env`, run the site,
+donate, choose *Paid*, *Failed* or *Canceled* on Mollie's test screen, then play
+Mollie's part:
 
     curl -X POST -d id=tr_... http://localhost:3000/api/mollie-webhook
 

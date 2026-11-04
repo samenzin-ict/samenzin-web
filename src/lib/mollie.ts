@@ -1,4 +1,4 @@
-import createMollieClient, { type MollieClient } from '@mollie/api-client'
+import { createMollieClient, type MollieClient } from '@mollie/api-client'
 
 import { getSiteUrl } from '@/lib/site-url'
 

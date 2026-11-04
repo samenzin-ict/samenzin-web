@@ -1,5 +1,10 @@
 import { MollieApiError } from '@mollie/api-client'
 
+import {
+  afterRecurringPayment,
+  recordSubscriptionPayment,
+  sendDonationReceipt,
+} from '@/lib/donations'
 import { getMollieClient } from '@/lib/mollie'
 import { getPayloadClient } from '@/lib/payload'
 
@@ -60,7 +65,7 @@ export async function POST(request: Request): Promise<Response> {
       overrideAccess: true,
     })
 
-    const donation = docs[0]
+    const donation = docs[0] ?? (await recordSubscriptionPayment(payload, payment))
 
     if (!donation) {
       /*
@@ -77,21 +82,26 @@ export async function POST(request: Request): Promise<Response> {
       return new Response('Unrecognised status', { status: 200 })
     }
 
-    await payload.update({
+    // Mollie keeps a reversed payment "paid" and reports the reversal beside it.
+    const chargedBack = Number(payment.amountChargedBack?.value ?? 0) > 0
+    const status = chargedBack
+      ? 'charged_back'
+      : (payment.status as 'open' | 'pending' | 'paid' | 'canceled' | 'expired' | 'failed')
+
+    const updated = await payload.update({
       collection: 'donations',
       id: donation.id,
       overrideAccess: true,
-      data: {
-        status: payment.status as
-          | 'open'
-          | 'pending'
-          | 'paid'
-          | 'canceled'
-          | 'expired'
-          | 'failed',
-        paidAt: payment.paidAt ?? null,
-      },
+      data: { status, paidAt: payment.paidAt ?? null },
     })
+
+    // A one-off gift is confirmed once, when it turns paid. A running gift's
+    // collections are confirmed in the next pre-notification instead.
+    if (donation.status !== 'paid' && status === 'paid' && !updated.recurringDonation) {
+      await sendDonationReceipt(payload, updated)
+    }
+
+    if (updated.recurringDonation) await afterRecurringPayment(payload, updated, payment)
 
     return new Response('OK', { status: 200 })
   } catch (error) {

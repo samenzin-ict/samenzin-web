@@ -11,6 +11,7 @@ import sharp from 'sharp'
 import { Articles } from './collections/Articles'
 import { ContactSubmissions } from './collections/ContactSubmissions'
 import { Donations } from './collections/Donations'
+import { RecurringDonations } from './collections/RecurringDonations'
 import { Courses } from './collections/Courses'
 import { Events } from './collections/Events'
 import { Media } from './collections/Media'
@@ -167,6 +168,7 @@ export default buildConfig({
     Members,
     ContactSubmissions,
     Donations,
+    RecurringDonations,
     Users,
   ],
   globals: [SiteSettings, AnbiGegevens],

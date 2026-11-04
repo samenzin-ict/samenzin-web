@@ -34,6 +34,7 @@ export type RetentionRule =
   | { collection: 'membership-applications'; action: 'delete' }
   | { collection: 'members'; action: 'delete' }
   | { collection: 'donations'; action: 'anonymise' }
+  | { collection: 'recurring-donations'; action: 'anonymise' }
 
 export const RETENTION_RULES: readonly RetentionRule[] = [
   { collection: 'contact-submissions', action: 'delete' },
@@ -47,6 +48,11 @@ export const RETENTION_RULES: readonly RetentionRule[] = [
    */
   { collection: 'members', action: 'delete' },
   { collection: 'donations', action: 'anonymise' },
+  /*
+   * A mandate: kept 14 months after the last collection, then the name and
+   * address come off. The amounts and Mollie's references stay, like a gift's.
+   */
+  { collection: 'recurring-donations', action: 'anonymise' },
 ]
 
 export type RetentionCollection = RetentionRule['collection']
@@ -90,8 +96,19 @@ export async function pruneExpired(payload: Payload): Promise<PruneResult[]> {
           continue
         }
 
+        if (rule.collection === 'recurring-donations') {
+          await payload.update({
+            collection: rule.collection,
+            id: doc.id,
+            overrideAccess: true,
+            context: { system: true },
+            data: { donorName: null, donorEmail: null, deleteAfter: null },
+          })
+          continue
+        }
+
         await payload.update({
-          collection: rule.collection,
+          collection: 'donations',
           id: doc.id,
           overrideAccess: true,
           data: {
