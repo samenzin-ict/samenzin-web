@@ -217,10 +217,14 @@ database stopped, which is the situation in GitHub Actions.
 ## Next up
 
 0. **Before recurring gifts go live in production:** SMTP must work there (the monthly
-   tab stays in its "binnenkort" state until `SMTP_HOST` is set), add the processing
-   register entry for mandates in `samenzin-ict`, and add the recurring-gift sentence to
-   the privacyverklaring. Have a periodic-gift agreement template ready to post, since
-   the tab promises to send one.
+   tab stays in its "binnenkort" state until `SMTP_HOST` is set), and the processing
+   register entry for mandates must be added in `samenzin-ict` (drafted 2026-11-04, the
+   board pastes it in; that repository is not reachable from here). Done on 2026-11-04:
+   the privacyverklaring is version 1.3 with the mandate text in 3.3 and 3.4 (edited in
+   the Word file, loaded to dev and production with `pnpm load:legal`), and the
+   periodic-gift agreement exists as a Claude Doc ("Overeenkomst periodieke gift in
+   geld"). Before the first periodic gift, the ANBI status must be granted: without it
+   the agreement brings no tax deduction.
 1. **Fill in the SMTP variables in Vercel, then redeploy.** Everything that sends mail is
    built and tested, and nothing is sent until `SMTP_HOST` is set. See `.env.example`; for
    Google Workspace it is `smtp.gmail.com`, port 587, and an app password. Until then an
@@ -280,7 +284,7 @@ cron job at 04:00 UTC and by `pnpm prune:expired`.
 | Membership applications | — | 6 months; an approved one is kept |
 | Members | "zolang uw account bestaat en daarna 2 jaar" | 2 years from `status: beeindigd`; deleting takes their hours, tasks, enrolments and registrations |
 | Donations | 7 years, a legal obligation | the donor's name and e-mail come off after the fiscal period; the amount, date and Mollie reference stay |
-| Recurring gifts (mandates) | **not yet in the privacyverklaring** | name and e-mail come off 14 months after the gift ends (unauthorised-debit claims run 13 months); Mollie's ids and the amounts stay. No IBAN is stored here |
+| Recurring gifts (mandates) | "14 maanden na de laatste afschrijving" (3.3, version 1.3) | name and e-mail come off 14 months after the gift ends (unauthorised-debit claims run 13 months); Mollie's ids and the amounts stay. No IBAN is stored here |
 
 Two decisions inside that worth knowing:
 
